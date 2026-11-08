@@ -6,7 +6,9 @@ smart_receipt/ios/build/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-ML/OCR Struk Belanja.v2i.coco/
+
+# Arsip ZIP dataset tidak disimpan karena isinya sama dengan folder
+# ML/OCR Struk Belanja.v2i.coco/ yang sudah ikut di-commit.
 ML/OCR Struk Belanja.v2i.coco.zip
 
 # --- ML/ocr_classical ---
