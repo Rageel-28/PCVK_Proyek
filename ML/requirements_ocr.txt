@@ -1,0 +1,11 @@
+# Dependensi modul ML/ocr_classical
+# OCR klasik: pengolahan citra + machine learning klasik.
+# TIDAK memakai library OCR siap pakai dan TIDAK memakai deep learning.
+
+numpy>=1.26
+opencv-python>=4.9
+Pillow>=10.0
+pandas>=2.2
+scikit-learn>=1.5
+joblib>=1.4
+matplotlib>=3.8

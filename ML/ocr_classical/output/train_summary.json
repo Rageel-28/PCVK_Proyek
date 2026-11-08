@@ -1,0 +1,8 @@
+{
+  "val_accuracy": 0.9972565157750343,
+  "n_train": 58805,
+  "n_val": 8019,
+  "n_features": 324,
+  "n_classes": 39,
+  "C": 1.0
+}

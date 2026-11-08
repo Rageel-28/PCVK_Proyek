@@ -8,3 +8,11 @@ __pycache__/
 .ipynb_checkpoints/
 ML/OCR Struk Belanja.v2i.coco/
 ML/OCR Struk Belanja.v2i.coco.zip
+
+# --- ML/ocr_classical ---
+# Data latih dihasilkan ulang lewat render_synthetic.py (26 MB, deterministik).
+ML/ocr_classical/data/
+# Artefak debug; hasil evaluasi penting tetap disimpan.
+ML/ocr_classical/output/*.npy
+ML/ocr_classical/output/*.joblib
+~$*

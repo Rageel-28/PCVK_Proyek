@@ -1,0 +1,57 @@
+[
+  {
+    "name": "otsu",
+    "method": "otsu",
+    "deskew": false,
+    "lexicon": false,
+    "n": 150,
+    "cer": 0.21333980536239888,
+    "wer": 0.513888888888889,
+    "exact_match": 0.64,
+    "mean_confidence": 0.6464663960167244
+  },
+  {
+    "name": "sauvola",
+    "method": "sauvola",
+    "deskew": false,
+    "lexicon": false,
+    "n": 150,
+    "cer": 0.31137985506483906,
+    "wer": 0.5088888888888888,
+    "exact_match": 0.6666666666666666,
+    "mean_confidence": 0.630637786384639
+  },
+  {
+    "name": "otsu+deskew",
+    "method": "otsu",
+    "deskew": true,
+    "lexicon": false,
+    "n": 150,
+    "cer": 0.2118299891552142,
+    "wer": 0.5461111111111111,
+    "exact_match": 0.6266666666666667,
+    "mean_confidence": 0.6416046978354378
+  },
+  {
+    "name": "otsu+deskew+lexicon",
+    "method": "otsu",
+    "deskew": true,
+    "lexicon": true,
+    "n": 150,
+    "cer": 0.2103895638629954,
+    "wer": 0.49522222222222223,
+    "exact_match": 0.6666666666666666,
+    "mean_confidence": 0.6416046978354378
+  },
+  {
+    "name": "sauvola+deskew+lexicon",
+    "method": "sauvola",
+    "deskew": true,
+    "lexicon": true,
+    "n": 150,
+    "cer": 0.29747994136122846,
+    "wer": 0.46077777777777773,
+    "exact_match": 0.72,
+    "mean_confidence": 0.6256482034110524
+  }
+]
