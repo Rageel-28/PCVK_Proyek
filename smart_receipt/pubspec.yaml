@@ -42,9 +42,6 @@ dependencies:
   # Image Picker & Processing
   image_picker: ^1.0.4
 
-  # OCR: Google ML Kit on-device text recognition (Indonesian / Latin script).
-  google_mlkit_text_recognition: ^0.14.0
-
   # On-device image preprocessing: rotation, brightness, blur detection.
   image: ^4.2.0
 
@@ -99,6 +96,8 @@ flutter:
     - assets/naive_bayes.json
     - assets/text_normalization_id.json
     - assets/eval_dataset_dummy.json
+    - assets/ocr_char_svm.json
+    - assets/ocr_lexicon.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -13,7 +13,7 @@ class OcrRawResult {
 
   bool get isEmpty => lines.isEmpty || fullText.trim().isEmpty;
 
-  /// Average per-line recognition confidence is not exposed by ML Kit, so we
+  /// Average per-line recognition confidence is not exposed by the engine, so we
   /// approximate text quality from the number of usable lines.
   int get lineCount => lines.length;
 }

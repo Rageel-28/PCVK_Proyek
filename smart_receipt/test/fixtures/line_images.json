@@ -1,0 +1,52 @@
+{
+  "images": [
+    {
+      "file": "line_0.png",
+      "text": "INDOMIE GORENG",
+      "python_text": "INDOMIE GORENG",
+      "confidence": 0.4824
+    },
+    {
+      "file": "line_1.png",
+      "text": "AQUA 600ML",
+      "python_text": "AQUA 600ML",
+      "confidence": 0.6283
+    },
+    {
+      "file": "line_2.png",
+      "text": "PARACETAMOL",
+      "python_text": "PARACETAMOL",
+      "confidence": 0.7754
+    },
+    {
+      "file": "line_3.png",
+      "text": "PERTAMAX",
+      "python_text": "PERTAMAX",
+      "confidence": 0.7781
+    },
+    {
+      "file": "line_4.png",
+      "text": "TKT TRANSJAKARTA",
+      "python_text": "TKT TRANSJAKARTA",
+      "confidence": 0.7932
+    },
+    {
+      "file": "line_5.png",
+      "text": "BSKT COKLAT",
+      "python_text": "BSKT COKLAT",
+      "confidence": 0.6377
+    },
+    {
+      "file": "line_6.png",
+      "text": "KARTU SIMPATI",
+      "python_text": "KARTU SIMPATI",
+      "confidence": 0.789
+    },
+    {
+      "file": "line_7.png",
+      "text": "MINUMAN ISOTONIK",
+      "python_text": "MINUMAN ISOTONIK",
+      "confidence": 0.713
+    }
+  ]
+}

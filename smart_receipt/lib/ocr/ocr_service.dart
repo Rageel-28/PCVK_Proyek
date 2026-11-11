@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:path_provider/path_provider.dart';
 
+import 'classical/classical_ocr_engine.dart';
 import 'image_quality.dart';
 import 'ocr_engine.dart';
 import 'ocr_raw_text.dart';
@@ -45,11 +46,15 @@ class OcrFailure implements Exception {
 /// Pipeline stages, surfaced so the UI can show real progress.
 enum OcrStage { preprocessing, recognizing, parsing, done }
 
-/// Orchestrates the full pipeline:
-/// capture → preprocess (rotation/blur/low-light) → ML Kit OCR → parse.
+/// Orkestrasi pipeline lengkap:
+/// capture -> pra-proses (rotasi/blur/kurang cahaya) -> OCR klasik -> parse.
+///
+/// Tahap OCR dijalankan oleh [ClassicalOcrEngine]: pengolahan citra klasik
+/// dan machine learning klasik (HOG + Linear SVM) yang dibangun sendiri,
+/// tanpa library OCR siap pakai dan tanpa deep learning.
 class OcrService {
   OcrService({OcrEngine? engine, ImagePreprocessor? preprocessor})
-      : _engine = engine ?? MlKitOcrEngine(),
+      : _engine = engine ?? ClassicalOcrEngine(),
         _preprocessor = preprocessor ?? ImagePreprocessor();
 
   final OcrEngine _engine;
@@ -124,7 +129,7 @@ class OcrService {
       );
     }
 
-    // Last resort for gallery imports that are stored sideways: ML Kit does not
+    // Last resort for gallery imports that are stored sideways: the engine does not
     // auto-rotate, so a receipt lying on its side yields a couple of stray
     // lines. Try a quarter turn and keep the better reading.
     if (raw.lineCount < 5) {

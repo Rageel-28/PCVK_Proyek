@@ -78,11 +78,64 @@ Catatan penting:
 | `ocr_pipeline.py` | Pipeline lengkap + CLI |
 | `evaluate.py` | CER, WER, ablasi per tahap |
 | `visualize.py` | Gambar tiap tahap, confusion matrix, grafik ablasi |
+| `export_golden_vectors.py` | Ekspor vektor uji paritas untuk Dart |
+| `export_test_images.py` | Ekspor gambar uji end-to-end untuk Dart |
 
 Folder:
-- `data/` — dataset karakter & baris uji (`.npz`)
-- `models/` — `char_svm.joblib`, `char_svm.json`
+- `data/` — dataset karakter, baris uji, golden vectors (`.npz`, `.json`)
+- `models/` — `char_svm.joblib`, `char_svm.json`, `ocr_lexicon.json`
 - `output/` — hasil evaluasi & visualisasi
+
+---
+
+## Implementasi di aplikasi (Dart)
+
+Pipeline ini sudah diport ke Flutter dan **menggantikan Google ML Kit**.
+
+| Berkas Dart | Padanan Python |
+|---|---|
+| `lib/ocr/classical/gray_image.dart` | buffer citra + resize bicubic + rotasi |
+| `lib/ocr/classical/binarization.dart` | `preprocess.py` |
+| `lib/ocr/classical/connected_components.dart` | `cv2.connectedComponents` |
+| `lib/ocr/classical/paper_detector.dart` | `paper.py` |
+| `lib/ocr/classical/deskew.dart` | `deskew.py` |
+| `lib/ocr/classical/segmenter.dart` | `segment.py` |
+| `lib/ocr/classical/hog.dart` | `features.py` |
+| `lib/ocr/classical/char_classifier.dart` | `train_char.py` (inferensi) |
+| `lib/ocr/classical/lexicon_corrector.dart` | `lexicon.py` |
+| `lib/ocr/classical/classical_ocr_engine.dart` | `ocr_pipeline.py` |
+
+Aset: `assets/ocr_char_svm.json` (117 KB) dan `assets/ocr_lexicon.json` (34 KB).
+
+### Verifikasi paritas
+
+| Uji | Cakupan | Hasil |
+|---|---|---|
+| `test/ocr_classical_parity_test.dart` | HOG + SVM pada 16 patch | **100% identik** dengan Python (toleransi 1e-4) |
+| `test/ocr_classical_pipeline_test.dart` | 8 gambar end-to-end | **8/8 teks identik** dengan Python |
+
+Perbedaan numerik yang harus disamakan agar paritas tercapai:
+
+1. **Pembulatan resize** — Python/cv2 membulatkan setengah ke nilai genap
+   (`47 * 1.5 = 70.5` menjadi **70**, bukan 71).
+2. **Urutan denoise** — citra yang diperbesar adalah grayscale yang
+   **sudah** didenoise, bukan citra mentah.
+3. **Konvensi rotasi** — `cv2.warpAffine` memakai `src = M⁻¹ · dst`;
+   tanda suku sinus harus dibalik.
+4. **Tepi Sauvola** — OpenCV `BORDER_REPLICATE` membagi dengan luas
+   jendela penuh (`win × win`), bukan jumlah piksel yang terlihat.
+5. **Interpolasi resize** — `INTER_CUBIC` memakai kernel Catmull-Rom
+   dengan `a = -0.75`, bukan bilinear.
+6. **PNG grayscale 1 kanal** — `pixel.g`/`pixel.b` bernilai 0, sehingga
+   luma harus dibaca lewat kanal merah setelah normalisasi.
+
+### Kontrak keluaran
+
+`ClassicalOcrEngine.recognize()` mengembalikan **satu `OcrLine` per
+kelompok kata**, bukan satu baris selebar gambar. `receipt_parser.dart`
+mengelompokkan `OcrLine` berdasarkan `centerY` lalu memakai `left`/`right`
+untuk memisahkan kolom nama dan harga; bila seluruh baris dikirim sebagai
+satu `OcrLine`, kolom harga hilang dan total struk tidak terbaca.
 
 ---
 
@@ -105,6 +158,10 @@ python visualize.py
 
 # 5. OCR satu gambar
 python ocr_pipeline.py path\ke\struk.jpg
+
+# 6. Ekspor data uji paritas untuk Dart
+python export_golden_vectors.py
+python export_test_images.py
 ```
 
 ---

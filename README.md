@@ -58,6 +58,29 @@ Foto struk
 
 ---
 
+## Sudah berjalan di aplikasi
+
+Pipeline ini **menggantikan Google ML Kit** dan berjalan di Flutter
+tanpa library OCR apa pun:
+
+| Komponen | Status |
+|---|---|
+| Dependensi ML Kit | **dihapus** dari `pubspec.yaml` |
+| `MlKitOcrEngine` | **dihapus** |
+| `ClassicalOcrEngine` | **12 modul Dart** di `lib/ocr/classical/` |
+| Aset model | `ocr_char_svm.json` (117 KB) + `ocr_lexicon.json` (34 KB) |
+| Klasifikasi TF-IDF + Naive Bayes | **tidak diubah** — hanya masukannya kini teks dari OCR klasik |
+
+### Verifikasi paritas Dart vs Python
+
+| Uji | Hasil |
+|---|---|
+| HOG + SVM (16 patch, toleransi 1e-4) | **100% identik** |
+| End-to-end (8 gambar) | **8/8 teks identik** |
+| Seluruh test suite | **179 test lolos** |
+
+---
+
 ## Struktur Repositori
 
 ```

@@ -611,9 +611,11 @@ tidak pernah aktif membuat font tipis terpecah.
 | Garis pemisah struk | Rule horizontal menyatukan baris | Sudah ditangani Otsu 1D, belum sempurna | Deteksi + hapus garis (Hough) |
 
 **Catatan jujur:** pada foto struk asli, hasil pipeline ini masih jauh
-di bawah ML Kit. Ini wajar untuk OCR klasik yang dibangun dari nol.
-Yang dinilai pada tugas ini adalah **pemahaman pipeline**, bukan
-kemampuan menyaingi produk komersial.
+di bawah library OCR komersial. Ini wajar untuk OCR klasik yang dibangun
+dari nol dalam waktu terbatas. Yang dinilai pada tugas ini adalah
+**pemahaman pipeline**, bukan kemampuan menyaingi produk komersial.
+Sebagai konteks: ML Kit sudah diukur terpisah sebagai pembanding, tetapi
+tidak lagi dipakai di aplikasi.
 
 ---
 
@@ -635,20 +637,70 @@ kemampuan menyaingi produk komersial.
 | `ocr_pipeline.py` | Pipeline lengkap + antarmuka CLI |
 | `evaluate.py` | CER, WER, ablasi |
 | `visualize.py` | Gambar tahap, confusion matrix, grafik ablasi |
+| `export_golden_vectors.py` | Ekspor vektor uji paritas untuk Dart |
+| `export_test_images.py` | Ekspor gambar uji end-to-end untuk Dart |
 
 Folder:
-- `data/` — dataset karakter & baris uji (`.npz`, dibuat ulang otomatis)
-- `models/` — `char_svm.joblib`, `char_svm.json`
+- `data/` — dataset karakter, baris uji, golden vectors
+- `models/` — `char_svm.joblib`, `char_svm.json`, `ocr_lexicon.json`
 - `output/` — hasil evaluasi & visualisasi
 
-### 11.2 Instalasi
+### 11.2 Implementasi di aplikasi Flutter
+
+Pipeline ini sudah diport ke Dart dan **menggantikan Google ML Kit**.
+Sepuluh modul Dart di `smart_receipt/lib/ocr/classical/`:
+
+| Berkas Dart | Padanan Python |
+|---|---|
+| `gray_image.dart` | buffer citra, resize bicubic, rotasi |
+| `binarization.dart` | `preprocess.py` |
+| `connected_components.dart` | `cv2.connectedComponents` |
+| `paper_detector.dart` | `paper.py` |
+| `deskew.dart` | `deskew.py` |
+| `segmenter.dart` | `segment.py` |
+| `hog.dart` | `features.py` |
+| `char_classifier.dart` | inferensi Linear SVM |
+| `lexicon_corrector.dart` | `lexicon.py` |
+| `classical_ocr_engine.dart` | `ocr_pipeline.py` |
+
+Aset: `assets/ocr_char_svm.json` (117 KB) dan `assets/ocr_lexicon.json`
+(34 KB).
+
+**Verifikasi paritas:**
+
+| Uji | Cakupan | Hasil |
+|---|---|---|
+| `ocr_classical_parity_test.dart` | HOG + SVM pada 16 patch | **100% identik** (toleransi 1e-4) |
+| `ocr_classical_pipeline_test.dart` | 8 gambar end-to-end | **8/8 teks identik** |
+| Seluruh test suite | 179 test | **lolos** |
+
+Enam perbedaan numerik yang harus disamakan agar paritas tercapai:
+
+1. **Pembulatan resize** — cv2 membulatkan setengah ke nilai genap
+   (`47 × 1,5 = 70,5` menjadi **70**, bukan 71).
+2. **Urutan denoise** — citra yang diperbesar adalah grayscale yang
+   **sudah** didenoise, bukan citra mentah.
+3. **Konvensi rotasi** — `cv2.warpAffine` memakai `src = M⁻¹ · dst`.
+4. **Tepi Sauvola** — `BORDER_REPLICATE` membagi dengan luas jendela
+   penuh, bukan jumlah piksel yang terlihat.
+5. **Interpolasi resize** — `INTER_CUBIC` memakai kernel Catmull-Rom
+   dengan `a = -0,75`.
+6. **PNG grayscale 1 kanal** — `pixel.g`/`pixel.b` bernilai 0, sehingga
+   luma harus dibaca lewat kanal merah setelah normalisasi.
+
+**Kontrak keluaran:** engine mengembalikan satu `OcrLine` per kelompok
+kata, bukan satu baris selebar gambar. `receipt_parser.dart` memakai
+`centerY` dan `left`/`right` untuk memisahkan kolom nama dan harga; bila
+seluruh baris dikirim sebagai satu `OcrLine`, kolom harga hilang.
+
+### 11.3 Instalasi
 
 ```powershell
 cd ML
 python -m pip install -r requirements_ocr.txt
 ```
 
-### 11.3 Menjalankan
+### 11.4 Menjalankan
 
 ```powershell
 cd ML/ocr_classical
@@ -667,9 +719,13 @@ python visualize.py
 
 # 5. OCR satu gambar
 python ocr_pipeline.py path\ke\struk.jpg
+
+# 6. Ekspor data uji paritas untuk Dart
+python export_golden_vectors.py
+python export_test_images.py
 ```
 
-### 11.4 Opsi CLI
+### 11.5 Opsi CLI
 
 ```powershell
 python ocr_pipeline.py struk.jpg --method sauvola --json

@@ -14,8 +14,9 @@ import '../theme/theme_controller.dart';
 /// Screen 3 - OCR Processing.
 ///
 /// Runs the real OCR pipeline on the captured image:
-/// preprocess (rotation / blur / low-light) → ML Kit text recognition →
-/// structured transaction parsing. Shows live progress and handles failures
+/// preprocess (rotation / blur / low-light) -> classical OCR
+/// (binarization, segmentation, HOG + Linear SVM) -> structured
+/// transaction parsing. Shows live progress and handles failures
 /// (blurred, dark, or unreadable receipts).
 class OcrProcessingScreen extends StatefulWidget {
   const OcrProcessingScreen({super.key, required this.imagePath});
