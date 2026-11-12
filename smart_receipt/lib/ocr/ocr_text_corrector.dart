@@ -176,6 +176,19 @@ bool _looksLikeAmount(String token) {
     return false;
   }
 
+  // A mangled thousands separator (dot read as `O`/`M`/`+`) is still an amount,
+  // even though the letter breaks the digit pattern below.
+  if (_recoverDottedAmount(t) != null) {
+    return true;
+  }
+
+  // A token ending in a unit-suffix letter is a product size (`65G`, `22S`,
+  // `500ML`), not an amount. Without this, `65G` normalises to `656` and is
+  // misread as a price.
+  if (RegExp(r'[GgMmLlSsKk]$').hasMatch(t)) {
+    return false;
+  }
+
   // Replace known OCR digit-substitutes before checking pattern.
   final String normalized = t
       .replaceAll('O', '0')
@@ -288,6 +301,13 @@ String _fixAmountToken(String token) {
     return token;
   }
 
+  // A misread thousands separator (OCR read the dot as `O`/`M`/`+`) must become
+  // a dot, not a zero — otherwise `8.700` read as `8O700` would become `80700`.
+  final String? dotted = _recoverDottedAmount(inner);
+  if (dotted != null) {
+    return hasRp ? 'Rp $dotted' : dotted;
+  }
+
   final StringBuffer buf = StringBuffer();
   for (int i = 0; i < inner.length; i++) {
     final String ch = inner[i];
@@ -309,6 +329,38 @@ String _fixAmountToken(String token) {
     return 'Rp $result';
   }
   return result;
+}
+
+/// If [t] is an amount whose thousands separator was misread as a letter
+/// (`8O700`, `3M5OO`, `16+0OO`, `6OO631`), return it as a proper dotted amount
+/// (`8.700`, `3.500`, `16.000`, `60.631`). Returns `null` when [t] is not such
+/// a token, so clean amounts fall through to the normal letter→digit path.
+///
+/// Indonesian receipts always print exactly three digits after the separator,
+/// so the separator sits three characters from the right. The separator itself
+/// is dropped (it becomes the dot); any remaining `O`/`o` are misread zeros.
+String? _recoverDottedAmount(String t) {
+  if (t.length < 4 || t.length > 7) {
+    return null;
+  }
+  final int dotPos = t.length - 4;
+  final String sep = t[dotPos];
+  // Only a misread separator (letter/symbol) triggers recovery; a clean dot or
+  // comma is handled by the normal path.
+  if (!RegExp(r'[OoMm+]').hasMatch(sep)) {
+    return null;
+  }
+  final String intPart = t.substring(0, dotPos);
+  final String fracPart = t.substring(t.length - 3);
+  final String normInt = intPart.replaceAll(RegExp(r'[Oo]'), '0');
+  final String normFrac = fracPart.replaceAll(RegExp(r'[Oo]'), '0');
+  if (intPart.isEmpty || !RegExp(r'^\d+$').hasMatch(normInt)) {
+    return null;
+  }
+  if (!RegExp(r'^\d+$').hasMatch(normFrac)) {
+    return null;
+  }
+  return '$normInt.$normFrac';
 }
 
 /// Letters visually similar to digits, common in OCR output from amount fields.

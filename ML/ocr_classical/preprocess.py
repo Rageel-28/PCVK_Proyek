@@ -40,7 +40,7 @@ def binarize_otsu(gray: np.ndarray) -> np.ndarray:
     return binary
 
 
-def binarize_adaptive_mean(gray: np.ndarray, block: int = 31, c: int = 10) -> np.ndarray:
+def binarize_adaptive_mean(gray: np.ndarray, block: int = 15, c: int = 10) -> np.ndarray:
     """Adaptive mean threshold: tahan terhadap bayangan bertahap."""
     if block % 2 == 0:
         block += 1

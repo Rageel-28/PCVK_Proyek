@@ -23,6 +23,7 @@ import argparse
 import random
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -115,14 +116,24 @@ def degrade(img: Image.Image, rng: random.Random, allow_rotate: bool = True) -> 
     hi = rng.uniform(190, 255)
     arr = lo + (arr / 255.0) * (hi - lo)
 
-    # Blur halus.
+    # Blur halus. Kadang lebih berat: foto struk yang diambil sekilas atau
+    # dengan kamera yang tidak fokus menghasilkan blur 1-2 px, dan inilah
+    # penyebab utama stroke 1 px menyatu lalu segmentasi gagal.
     if rng.random() < 0.7:
-        radius = rng.uniform(0.4, 1.1)
+        if rng.random() < 0.25:
+            radius = rng.uniform(1.1, 2.1)
+        else:
+            radius = rng.uniform(0.4, 1.1)
         arr = np.asarray(
             Image.fromarray(arr.clip(0, 255).astype(np.uint8)).filter(
                 ImageFilter.GaussianBlur(radius)
             )
         ).astype(np.float32)
+
+    # Noise Gaussian: sensor kamera ponsel di kondisi cahaya rendah.
+    if rng.random() < 0.5:
+        sigma = rng.uniform(2.0, 9.0)
+        arr = arr + np.random.normal(0.0, sigma, arr.shape)
 
     # Salt & pepper.
     if rng.random() < 0.6:
@@ -183,6 +194,30 @@ def crop_and_normalize(
         gamma = rng.uniform(0.55, 0.9)
         arr = 255.0 * (arr / 255.0) ** gamma
         pil = Image.fromarray(arr.clip(0, 255).astype(np.uint8))
+
+    # --- Morfologi & blur level karakter ---------------------------------
+    # Ini inti perbaikan akurasi pada foto struk. Dua kegagalan terbesar
+    # saat inferensi adalah stroke pecah (bbox kelebihan) dan dua huruf
+    # menyatu (bbox kurang). Melatih model pada patch yang sudah mengalami
+    # kedua kerusakan itu membuatnya tahan terhadap ketidaksempurnaan
+    # segmentasi, tanpa perlu memperbaiki segmentasinya lebih dulu.
+    arr = np.asarray(pil)
+    r = rng.random()
+    if r < 0.18:
+        # Erosi: stroke menipis/pecah, meniru hasil binerisasi agresif.
+        arr = cv2.erode(arr, np.ones((2, 2), np.uint8), iterations=1)
+    elif r < 0.34:
+        # Dilatasi: tinta menyebar, meniru cetakan yang menyerap.
+        arr = cv2.dilate(arr, np.ones((2, 2), np.uint8), iterations=1)
+    elif r < 0.46:
+        # Blur karakter: hasil normalisasi dari foto yang tidak fokus.
+        k = rng.choice([3, 3, 5])
+        arr = cv2.GaussianBlur(arr, (k, k), rng.uniform(0.5, 1.3))
+
+    if arr.shape != (nh, nw):
+        pil = Image.fromarray(arr)
+    else:
+        pil = Image.fromarray(arr)
 
     canvas = Image.new("L", (C.CHAR_SIZE, C.CHAR_SIZE), 255)
     ox = (C.CHAR_SIZE - nw) // 2 + rng.randint(-1, 1)

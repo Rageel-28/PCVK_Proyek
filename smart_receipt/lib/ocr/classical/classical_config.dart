@@ -29,7 +29,14 @@ const double kSauvolaR = 128.0;
 // --- Upscale adaptif --------------------------------------------------------
 
 /// Tinggi baris target setelah pembesaran.
-const double kTargetLineHeight = 26.0;
+///
+/// Dinilai cukup besar (30 px) agar tetap efektif bahkan ketika pra-pemrosesan
+/// sudah memperbesar citra: bila target terlalu kecil (26 px), citra yang
+/// sudah di-upscale pra-pemrosesan (tinggi baris ~24 px) dianggap "cukup" dan
+/// tidak di-upscale lagi oleh engine, padahal 24 px masih terlalu kecil untuk
+/// stroke tipis. Target 30 px memastikan engine selalu menaikkan resolusi
+/// sampai stroke terbaca.
+const double kTargetLineHeight = 30.0;
 
 /// Batas maksimum pembesaran.
 const double kMaxUpscale = 3.0;

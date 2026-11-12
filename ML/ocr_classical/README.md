@@ -60,6 +60,33 @@ Catatan penting:
 - Ini fenomena normal pada OCR klasik dan justru menjadi bahan analisis
   yang jujur untuk laporan.
 
+### Hasil pada struk nyata (foto, bukan sintetis)
+
+Diuji pada **10 struk Indomaret** (foto dengan noise, blur, rotasi) memakai
+`eval_real.py` dan ground truth dari generator struk:
+
+| Konfigurasi binarisasi | CER |
+|---|---:|
+| Sauvola (sebelumnya) | 43,64% |
+| **Adaptive mean, block=15 (sekarang)** | **26,28%** |
+
+Temuan kunci:
+
+- Akar masalah bukan kapasitas model, melainkan **domain shift**: patch
+  karakter dari foto struk nyata 12x lebih pudar (0,8% piksel tinta)
+  daripada patch sintetis saat latih (10,3%).
+- Sauvola memotong stroke terlalu tipis pada foto, sehingga segmentasi
+  karakter meleset. Adaptive mean (block kecil) menghasilkan mask yang
+  lebih utuh dan menaikkan akurasi ~40% relatif.
+- Block kecil (15) dipilih karena block besar (31) "memakan" stroke tebal
+  pada citra bersih (huruf M terbaca 7N). Block 15 aman untuk keduanya.
+- Ganti classifier (RandomForest/kNN) dan tambah fitur topologi **tidak**
+  membantu — model sudah 99% pada patch sintetis, jadi bottleneck ada di
+  kualitas citra masukan, bukan di model.
+
+Default pipeline (Python `ocr_pipeline.py` dan Dart `classical_ocr_engine.dart`)
+sekarang memakai **adaptive mean block=15**.
+
 ---
 
 ## Struktur file

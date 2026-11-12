@@ -197,7 +197,7 @@ GrayImage binarizeSauvola(
 /// Adaptive mean threshold: tahan terhadap bayangan bertahap.
 GrayImage binarizeAdaptiveMean(
   GrayImage gray, {
-  int block = 31,
+  int block = 15,
   int c = 10,
 }) {
   final int w = gray.width;
@@ -240,7 +240,7 @@ GrayImage binarize(GrayImage gray, BinarizationMethod method) {
 /// Rangkaian awal: median blur -> binarisasi -> buang bintik kecil.
 GrayImage prepareInk(
   GrayImage gray, {
-  BinarizationMethod method = BinarizationMethod.sauvola,
+  BinarizationMethod method = BinarizationMethod.adaptiveMean,
   int minInkArea = kCharMinInk,
 }) {
   final GrayImage denoised = medianBlur3(gray);

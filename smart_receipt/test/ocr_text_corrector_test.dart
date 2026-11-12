@@ -84,6 +84,39 @@ void main() {
         final String result = _fix('AQUA  10,000');
         expect(result, contains('10.000'));
       });
+
+      test('misread thousands DOT becomes a dot, not a zero: 8O700 → 8.700', () {
+        // OCR reads the dot in `8.700` as `O`. Converting that O to `0` would
+        // yield `80700` (wrong); it must become the separator `8.700`.
+        final String result = _fix('POCARI  8O700');
+        expect(result, contains('8.700'));
+        expect(result, isNot(contains('80700')));
+      });
+
+      test('misread dot as M: 3M5OO → 3.500', () {
+        final String result = _fix('ANTANGIN  3M5OO');
+        expect(result, contains('3.500'));
+      });
+
+      test('misread dot as +: 16+0OO → 16.000', () {
+        final String result = _fix('ROTI  16+0OO');
+        expect(result, contains('16.000'));
+      });
+
+      test('two-digit integer with misread dot: 34O8OO → 34.800', () {
+        final String result = _fix('SWEAT  34O8OO');
+        expect(result, contains('34.800'));
+      });
+
+      test('misread dot AND zero: 6OO631 → 60.631', () {
+        final String result = _fix('DPP  6OO631');
+        expect(result, contains('60.631'));
+      });
+
+      test('clean dotted amount with misread zero still fixed: 8.7OO → 8.700', () {
+        final String result = _fix('MIE  8.7OO');
+        expect(result, contains('8.700'));
+      });
     });
 
     // -----------------------------------------------------------------------

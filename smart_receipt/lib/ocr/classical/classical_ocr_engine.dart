@@ -101,7 +101,7 @@ class ClassicalOcrResult {
 /// Tidak memakai library OCR siap pakai dan tidak memakai deep learning.
 class ClassicalOcrEngine implements OcrEngine {
   ClassicalOcrEngine({
-    this.method = BinarizationMethod.sauvola,
+    this.method = BinarizationMethod.adaptiveMean,
     this.useDeskew = true,
     this.useLexicon = true,
     this.usePaperCrop = true,

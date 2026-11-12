@@ -115,7 +115,7 @@ class CharClassifier:
 class ClassicalOCR:
     def __init__(
         self,
-        method: str = "sauvola",
+        method: str = "adaptive",
         use_deskew: bool = True,
         use_lexicon: bool = True,
         use_paper_crop: bool = True,
@@ -267,7 +267,7 @@ class ClassicalOCR:
 def main() -> None:
     ap = argparse.ArgumentParser(description="OCR klasik untuk struk belanja")
     ap.add_argument("image", nargs="?", help="path gambar struk")
-    ap.add_argument("--method", default="sauvola", choices=["sauvola", "otsu", "adaptive"])
+    ap.add_argument("--method", default="adaptive", choices=["sauvola", "otsu", "adaptive"])
     ap.add_argument("--no-deskew", action="store_true")
     ap.add_argument("--no-lexicon", action="store_true")
     ap.add_argument("--no-paper-crop", action="store_true")

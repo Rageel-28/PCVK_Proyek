@@ -210,7 +210,7 @@ class ReceiptParser {
   /// Lines that carry receipt metadata rather than a purchased product.
   static final RegExp _noiseWords = RegExp(
     r'\b(kembali|kembalian|change|tunai|cash|debit|kredit|qris|gopay|go-?pay|'
-    r'ovo|dana|shopeepay|linkaja|ppn|pajak|tax|diskon|discount|potongan|hemat|'
+    r'ovo|dana|shopeepay|linkaja|ppn|pajak|tax|dpp|diskon|discount|potongan|hemat|'
     r'voucher|poin|point|saldo|sisa|bayar|pembayaran|total|subtotal|'
     r'sub\s*total|jumlah|tagihan|grand\s*total|terima\s*kasih|terimakasih|'
     r'npwp|harga\s*jual|anda\s*hemat|'
@@ -294,14 +294,54 @@ class ReceiptParser {
       t = t.substring(0, t.length - 1).trim();
     }
 
-    if (!_amountShape.hasMatch(t)) {
-      return null;
+    int? value;
+    if (_amountShape.hasMatch(t)) {
+      value = int.tryParse(t.replaceAll(RegExp(r'[^0-9]'), ''));
+    } else {
+      value = _recoverMangledAmount(t);
     }
-    final int? value = int.tryParse(t.replaceAll(RegExp(r'[^0-9]'), ''));
     if (value == null) {
       return null;
     }
     return negative ? -value : value;
+  }
+
+  /// Recovers an amount whose thousands separator and/or zeros were misread by
+  /// OCR, e.g. `8.700` -> `8O700`, `3.500` -> `3M5OO`, `60.631` -> `6OO631`.
+  ///
+  /// Indonesian receipts always print exactly three digits after the thousands
+  /// separator, so the separator sits three characters from the right. We drop
+  /// that character, map the remaining `O`/`o` back to `0`, and read the result
+  /// as a plain integer. Returns `null` when the token is not a mangled amount
+  /// (so clean numbers and phone numbers are left to the normal path).
+  int? _recoverMangledAmount(String t) {
+    if (t.length < 4 || t.length > 7) {
+      return null;
+    }
+    // A token that is already all digits is a clean number, handled by
+    // [_amountShape]; only attempt recovery when a non-digit is present.
+    if (RegExp(r'^\d+$').hasMatch(t)) {
+      return null;
+    }
+
+    final int dotPos = t.length - 4;
+    final String separator = t[dotPos];
+    // The separator must be a character OCR plausibly produces for a dot.
+    if (!RegExp(r'[OoMm+.,]').hasMatch(separator)) {
+      return null;
+    }
+
+    final String intPart = t.substring(0, dotPos);
+    final String fracPart = t.substring(t.length - 3);
+    final String normInt = intPart.replaceAll(RegExp(r'[Oo]'), '0');
+    final String normFrac = fracPart.replaceAll(RegExp(r'[Oo]'), '0');
+    if (intPart.isEmpty || !RegExp(r'^\d+$').hasMatch(normInt)) {
+      return null;
+    }
+    if (!RegExp(r'^\d+$').hasMatch(normFrac)) {
+      return null;
+    }
+    return int.tryParse('$normInt$normFrac');
   }
 
   static bool _isMultiplier(String token) {
@@ -607,6 +647,27 @@ class ReceiptParser {
   /// 4 4500          <- qty + unit
   /// 18,000          <- line total    (numbers below the name)
   /// ```
+  /// True when every non-multiplier token on the row is an amount (clean or
+  /// OCR-mangled), e.g. `4 X 8O700 34O8OO`. Used to decide which rows are pure
+  /// number rows that belong to a product name printed on another row.
+  bool _isNumbersOnlyRow(String text) {
+    final List<String> tokens = text
+        .split(RegExp(r'\s+'))
+        .where((String t) => t.isNotEmpty)
+        .toList();
+    bool hasAmount = false;
+    for (final String token in tokens) {
+      if (_isMultiplier(token)) {
+        continue;
+      }
+      if (amountValue(token) == null) {
+        return false;
+      }
+      hasAmount = true;
+    }
+    return hasAmount;
+  }
+
   List<_Row> _mergeStackedCells(List<_Row> rows) {
     final int n = rows.length;
     final List<bool> isName = List<bool>.filled(n, false);
@@ -615,9 +676,8 @@ class ReceiptParser {
     for (int i = 0; i < n; i++) {
       final _RowParts parts = _splitRow(rows[i]);
       // `2 x 3.500` is a numbers-only row even though it contains the letter
-      // `x`; strip the multiplier glyphs before looking for real letters.
-      isNumbers[i] = parts.numbers.isNotEmpty &&
-          !_hasLetters(rows[i].text.replaceAll(RegExp(r'[xX*@]'), ''));
+      // `x`; a mangled amount like `8O700` also counts as a number.
+      isNumbers[i] = _isNumbersOnlyRow(rows[i].text);
       isName[i] = parts.numbers.isEmpty &&
           _hasLetters(rows[i].text) &&
           !_noiseWords.hasMatch(rows[i].text) &&

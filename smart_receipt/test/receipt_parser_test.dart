@@ -318,6 +318,66 @@ void main() {
 
       expect(p.store, 'Indomaret');
     });
+
+    test('recovers amounts whose thousands dot was misread as a letter', () {
+      // OCR reads the dot (.) in `8.700` as `O`/`M`/`+` and zeros as `O`.
+      expect(parser.amountValue('8O700'), 8700);
+      expect(parser.amountValue('3M5OO'), 3500);
+      expect(parser.amountValue('16+0OO'), 16000);
+      expect(parser.amountValue('34O8OO'), 34800);
+      expect(parser.amountValue('7OOOO'), 7000);
+      expect(parser.amountValue('67O3OO'), 67300);
+      expect(parser.amountValue('6OO631'), 60631);
+      expect(parser.amountValue('6O669'), 6669);
+      // Clean amounts still parse (regression guard).
+      expect(parser.amountValue('8.700'), 8700);
+      expect(parser.amountValue('18,000'), 18000);
+      expect(parser.amountValue('4500'), 4500);
+    });
+
+    test('does not turn a phone number into a mangled amount', () {
+      // A 7-digit number with a stray letter is not a valid N.NNN amount.
+      expect(parser.amountValue('4D95863'), isNull);
+      // A clean 7-digit number is a plain integer, not NNN.NNN.
+      expect(parser.amountValue('4095863'), 4095863);
+    });
+
+    test('parses a two-line Indomaret item with mangled dots', () {
+      final ParsedReceipt p = parseWith(<String>[
+        'INDOMARET',
+        'STORE NO. 0001 (021) 4095863',
+        'NO : 39617647 14/07/2023',
+        'KSR : D. ANGGRAINI 15:05:33',
+        'ITEM TOTAL',
+        'POCARI SWEAT 500ML',
+        '4 X 8O700 34O8OO',
+        'ANTANGIN JRG SACHET',
+        '2 X 3M5OO 7OOOO',
+        'ROTI TAWAR SARI ROTI 16+0OO',
+        'KOPI KAPAL API 65G 9O500',
+        'TOTAL 67O3OO',
+        'DPP 6OO631',
+        'PPN 11% 6O669',
+        'DEBIT BCA 67O3OO',
+      ]);
+
+      expect(
+        p.items.map((ParsedItem i) => i.name).toList(),
+        <String>[
+          'POCARI SWEAT 500ML',
+          'ANTANGIN JRG SACHET',
+          'ROTI TAWAR SARI ROTI',
+          'KOPI KAPAL API 65G',
+        ],
+      );
+      expect(p.items.map((ParsedItem i) => i.qty).toList(), <int>[4, 2, 1, 1]);
+      expect(p.items.map((ParsedItem i) => i.price).toList(),
+          <int>[8700, 3500, 16000, 9500]);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(),
+          <int>[34800, 7000, 16000, 9500]);
+      expect(p.total, 67300);
+      expect(p.totalFromReceipt, isTrue);
+    });
   });
 
   group('ReceiptParser with column-block OCR order', () {

@@ -100,7 +100,40 @@ FONTS = [
     "CascadiaMono.ttf",
 ]
 
-FONT_DIR = Path(r"C:\Windows\Fonts")
+# --- Font per platform ---------------------------------------------------
+# Font di atas adalah font Windows. Di macOS/Unix tidak ada satu pun, jadi
+# dipakai padanan monospace yang tersedia di sana. Semua kandidat dicoba;
+# yang tidak ada otomatis dilewati oleh render_synthetic.py.
+FONTS_MACOS = [
+    "/System/Library/Fonts/Supplemental/Courier New.ttf",
+    "/System/Library/Fonts/Supplemental/Courier New Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Andale Mono.ttf",
+    "/System/Library/Fonts/Supplemental/PTMono.ttc",
+    "/System/Library/Fonts/Menlo.ttc",
+    "/System/Library/Fonts/SFNSMono.ttf",
+]
+
+FONTS_UNIX = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+]
+
+
+def _detect_fonts() -> tuple[Path, list[str]]:
+    """Pilih direktori font dan daftar nama berkas sesuai OS."""
+    import sys
+
+    if sys.platform == "win32":
+        return Path(r"C:\Windows\Fonts"), FONTS
+    if sys.platform == "darwin":
+        # Penunjuk absolut; FONT_DIR sengaja diarahkan ke root agar
+        # "FONT_DIR / name" tetap menghasilkan path absolut yang benar.
+        return Path("/"), [p.lstrip("/") for p in FONTS_MACOS]
+    return Path("/"), [p.lstrip("/") for p in FONTS_UNIX]
+
+
+FONT_DIR, FONTS = _detect_fonts()
 
 RENDER_SIZES = [22, 26, 30, 34]
 RENDER_SCALE = 2          # render 2x lalu turunkan -> anti-aliasing mirip thermal
