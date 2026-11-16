@@ -160,11 +160,45 @@ List<({int top, int bottom})> segmentLines(
 
   List<({int start, int end})> runs = _runs(mask);
   runs = _mergeGaps(runs, gapMerge);
+  runs = <({int start, int end})>[
+    for (final ({int start, int end}) r in runs)
+      if (r.end - r.start + 1 >= minHeight) r,
+  ];
+
+  // Pecah ulang blok tinggi yang menyatu akibat noise tepi kertas.
+  final int tallLimit = math.max(80, (0.15 * h).floor());
+  if (!isPhoto && runs.any((r) => (r.end - r.start + 1) > tallLimit)) {
+    final List<({int start, int end})> refined = <({int start, int end})>[];
+    for (final ({int start, int end}) r in runs) {
+      if ((r.end - r.start + 1) <= tallLimit) {
+        refined.add(r);
+        continue;
+      }
+      final List<int> subProf = profile.sublist(r.start, r.end + 1);
+      final double subT = math.max(_otsu1d(subProf) * 0.65, absolute);
+      final List<bool> subMask = List<bool>.generate(
+        subProf.length,
+        (int i) => subProf[i] >= subT,
+        growable: false,
+      );
+      List<({int start, int end})> subRuns = _mergeGaps(_runs(subMask), gapMerge);
+      subRuns = <({int start, int end})>[
+        for (final ({int start, int end}) sr in subRuns)
+          if (sr.end - sr.start + 1 >= minHeight)
+            (start: r.start + sr.start, end: r.start + sr.end),
+      ];
+      if (subRuns.isNotEmpty) {
+        refined.addAll(subRuns);
+      } else {
+        refined.add(r);
+      }
+    }
+    runs = refined;
+  }
 
   return <({int top, int bottom})>[
     for (final ({int start, int end}) r in runs)
-      if (r.end - r.start + 1 >= minHeight)
-        (top: r.start, bottom: r.end),
+      (top: r.start, bottom: r.end),
   ];
 }
 
@@ -473,7 +507,62 @@ List<({int left, int top, int right, int bottom})> segmentCharacters(
   ) =>
       a.left.compareTo(b.left));
 
-  return result;
+  return _mergeFragments(result);
+}
+
+/// Gabungkan pecahan glyph akibat cetakan thermal yang pucat.
+///
+/// Pada foto struk asli, stroke yang hilang membuat satu huruf terpecah
+/// menjadi dua komponen bersebelahan, mis. `M` menjadi dua batang tegak
+/// dan `0` menjadi dua lengkung. Tanpa penggabungan, satu huruf
+/// menghasilkan dua karakter palsu dan CER melonjak.
+///
+/// Dua aturan, keduanya aman karena tidak mungkin terjadi pada dua huruf
+/// berbeda:
+///
+/// 1. Kotak yang **tumpang tindih** horizontal (celah <= 0) pasti satu
+///    glyph, sebab dua huruf tidak bisa menempati kolom piksel yang sama.
+/// 2. Pecahan **sempit** (lebar < 45% median) yang menempel (celah <= 8 px)
+///    digabung, asalkan hasil gabungannya masih selebar satu huruf
+///    (<= 1.25x median). Gabungan dua huruf asli lebarnya ~2x median.
+List<({int left, int top, int right, int bottom})> _mergeFragments(
+  List<({int left, int top, int right, int bottom})> boxes,
+) {
+  if (boxes.length < 2) return boxes;
+
+  final double medianW =
+      _median(<int>[for (final ({int left, int top, int right, int bottom}) b in boxes) b.right - b.left + 1]);
+  final double narrow = math.max(2.0, medianW * kCharFragmentNarrowRatio);
+  final double maxMergedW = medianW * kCharFragmentMaxWidthRatio;
+
+  final List<({int left, int top, int right, int bottom})> merged =
+      <({int left, int top, int right, int bottom})>[boxes.first];
+
+  for (int i = 1; i < boxes.length; i++) {
+    final ({int left, int top, int right, int bottom}) box = boxes[i];
+    final ({int left, int top, int right, int bottom}) prev = merged.last;
+    final int gap = box.left - prev.right;
+    final int wBox = box.right - box.left + 1;
+    final int wPrev = prev.right - prev.left + 1;
+    final int mergedW = math.max(prev.right, box.right) - prev.left + 1;
+
+    final bool shouldMerge = gap <= 0 ||
+        (gap <= kCharFragmentMaxGap &&
+            mergedW <= maxMergedW &&
+            (wBox < narrow || wPrev < narrow));
+
+    if (shouldMerge) {
+      merged[merged.length - 1] = (
+        left: prev.left,
+        top: math.min(prev.top, box.top),
+        right: math.max(prev.right, box.right),
+        bottom: math.max(prev.bottom, box.bottom),
+      );
+    } else {
+      merged.add(box);
+    }
+  }
+  return merged;
 }
 
 bool _hasInk(GrayImage img) {

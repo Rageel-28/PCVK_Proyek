@@ -42,11 +42,21 @@ void main() {
       expect(levenshtein('', 'ABC'), 3);
     });
 
-    test('mengoreksi salah baca digit menjadi huruf', () {
+    test('kata pendek tidak dikoreksi (terlalu banyak kandidat)', () {
+      final ({String word, int distance, bool changed}) r =
+          lexicon.correct('GAM');
+      expect(r.word, 'GAM');
+      expect(r.changed, isFalse);
+    });
+
+    test('token berangka tidak dikoreksi', () {
+      // Nominal, PLU, dan kode transaksi tidak boleh diubah oleh kamus.
+      // Aturan ini ditambahkan setelah pengukuran pada struk asli
+      // menunjukkan koreksi agresif menurunkan exact match 67,9% -> 60,7%.
       final ({String word, int distance, bool changed}) r =
           lexicon.correct('COK1AT');
-      expect(r.word, 'COKLAT');
-      expect(r.changed, isTrue);
+      expect(r.word, 'COK1AT');
+      expect(r.changed, isFalse);
     });
 
     test('kata yang sudah benar tidak diubah', () {

@@ -72,6 +72,43 @@ const double kCharOversplitRatio = 1.6;
 /// Celah > 2x median celah baris -> batas kata.
 const double kSpaceGapRatio = 2.0;
 
+/// Ambang spasi berbasis lebar karakter: celah > 0.9x lebar karakter median
+/// dianggap batas kata. Dipakai karena tanda baca punya celah lebar di kedua
+/// sisinya, sehingga ukuran berbasis celah menyisipkan spasi di tengah angka.
+const double kSpaceWidthRatio = 0.9;
+
+/// Penggabungan pecahan glyph. Kotak yang tumpang tindih selalu digabung;
+/// kotak sempit yang menempel (<= 8 px) digabung bila hasil gabungan masih
+/// selebar satu huruf (<= 1.25x lebar median).
+const int kCharFragmentMaxGap = 8;
+const double kCharFragmentNarrowRatio = 0.45;
+const double kCharFragmentMaxWidthRatio = 1.25;
+
+// --- Batasan kandidat per konteks kata --------------------------------------
+
+/// Kandidat saat kata didominasi angka (kolom harga, qty, total).
+const String kCharsetNumeric = '0123456789.,-/:%()=+';
+
+/// Kandidat saat kata didominasi huruf (nama produk, nama toko).
+const String kCharsetAlpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ.&/-';
+
+/// Karakter yang boleh muncul di dalam token angka / token huruf. Dipakai
+/// untuk memutuskan apakah sebuah kata "murni angka" atau "murni huruf".
+const String kNumericTokenChars = '0123456789.,-/:%()=+';
+const String kAlphaTokenChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ.&/-';
+
+/// Kandidat untuk glyph sangat kecil (koma, titik, hubung). Glyph setinggi
+/// 3-4 px tidak punya informasi bentuk yang cukup untuk HOG, jadi kandidatnya
+/// dibatasi agar hasilnya deterministik.
+const String kCharsetPunct = '.,-';
+const double kTinyGlyphHeightRatio = 0.60;
+const double kTinyGlyphWidthRatio = 0.55;
+
+/// Panjang minimum token yang boleh dikoreksi leksikon. Di bawah ini jumlah
+/// tetangga pada jarak edit 1 terlalu banyak, sehingga koreksi hampir selalu
+/// salah. Harus sama dengan `MIN_LEN` di `ML/ocr_classical/lexicon.py`.
+const int kLexiconMinLength = 5;
+
 // --- Klasifikasi ------------------------------------------------------------
 
 /// Ambang keyakinan; di bawah ini karakter ditandai ragu.

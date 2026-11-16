@@ -33,37 +33,47 @@ ImageBox? findPaperRegion(GrayImage gray) {
   final int h = gray.height;
   if (w < 8 || h < 8) return null;
 
-  // Ambang terang: kertas lebih terang daripada latar.
+  // Ambang terang: Otsu awal, lalu fallback ambang lebih tinggi bila latar
+  // terang ikut menyatu dengan kertas (>90% bingkai).
   final List<int> hist = gray.histogram();
-  final int threshold = otsuThresholdFromHistogram(hist, gray.length);
+  final int otsuT = otsuThresholdFromHistogram(hist, gray.length);
+  final List<int> thresholds = <int>[otsuT, 195, 205, 185];
 
-  final GrayImage bright = GrayImage.zeros(w, h);
-  for (int i = 0; i < gray.length; i++) {
-    bright.data[i] = gray.data[i] > threshold ? 255 : 0;
+  for (int ti = 0; ti < thresholds.length; ti++) {
+    final int threshold = thresholds[ti];
+    final GrayImage bright = GrayImage.zeros(w, h);
+    for (int i = 0; i < gray.length; i++) {
+      bright.data[i] = gray.data[i] > threshold ? 255 : 0;
+    }
+
+    final List<InkComponent> comps = connectedComponents(bright, minArea: 1);
+    if (comps.isEmpty) continue;
+
+    comps.sort((InkComponent a, InkComponent b) => b.area.compareTo(a.area));
+    final InkComponent best = comps.first;
+
+    final double boxFraction = (best.width * best.height) / (w * h);
+    if (ti == 0 && boxFraction > 0.90) continue;
+    if (boxFraction > 0.92) continue;
+
+    final double areaFraction = best.area / (w * h);
+    if (areaFraction < 0.15) continue;
+
+    final double aspect = best.height / math.max(best.width, 1);
+    if (aspect < kPaperMinAspect || aspect > kPaperMaxAspect) continue;
+
+    final double fill = best.area / math.max(best.width * best.height, 1);
+    if (fill < 0.50) continue;
+
+    final int margin = (0.01 * math.max(best.width, best.height)).round();
+    final int x0 = math.max(0, best.left - margin);
+    final int y0 = math.max(0, best.top - margin);
+    final int x1 = math.min(w - 1, best.right + margin);
+    final int y1 = math.min(h - 1, best.bottom + margin);
+
+    return ImageBox(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
   }
-
-  final List<InkComponent> comps = connectedComponents(bright, minArea: 1);
-  if (comps.isEmpty) return null;
-
-  comps.sort((InkComponent a, InkComponent b) => b.area.compareTo(a.area));
-  final InkComponent best = comps.first;
-
-  final double areaFraction = best.area / (w * h);
-  if (areaFraction < kPaperMinAreaFraction) return null;
-
-  final double aspect = best.height / math.max(best.width, 1);
-  if (aspect < kPaperMinAspect || aspect > kPaperMaxAspect) return null;
-
-  final double fill = best.area / math.max(best.width * best.height, 1);
-  if (fill < kPaperMinFill) return null;
-
-  final int margin = (0.01 * math.max(best.width, best.height)).round();
-  final int x0 = math.max(0, best.left - margin);
-  final int y0 = math.max(0, best.top - margin);
-  final int x1 = math.min(w - 1, best.right + margin);
-  final int y1 = math.min(h - 1, best.bottom + margin);
-
-  return ImageBox(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+  return null;
 }
 
 /// Otsu dari histogram (dipakai juga oleh binarisasi).

@@ -140,12 +140,27 @@ class LexiconCorrector {
   }
 
   /// Kembalikan (kata terbaik, jarak, apakah dikoreksi).
+  ///
+  /// Koreksi sengaja konservatif. Pada struk asli, nama produk jarang ada di
+  /// kamus, sehingga koreksi agresif justru merusak kata yang sudah benar:
+  /// pengukuran pada 28 baris struk asli menunjukkan exact match turun dari
+  /// 67,9% ke 60,7% ketika kamus diterapkan tanpa syarat. Karena itu koreksi
+  /// hanya dilakukan bila:
+  ///
+  /// - token tidak mengandung angka (nominal, PLU, dan kode transaksi tidak
+  ///   boleh diubah),
+  /// - token cukup panjang (>= [kLexiconMinLength]), karena kata pendek punya
+  ///   terlalu banyak tetangga pada jarak edit 1, dan
+  /// - ada tepat satu kandidat pada jarak edit terkecil.
   ({String word, int distance, bool changed}) correct(
     String word, {
     int? maxDist,
   }) {
     final String w = _clean(word);
-    if (w.length < 2) {
+    if (w.length < kLexiconMinLength) {
+      return (word: word, distance: 0, changed: false);
+    }
+    if (RegExp('[0-9]').hasMatch(w)) {
       return (word: word, distance: 0, changed: false);
     }
 
@@ -155,21 +170,24 @@ class LexiconCorrector {
       return (word: w, distance: 0, changed: false);
     }
 
-    String best = w;
+    final List<String> best = <String>[];
     int bestDist = limit + 1;
 
     for (final String cand in _candidates(w, limit)) {
       if (cand == w) continue;
       final int d = levenshtein(w, cand, maxDist: limit);
       if (d < bestDist) {
-        best = cand;
+        best
+          ..clear()
+          ..add(cand);
         bestDist = d;
-        if (d == 1) break;
+      } else if (d == bestDist) {
+        best.add(cand);
       }
     }
 
-    if (bestDist <= limit) {
-      return (word: best, distance: bestDist, changed: true);
+    if (bestDist <= limit && best.length == 1) {
+      return (word: best.first, distance: bestDist, changed: true);
     }
     return (word: word, distance: 0, changed: false);
   }

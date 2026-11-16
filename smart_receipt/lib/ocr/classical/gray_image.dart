@@ -163,12 +163,15 @@ class GrayImage {
     return out;
   }
 
-  /// Ubah ukuran dengan interpolasi bicubic, meniru `cv2.INTER_CUBIC`.
+  /// Ubah ukuran dengan interpolasi bicubic, meniru `cv2.INTER_CUBIC` bit-per-bit.
   ///
-  /// OpenCV memakai kernel Catmull-Rom dengan a = -0.75 dan perataan
-  /// piksel di tengah (`src = (dst + 0.5) * scale - 0.5`). Binarisasi dan
-  /// segmentasi sangat sensitif terhadap perbedaan sub-piksel, jadi
-  /// interpolasi bilinear tidak cukup untuk mencapai paritas.
+  /// OpenCV memakai kernel Catmull-Rom (a = -0.75), perataan piksel di tengah
+  /// (`src = (dst + 0.5) * scale - 0.5`), batas `BORDER_REFLECT_101`, dan
+  /// **aritmetika fixed-point 11 bit** untuk koefisiennya. Langkah terakhir
+  /// itu yang menentukan: pembulatan `cvRound(coef * 2048)` menggeser nilai
+  /// hasil sampai satu satuan intensitas dibanding perhitungan floating
+  /// point biasa, dan pergeseran sekecil itu cukup membalik prediksi tanda
+  /// baca setinggi 3 px. Karena itu implementasi ini meniru fixed-point-nya.
   GrayImage resizedBicubic(int newWidth, int newHeight) {
     if (newWidth == width && newHeight == height) {
       return clone();
@@ -178,43 +181,94 @@ class GrayImage {
       return out;
     }
 
-    final double sx = width / newWidth;
-    final double sy = height / newHeight;
+    const int coefScale = 1 << 11;
+    const int coefShift = 22;
+    const int roundShift = 1 << (coefShift - 1);
 
-    final List<double> wx = List<double>.filled(4, 0);
-    final List<int> ix = List<int>.filled(4, 0);
-    final List<double> wy = List<double>.filled(4, 0);
-    final List<int> iy = List<int>.filled(4, 0);
+    final double sxScale = width / newWidth;
+    final double syScale = height / newHeight;
 
-    for (int y = 0; y < newHeight; y++) {
-      final double fy = (y + 0.5) * sy - 0.5;
-      final int y0 = fy.floor();
+    // Cache koefisien horizontal: tiap kolom tujuan punya 4 tap tetap.
+    final List<int> xIdx = List<int>.filled(newWidth * 4, 0);
+    final List<int> xCoef = List<int>.filled(newWidth * 4, 0);
+    for (int x = 0; x < newWidth; x++) {
+      final double fx = (x + 0.5) * sxScale - 0.5;
+      int base = fx.floor();
+      final double frac = fx - base;
+      if (base < 0) base = 0;
+      if (base > width - 2) base = math.max(0, width - 2);
       for (int k = 0; k < 4; k++) {
-        iy[k] = (y0 - 1 + k).clamp(0, height - 1);
-        wy[k] = _cubicWeight(fy - (y0 - 1 + k));
+        final int srcIdx = base - 1 + k;
+        xIdx[x * 4 + k] = _reflect101(srcIdx, width);
+        final double w = _cubicWeight(frac - (k - 1));
+        xCoef[x * 4 + k] = (w * coefScale).round();
+      }
+    }
+
+    final List<int> row = List<int>.filled(newWidth, 0);
+    for (int y = 0; y < newHeight; y++) {
+      final double fy = (y + 0.5) * syScale - 0.5;
+      int baseY = fy.floor();
+      final double fracY = fy - baseY;
+      if (baseY < 0) baseY = 0;
+      if (baseY > height - 2) baseY = math.max(0, height - 2);
+
+      final List<int> yIdx = List<int>.filled(4, 0);
+      final List<int> yCoef = List<int>.filled(4, 0);
+      for (int k = 0; k < 4; k++) {
+        yIdx[k] = _reflect101(baseY - 1 + k, height);
+        yCoef[k] = (_cubicWeight(fracY - (k - 1)) * coefScale).round();
       }
 
       for (int x = 0; x < newWidth; x++) {
-        final double fx = (x + 0.5) * sx - 0.5;
-        final int x0 = fx.floor();
-        for (int k = 0; k < 4; k++) {
-          ix[k] = (x0 - 1 + k).clamp(0, width - 1);
-          wx[k] = _cubicWeight(fx - (x0 - 1 + k));
-        }
+        final int xi = x * 4;
+        final int c0 = xCoef[xi];
+        final int c1 = xCoef[xi + 1];
+        final int c2 = xCoef[xi + 2];
+        final int c3 = xCoef[xi + 3];
+        final int i0 = xIdx[xi];
+        final int i1 = xIdx[xi + 1];
+        final int i2 = xIdx[xi + 2];
+        final int i3 = xIdx[xi + 3];
 
-        double sum = 0;
+        int sum = 0;
         for (int j = 0; j < 4; j++) {
-          final int rowBase = iy[j] * width;
-          double rowSum = 0;
-          for (int i = 0; i < 4; i++) {
-            rowSum += data[rowBase + ix[i]] * wx[i];
-          }
-          sum += rowSum * wy[j];
+          final int rowBase = yIdx[j] * width;
+          final int hsum = data[rowBase + i0] * c0 +
+              data[rowBase + i1] * c1 +
+              data[rowBase + i2] * c2 +
+              data[rowBase + i3] * c3;
+          sum += hsum * yCoef[j];
         }
-        out.data[y * newWidth + x] = sum.round().clamp(0, 255);
+        final int value = (sum + roundShift) >> coefShift;
+        row[x] = value < 0 ? 0 : (value > 255 ? 255 : value);
+      }
+
+      final int rowBase = y * newWidth;
+      for (int x = 0; x < newWidth; x++) {
+        out.data[rowBase + x] = row[x];
       }
     }
     return out;
+  }
+
+  /// Indeks batas `BORDER_REFLECT_101`, sama seperti `cv2.resize`.
+  ///
+  /// OpenCV mencerminkan tanpa mengulang piksel tepi: -1 -> 1, n -> n-2.
+  /// Memakai `clamp` (replicate) membuat baris/kolom tepi hasil resize
+  /// berbeda satu piksel dari Python, dan perbedaan sekecil itu cukup
+  /// membalik prediksi tanda baca.
+  static int _reflect101(int i, int n) {
+    if (n <= 1) return 0;
+    int idx = i;
+    while (idx < 0 || idx >= n) {
+      if (idx < 0) {
+        idx = -idx;
+      } else {
+        idx = 2 * (n - 1) - idx;
+      }
+    }
+    return idx;
   }
 
   /// Kernel bicubic Catmull-Rom dengan a = -0.75 (nilai OpenCV).

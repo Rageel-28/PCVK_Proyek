@@ -161,6 +161,19 @@ class CharClassifier {
 
   /// Klasifikasi dari vektor HOG yang sudah dihitung.
   CharPrediction predictFromFeatures(Float32List features) {
+    return predictRestricted(features, null);
+  }
+
+  /// Klasifikasi dengan kandidat dibatasi ke himpunan karakter tertentu.
+  ///
+  /// Dipakai saat konteks sudah pasti: kolom harga hanya berisi angka dan
+  /// pemisah, sehingga karakter seperti `S`/`G`/`B` tidak mungkin benar
+  /// walaupun skor linearnya tinggi. Ini menyerang kesalahan yang paling
+  /// merusak struk (nominal uang) tanpa melatih ulang model.
+  CharPrediction predictRestricted(
+    Float32List features,
+    String? allowed,
+  ) {
     if (features.length != _dims) {
       throw ArgumentError(
         'Panjang fitur ${features.length} tidak sama dengan $_dims.',
@@ -176,17 +189,28 @@ class CharClassifier {
       for (int i = 0; i < _dims; i++) {
         sum += _coef[base + i] * features[i];
       }
+      if (allowed != null) {
+        final int cls = _classes[c];
+        final bool ok = cls >= 0 &&
+            cls < _charset.length &&
+            allowed.contains(_charset[cls].toUpperCase());
+        if (!ok) sum = double.negativeInfinity;
+      }
       scores[c] = sum;
     }
 
     // Cari skor tertinggi dan kedua tertinggi.
-    int best = 0;
-    double bestScore = scores[0];
-    for (int c = 1; c < n; c++) {
+    int best = -1;
+    double bestScore = double.negativeInfinity;
+    for (int c = 0; c < n; c++) {
       if (scores[c] > bestScore) {
         bestScore = scores[c];
         best = c;
       }
+    }
+    if (best < 0) {
+      // Semua kandidat tersaring (tidak seharusnya terjadi); pakai argmax biasa.
+      return predictRestricted(features, null);
     }
 
     double second = double.negativeInfinity;
@@ -198,20 +222,18 @@ class CharClassifier {
         second.isFinite ? bestScore - second : double.infinity;
 
     // Softmax stabil untuk keyakinan.
-    double maxScore = scores[0];
-    for (int c = 1; c < n; c++) {
-      if (scores[c] > maxScore) maxScore = scores[c];
-    }
+    double maxScore = bestScore;
     double denom = 0;
     for (int c = 0; c < n; c++) {
-      denom += math.exp(scores[c] - maxScore);
+      if (scores[c].isFinite) {
+        denom += math.exp(scores[c] - maxScore);
+      }
     }
-    final double confidence =
-        denom > 0 ? math.exp(bestScore - maxScore) / denom : 0.0;
+    final double confidence = denom > 0 ? 1.0 / denom : 0.0;
 
     final int classIndex = _classes[best];
     final String char = classIndex >= 0 && classIndex < _charset.length
-        ? _charset[classIndex]
+        ? _charset[classIndex].toUpperCase()
         : '?';
 
     return CharPrediction(
