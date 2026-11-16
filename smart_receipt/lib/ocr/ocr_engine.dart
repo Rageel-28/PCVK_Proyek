@@ -4,8 +4,9 @@ import 'ocr_raw_text.dart';
 ///
 /// Sengaja dijaga sebagai antarmuka agar bagian lain aplikasi tidak pernah
 /// bergantung langsung pada implementasi tertentu. Implementasi yang
-/// dipakai adalah [ClassicalOcrEngine] di `ocr/classical/`, yang
-/// menjalankan seluruh pipeline pengolahan citra klasik di perangkat.
+/// dipakai adalah `ManualOcrEngine` di `ocr/manual/`, yang menjalankan
+/// pipeline OCR buatan sendiri (fitur 172 dimensi + Random Forest) di
+/// perangkat.
 abstract class OcrEngine {
   /// Kenali teks pada [imagePath] (berkas lokal yang dapat dibaca).
   ///
