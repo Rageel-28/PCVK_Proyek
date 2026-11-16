@@ -1,0 +1,318 @@
+{
+ "images": [
+  {
+   "file": "manual_line_0.png",
+   "text": "9\nKS TUBUN 9293493733\nJB KS TUBUN NA . 05 RT02 RW04 KEL TEMANGGUNG\nKEC TEMANGGUNG KA TEMANGGUNG . 5621 3\n---4----4---44--------44---4----4----4--\nQ@ ..12.24-1I53/3.0.20/FXBA-2339/IBRA/@3\n4--4-4---44--4-----44--44--4-44--44--4-4\nSINAR DUNIA BUKU GA 3 6900 2B . 70G\nBUMILANGIT KOMIK MAN 1 1 89800 1 89G . 880\n--------4---------4--\nHARGA JUAL C 209 . 70G\n---4---------4-------\nTOTAL 2 209 . 70G\nTUNAI I 218. 800G\nKEMBALI I 300\nLAYANAN KONSUMEN\nSMS/WA @811 .1500.28@ TEL 1500280\nKONTAK@INDOMARET . CO . ID\nBELANJA LEBIH MUDA DA KLIKINDOMARET\nGAMIS ONGKIR 1 JAM SAMPAH",
+   "lines": [
+    {
+     "text": "9",
+     "chars": 1
+    },
+    {
+     "text": "KS TUBUN 9293493733",
+     "chars": 17
+    },
+    {
+     "text": "JB KS TUBUN NA . 05 RT02 RW04 KEL TEMANGGUNG",
+     "chars": 35
+    },
+    {
+     "text": "KEC TEMANGGUNG KA TEMANGGUNG . 5621 3",
+     "chars": 32
+    },
+    {
+     "text": "---4----4---44--------44---4----4----4--",
+     "chars": 40
+    },
+    {
+     "text": "Q@ ..12.24-1I53/3.0.20/FXBA-2339/IBRA/@3",
+     "chars": 39
+    },
+    {
+     "text": "4--4-4---44--4-----44--44--4-44--44--4-4",
+     "chars": 40
+    },
+    {
+     "text": "SINAR DUNIA BUKU GA 3 6900 2B . 70G",
+     "chars": 28
+    },
+    {
+     "text": "BUMILANGIT KOMIK MAN 1 1 89800 1 89G . 880",
+     "chars": 32
+    },
+    {
+     "text": "--------4---------4--",
+     "chars": 21
+    },
+    {
+     "text": "HARGA JUAL C 209 . 70G",
+     "chars": 17
+    },
+    {
+     "text": "---4---------4-------",
+     "chars": 21
+    },
+    {
+     "text": "TOTAL 2 209 . 70G",
+     "chars": 13
+    },
+    {
+     "text": "TUNAI I 218. 800G",
+     "chars": 13
+    },
+    {
+     "text": "KEMBALI I 300",
+     "chars": 11
+    },
+    {
+     "text": "LAYANAN KONSUMEN",
+     "chars": 15
+    },
+    {
+     "text": "SMS/WA @811 .1500.28@ TEL 1500280",
+     "chars": 30
+    },
+    {
+     "text": "KONTAK@INDOMARET . CO . ID",
+     "chars": 22
+    },
+    {
+     "text": "BELANJA LEBIH MUDA DA KLIKINDOMARET",
+     "chars": 32
+    },
+    {
+     "text": "GAMIS ONGKIR 1 JAM SAMPAH",
+     "chars": 22
+    }
+   ]
+  },
+  {
+   "file": "manual_line_1.png",
+   "text": "9\nKS TUBUN 8293493733\nJB KS TUBUN NA . @5 RT RWO4 KEL TEMANGGUNG\nKEC TEMANGGUNG KA TEMANGGUNG . 5621 3\n----------------------------------------\nQ- ..1.224-1C53/3.@.20/FXBA-8165/ENO/@5\nDELMONTE KETCHUP SA 3 6500 1 9 . 500G\nOATSIDE OBT MILK CAR 2 9900 1 9 . 800G\nAGAR RASA AGAR AGAR 5 6600 33W . 800G\nINDOCAFE WHITE COFFE 9 26300 236 . 70G\nABC SAMBAL ASPI 380G 2 16900 33W - 800G\nSHAR ROTI ROLL WOO 2 7000 14- 800G\nSUPER BUBUR INSTAN 6 6000 36 . 000\n-4---4---4---4---4---\nHARGA JUAL 2 392 . 800G\nTOTAL I 392 . 800G\nTUNAI I 395. 800G\nKEMBALI C 2 . 200G\nLAYANAN KONSUMEN\nSMS/WA @811 .1500.280 TEL 1500280\nKONTAK@INDOMARET . CO . ID\nBELANJA LEBIH MUDA DA KLIKIND0MARET\nGAMIS ONGKIR 1 JAM SAMPAH",
+   "lines": [
+    {
+     "text": "9",
+     "chars": 1
+    },
+    {
+     "text": "KS TUBUN 8293493733",
+     "chars": 17
+    },
+    {
+     "text": "JB KS TUBUN NA . @5 RT RWO4 KEL TEMANGGUNG",
+     "chars": 35
+    },
+    {
+     "text": "KEC TEMANGGUNG KA TEMANGGUNG . 5621 3",
+     "chars": 32
+    },
+    {
+     "text": "----------------------------------------",
+     "chars": 40
+    },
+    {
+     "text": "Q- ..1.224-1C53/3.@.20/FXBA-8165/ENO/@5",
+     "chars": 38
+    },
+    {
+     "text": "DELMONTE KETCHUP SA 3 6500 1 9 . 500G",
+     "chars": 29
+    },
+    {
+     "text": "OATSIDE OBT MILK CAR 2 9900 1 9 . 800G",
+     "chars": 28
+    },
+    {
+     "text": "AGAR RASA AGAR AGAR 5 6600 33W . 800G",
+     "chars": 27
+    },
+    {
+     "text": "INDOCAFE WHITE COFFE 9 26300 236 . 70G",
+     "chars": 31
+    },
+    {
+     "text": "ABC SAMBAL ASPI 380G 2 16900 33W - 800G",
+     "chars": 29
+    },
+    {
+     "text": "SHAR ROTI ROLL WOO 2 7000 14- 800G",
+     "chars": 28
+    },
+    {
+     "text": "SUPER BUBUR INSTAN 6 6000 36 . 000",
+     "chars": 28
+    },
+    {
+     "text": "-4---4---4---4---4---",
+     "chars": 21
+    },
+    {
+     "text": "HARGA JUAL 2 392 . 800G",
+     "chars": 17
+    },
+    {
+     "text": "TOTAL I 392 . 800G",
+     "chars": 13
+    },
+    {
+     "text": "TUNAI I 395. 800G",
+     "chars": 13
+    },
+    {
+     "text": "KEMBALI C 2 . 200G",
+     "chars": 13
+    },
+    {
+     "text": "LAYANAN KONSUMEN",
+     "chars": 15
+    },
+    {
+     "text": "SMS/WA @811 .1500.280 TEL 1500280",
+     "chars": 30
+    },
+    {
+     "text": "KONTAK@INDOMARET . CO . ID",
+     "chars": 22
+    },
+    {
+     "text": "BELANJA LEBIH MUDA DA KLIKIND0MARET",
+     "chars": 32
+    },
+    {
+     "text": "GAMIS ONGKIR 1 JAM SAMPAH",
+     "chars": 22
+    }
+   ]
+  },
+  {
+   "file": "manual_line_2.png",
+   "text": ",,\nALFAM I D | DEO I SAR I KA\n081 584471 843\nJL. RASA DEWT SAR IKAN 316 RT\nKR I T ID & SARAN:1500959,ALFACARE0NU.CO. ID\nWWW- ALFAM I D I KU CM\nE------4.-------.------.-------.---------\n------VC----01--71-N-H9----------.-.----\nBO VCR 7-1 01 -271 2XCW9 KA I R : W I NART I\n. C2CCC22CSSC2ILI=2ICCC2:C22ICCCCS2CCS2CCI\nT ULTRA CK 250ML 2 6, 1 00 1 2, 200G\n- DISC. -1,000\n. ,,.--- ------.---- E.----N.-------.--------\nI TOKA . ITEM 1 12,200\nE TOKAI DISC. 1,000\nI TOKAI BELANJA 11,200\nS SHOPEEPAY 1 0, 200G\nT TUNAI 1,000\nKEMBA L I AN 0\nI PPN ( 1,109)\nE CCSII22CCI=ICCCCSICIC22CCCCCSCCC=SCCCC2I\n1 TGL 27-12-2021 18:07:25 V.2021.9.1\nI MEMBER : MEMBER PONTA\nI A--------.------.--..--E..---E-I.-.------.\nI SE L AMA PO I N ANDA PERTAMAX 5K\nI -----..-.-------N--.--.EE-.E,E.-.EM-R--ET-\nE PA M I D I L,TAMA . NDONES I A TOK\nI NPWP : 02. 672. 927. 7.-054. 000\n5 ALFA TONER L TA 1 2, JB JAMUR STEA BARAT\nT KAV. 7-9 ALAT STEA PAN1,NGGANGAN T I MUR\nEP P I NANG KOTA TANGAN BATAN",
+   "lines": [
+    {
+     "text": ",,",
+     "chars": 2
+    },
+    {
+     "text": "ALFAM I D | DEO I SAR I KA",
+     "chars": 19
+    },
+    {
+     "text": "081 584471 843",
+     "chars": 12
+    },
+    {
+     "text": "JL. RASA DEWT SAR IKAN 316 RT",
+     "chars": 24
+    },
+    {
+     "text": "KR I T ID & SARAN:1500959,ALFACARE0NU.CO. ID",
+     "chars": 38
+    },
+    {
+     "text": "WWW- ALFAM I D I KU CM",
+     "chars": 18
+    },
+    {
+     "text": "E------4.-------.------.-------.---------",
+     "chars": 41
+    },
+    {
+     "text": "------VC----01--71-N-H9----------.-.----",
+     "chars": 40
+    },
+    {
+     "text": "BO VCR 7-1 01 -271 2XCW9 KA I R : W I NART I",
+     "chars": 33
+    },
+    {
+     "text": ". C2CCC22CSSC2ILI=2ICCC2:C22ICCCCS2CCS2CCI",
+     "chars": 41
+    },
+    {
+     "text": "T ULTRA CK 250ML 2 6, 1 00 1 2, 200G",
+     "chars": 26
+    },
+    {
+     "text": "- DISC. -1,000",
+     "chars": 12
+    },
+    {
+     "text": ". ,,.--- ------.---- E.----N.-------.--------",
+     "chars": 42
+    },
+    {
+     "text": "I TOKA . ITEM 1 12,200",
+     "chars": 18
+    },
+    {
+     "text": "E TOKAI DISC. 1,000",
+     "chars": 16
+    },
+    {
+     "text": "I TOKAI BELANJA 11,200",
+     "chars": 19
+    },
+    {
+     "text": "S SHOPEEPAY 1 0, 200G",
+     "chars": 16
+    },
+    {
+     "text": "T TUNAI 1,000",
+     "chars": 11
+    },
+    {
+     "text": "KEMBA L I AN 0",
+     "chars": 10
+    },
+    {
+     "text": "I PPN ( 1,109)",
+     "chars": 11
+    },
+    {
+     "text": "E CCSII22CCI=ICCCCSICIC22CCCCCSCCC=SCCCC2I",
+     "chars": 41
+    },
+    {
+     "text": "1 TGL 27-12-2021 18:07:25 V.2021.9.1",
+     "chars": 33
+    },
+    {
+     "text": "I MEMBER : MEMBER PONTA",
+     "chars": 19
+    },
+    {
+     "text": "I A--------.------.--..--E..---E-I.-.------.",
+     "chars": 43
+    },
+    {
+     "text": "I SE L AMA PO I N ANDA PERTAMAX 5K",
+     "chars": 27
+    },
+    {
+     "text": "I -----..-.-------N--.--.EE-.E,E.-.EM-R--ET-",
+     "chars": 43
+    },
+    {
+     "text": "E PA M I D I L,TAMA . NDONES I A TOK",
+     "chars": 25
+    },
+    {
+     "text": "I NPWP : 02. 672. 927. 7.-054. 000",
+     "chars": 27
+    },
+    {
+     "text": "5 ALFA TONER L TA 1 2, JB JAMUR STEA BARAT",
+     "chars": 34
+    },
+    {
+     "text": "T KAV. 7-9 ALAT STEA PAN1,NGGANGAN T I MUR",
+     "chars": 36
+    },
+    {
+     "text": "EP P I NANG KOTA TANGAN BATAN",
+     "chars": 27
+    }
+   ]
+  }
+ ]
+}

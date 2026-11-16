@@ -4,8 +4,8 @@ import 'dart:math' as math;
 
 import 'package:path_provider/path_provider.dart';
 
-import 'classical/classical_ocr_engine.dart';
 import 'image_quality.dart';
+import 'manual/hybrid_ocr_engine.dart';
 import 'ocr_engine.dart';
 import 'ocr_raw_text.dart';
 import 'ocr_text_corrector.dart';
@@ -47,14 +47,15 @@ class OcrFailure implements Exception {
 enum OcrStage { preprocessing, recognizing, parsing, done }
 
 /// Orkestrasi pipeline lengkap:
-/// capture -> pra-proses (rotasi/blur/kurang cahaya) -> OCR klasik -> parse.
+/// capture -> pra-proses (rotasi/blur/kurang cahaya) -> OCR gabungan -> parse.
 ///
-/// Tahap OCR dijalankan oleh [ClassicalOcrEngine]: pengolahan citra klasik
-/// dan machine learning klasik (HOG + Linear SVM) yang dibangun sendiri,
-/// tanpa library OCR siap pakai dan tanpa deep learning.
+/// Tahap OCR dijalankan oleh [HybridOcrEngine]: pra-proses berbasis Otsu,
+/// fitur manual 172 dimensi, dan Random Forest 100 pohon (pipeline manual)
+/// digabung dengan segmentasi dan kamus pipeline klasik. Tidak memakai
+/// library OCR siap pakai dan tidak memakai deep learning.
 class OcrService {
   OcrService({OcrEngine? engine, ImagePreprocessor? preprocessor})
-      : _engine = engine ?? ClassicalOcrEngine(),
+      : _engine = engine ?? HybridOcrEngine(),
         _preprocessor = preprocessor ?? ImagePreprocessor();
 
   final OcrEngine _engine;
