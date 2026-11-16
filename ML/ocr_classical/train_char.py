@@ -26,6 +26,22 @@ import features as F
 
 
 def load_split(val_ratio: float, seed: int):
+    """Muat data latih.
+
+    Data struk **asli** yang berlabel benar adalah sumber utama; data
+    sintetis hanya pelengkap untuk menutup kelas yang tidak muncul di
+    panen data asli (tanda baca dan sebagian angka). Sampel asli diberi
+    bobot lebih besar lewat penggandaan agar domain thermal Indonesia
+    mendominasi keputusan model.
+
+    Berkas ``chars_real_gold.npz`` dibuat oleh ``build_real_chars.py``
+    dari transkripsi manual, jadi labelnya bukan hasil prediksi model.
+
+    ``chars_gold_real.npz`` dan ``chars_real.npz`` (panen lama) sengaja
+    tidak dipakai: keduanya dihasilkan saat charset masih memuat huruf
+    kecil, sehingga labelnya berasal dari prediksi model yang sedang
+    rusak. Terbukti meracuni kelas ``0`` -- model membacanya sebagai ``8``.
+    """
     path = C.DATA_DIR / "chars_train.npz"
     if not path.exists():
         raise FileNotFoundError(
@@ -33,6 +49,22 @@ def load_split(val_ratio: float, seed: int):
         )
     d = np.load(path)
     X_img, y = d["X"], d["y"]
+    n_synth = len(y)
+
+    real_path = C.DATA_DIR / "chars_real_gold.npz"
+    n_real = 0
+    if real_path.exists():
+        dr = np.load(real_path)
+        if len(dr["y"]) > 0:
+            Xr = np.repeat(dr["X"], C.REAL_SAMPLE_WEIGHT, axis=0)
+            yr = np.repeat(dr["y"], C.REAL_SAMPLE_WEIGHT, axis=0)
+            X_img = np.concatenate([X_img, Xr], axis=0)
+            y = np.concatenate([y, yr], axis=0)
+            n_real = len(dr["y"])
+            print(
+                f"  + struk asli berlabel: {n_real} karakter "
+                f"(bobot x{C.REAL_SAMPLE_WEIGHT} -> {len(yr)})"
+            )
 
     # Buang kelas yang sampelnya terlalu sedikit agar tidak mengganggu.
     counts = np.bincount(y, minlength=len(C.CHARSET))
@@ -45,7 +77,10 @@ def load_split(val_ratio: float, seed: int):
     Xtr_img, Xva_img, ytr, yva = train_test_split(
         X_img, y, test_size=val_ratio, random_state=seed, stratify=y
     )
-    print(f"  latih={len(ytr)}  validasi={len(yva)}  kelas={len(np.unique(y))}")
+    print(
+        f"  sintetis={n_synth}  asli={n_real}  "
+        f"latih={len(ytr)}  validasi={len(yva)}  kelas={len(np.unique(y))}"
+    )
     return Xtr_img, ytr, Xva_img, yva
 
 

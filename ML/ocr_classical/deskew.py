@@ -13,13 +13,18 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
+import resize_cubic as RC
+
 
 def _rotate(ink: np.ndarray, angle: float, border: int = 0) -> np.ndarray:
-    h, w = ink.shape
-    m = cv2.getRotationMatrix2D((w / 2.0, h / 2.0), angle, 1.0)
-    return cv2.warpAffine(
-        ink, m, (w, h), flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_CONSTANT, borderValue=border
-    )
+    """Rotasi dengan piksel terdekat, identik dengan versi Dart.
+
+    Memakai `resize_cubic.rotate_nearest`, bukan `cv2.warpAffine`, karena
+    paritas Dart vs Python adalah kontrak proyek: `warpAffine` memakai
+    `cvRound` dan konvensi matriks yang sulit ditiru persis, dan selisih
+    satu piksel sudah cukup mengubah segmentasi karakter.
+    """
+    return RC.rotate_nearest(ink, angle, border_value=border)
 
 
 def _profile_score(ink: np.ndarray, angle: float) -> float:
@@ -34,10 +39,9 @@ def _downscale(ink: np.ndarray, longest: int = 700) -> tuple[np.ndarray, float]:
     if m <= longest:
         return ink, 1.0
     scale = longest / m
-    return (
-        cv2.resize(ink, (max(1, int(w * scale)), max(1, int(h * scale))), interpolation=cv2.INTER_AREA),
-        scale,
-    )
+    nw = max(1, RC._round_half_away(w * scale))
+    nh = max(1, RC._round_half_away(h * scale))
+    return RC.resize_bilinear(ink, nw, nh), scale
 
 
 def estimate_skew(

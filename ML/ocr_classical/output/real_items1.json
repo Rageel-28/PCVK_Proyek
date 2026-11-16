@@ -1,0 +1,370 @@
+{
+  "mode": "items1",
+  "split": null,
+  "method": "sauvola",
+  "lexicon": false,
+  "summary": [
+    {
+      "label": "SEMUA",
+      "n": 28,
+      "cer": 0.07126227384893351,
+      "cer_median": 0.0,
+      "wer": 0.18622448979591838,
+      "exact_match": 0.7142857142857143,
+      "mean_confidence": 0.7095645742780681
+    },
+    {
+      "label": "jenis=foto",
+      "n": 8,
+      "cer": 0.24594573624904506,
+      "cer_median": 0.23106060606060608,
+      "wer": 0.6101190476190477,
+      "exact_match": 0.125,
+      "mean_confidence": 0.5380506325130321
+    },
+    {
+      "label": "jenis=render",
+      "n": 20,
+      "cer": 0.0013888888888888887,
+      "cer_median": 0.0,
+      "wer": 0.016666666666666666,
+      "exact_match": 0.95,
+      "mean_confidence": 0.7781701509840824
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 2,
+      "cer": 0.125,
+      "cer_median": 0.125,
+      "wer": 0.25,
+      "exact_match": 0.5,
+      "mean_confidence": 0.6434617032670907
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 2,
+      "cer": 0.484375,
+      "cer_median": 0.484375,
+      "wer": 1.0,
+      "exact_match": 0.0,
+      "mean_confidence": 0.39323461437885554
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.1788982259570495,
+      "cer_median": 0.11764705882352941,
+      "wer": 0.5714285714285715,
+      "exact_match": 0.0,
+      "mean_confidence": 0.5567437669497783
+    },
+    {
+      "label": "  CamScanner-19-11-2024-",
+      "n": 1,
+      "cer": 0.21212121212121213,
+      "cer_median": 0.21212121212121213,
+      "wer": 0.6666666666666666,
+      "exact_match": 0.0,
+      "mean_confidence": 0.5607811239630289
+    },
+    {
+      "label": "  receipt-000_png",
+      "n": 2,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.7729296942214949
+    },
+    {
+      "label": "  receipt-100_png",
+      "n": 5,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.7769328508587818
+    },
+    {
+      "label": "  receipt-200_png",
+      "n": 4,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.7837736975101466
+    },
+    {
+      "label": "  receipt-250_png",
+      "n": 4,
+      "cer": 0.006944444444444444,
+      "cer_median": 0.0,
+      "wer": 0.08333333333333333,
+      "exact_match": 0.75,
+      "mean_confidence": 0.7814917869117728
+    },
+    {
+      "label": "  receipt-300_png",
+      "n": 5,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.7743634878514143
+    }
+  ],
+  "samples": [
+    {
+      "stem": "receipt-000_png",
+      "kind": "render",
+      "truth": "SINAR DUNIA BUKU GAM 3 6900 20,700",
+      "pred": "SINAR DUNIA BUKU GAM 3 6900 20,700",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7751
+    },
+    {
+      "stem": "receipt-000_png",
+      "kind": "render",
+      "truth": "BUMILANGIT KOMIK MAN 1 189000 189,000",
+      "pred": "BUMILANGIT KOMIK MAN 1 189000 189,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7708
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "ZEN ANTI BACTERIAL B 9 22000 198,000",
+      "pred": "ZEN ANTI BACTERIAL B 9 22000 198,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7429
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "MUTOUCH SHOWER CREAM 2 85200 170,400",
+      "pred": "MUTOUCH SHOWER CREAM 2 85200 170,400",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7868
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "CHRYSANTHEMUM GRANUL 6 24000 144,000",
+      "pred": "CHRYSANTHEMUM GRANUL 6 24000 144,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7985
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "BAGUS AIR FRESHENER 7 16900 118,300",
+      "pred": "BAGUS AIR FRESHENER 7 16900 118,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7857
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "MORRIS EAU DE PARFUM 2 45300 90,600",
+      "pred": "MORRIS EAU DE PARFUM 2 45300 90,600",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7709
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "BAYFRESH AIR FRESHEN 5 24900 124,500",
+      "pred": "BAYFRESH AIR FRESHEN 5 24900 124,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7661
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "MORRIS EAU DE PARFUM 3 40500 121,500",
+      "pred": "MORRIS EAU DE PARFUM 3 40500 121,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7731
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "MISTER POTATO SNACK 10 13500 135,000",
+      "pred": "MISTER POTATO SNACK 10 13500 135,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7885
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "VAPE PLUS OBAT NYAMU 3 37700 113,100",
+      "pred": "VAPE PLUS OBAT NYAMU 3 37700 113,100",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.8074
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "SIDO MUNCUL JAMU TOL 3 17900 53,700",
+      "pred": "SIDO MUNCUL JAMU TOL 3 17900 53,700",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7892
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "SALONPAS KOYO PEREDA 6 14500 87,000",
+      "pred": "SALONPAS KOYO PEREDA 6 14500 87,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7643
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "INDOMARET GULA BATU 3 8800 26,400",
+      "pred": "INDOMARET GULA BATU 3 8800 26,400",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7555
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "FRISIAN FLAG KENTAL 10 12500 125,000",
+      "pred": "FRISIAN FLAG KENTAL 10 12500 125 000",
+      "cer": 0.0278,
+      "wer": 0.3333,
+      "confidence": 0.8169
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "BELLA SPREAD CHOCO C 7 33500 234,500",
+      "pred": "BELLA SPREAD CHOCO C 7 33500 234,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7713
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "LISTERINE MOUTHWASH 2 76900 153,800",
+      "pred": "LISTERINE MOUTHWASH 2 76900 153,800",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7774
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "KAO ATTACK DETERGENT 7 19300 135,100",
+      "pred": "KAO ATTACK DETERGENT 7 19300 135,100",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7761
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "MAIZENAKU TEPUNG JAG 1 12900 12,900",
+      "pred": "MAIZENAKU TEPUNG JAG 1 12900 12,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.799
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "ELLIPS VITAMIN HAIR 7 29900 209,300",
+      "pred": "ELLIPS VITAMIN HAIR 7 29900 209,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.748
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "kind": "foto",
+      "truth": "MARLBORO TRPCL BS16S 1 36000 36,000",
+      "pred": "MARLB0R0 TRPCL BS16S 1 36000 368000",
+      "cer": 0.0857,
+      "wer": 0.3333,
+      "confidence": 0.5938
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "kind": "foto",
+      "truth": "IDM LGHT TOKAI MOTIF 1 4300 4,300",
+      "pred": "I,A, LGFIT T0KAI A/0MIF 1 4300 40300",
+      "cer": 0.3333,
+      "wer": 0.7143,
+      "confidence": 0.4638
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "kind": "foto",
+      "truth": "ICHTHN THAI M.COFF300 1 9900 9,900",
+      "pred": "ICHTN T/AI M.C0FF300 1 9900 9,9@0",
+      "cer": 0.1176,
+      "wer": 0.6667,
+      "confidence": 0.6126
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_15_jpg",
+      "kind": "foto",
+      "truth": "PUCUK/H TEH MLATI350 1 3800 3,800",
+      "pred": "PWLVK/H TEH,MLATI350 1 3:00-= 3,800",
+      "cer": 0.2121,
+      "wer": 0.6667,
+      "confidence": 0.5608
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_100_jpg",
+      "kind": "foto",
+      "truth": "ULTRA CKT 250ML 2 6,100 12,200",
+      "pred": "ULTRA CKT 250ML 2 6,100 12,200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.6894
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_100_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,000",
+      "pred": "DMSC. -1,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5976
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_101_jpg",
+      "kind": "foto",
+      "truth": "DLFI ALMD 403/5 7 17,700 123,900",
+      "pred": "0LFI AL/) 40A4 / )7,7(,1K,9N",
+      "cer": 0.4688,
+      "wer": 1.0,
+      "confidence": 0.3829
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_101_jpg",
+      "kind": "foto",
+      "truth": "Disc. -100,800",
+      "pred": ",+SC. -10,,H0",
+      "cer": 0.5,
+      "wer": 1.0,
+      "confidence": 0.4035
+    }
+  ]
+}

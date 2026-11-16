@@ -33,10 +33,48 @@ for _d in (DATA_DIR, MODEL_DIR, OUTPUT_DIR):
 # huruf besar/kecil membuat kelas saling tumpang tindih (O vs o, C vs c).
 DIGITS = "0123456789"
 UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-SYMBOLS = ".&-/%+"
+# Struk Indonesia memakai pemisah ribuan koma, titik dua label, sama dengan
+# untuk DPP/PPN, @ pada email, dan tanda kurung untuk nominal PPN.
+SYMBOLS = ".&-/%+,:@()="
 CHARSET = DIGITS + UPPER + SYMBOLS
 CHAR_TO_IDX = {c: i for i, c in enumerate(CHARSET)}
 IDX_TO_CHAR = {i: c for c, i in CHAR_TO_IDX.items()}
+
+# Kandidat per konteks kata. Dipakai saat karakter sudah diprediksi sekali
+# lalu diprediksi ulang dengan batasan, sehingga huruf mirip angka (O/0,
+# I/1, S/5, B/8, Z/2, G/6) tidak lagi saling tertukar di kolom harga.
+NUMERIC_CHARSET = frozenset(DIGITS + ".,-/:%()=+")
+ALPHA_CHARSET = frozenset(UPPER + ".&/-/")
+
+# Karakter yang boleh muncul di dalam token angka / token huruf. Dipakai
+# untuk memutuskan apakah sebuah kata "murni angka" atau "murni huruf".
+_NUMERIC_TOKEN_CHARS = frozenset(DIGITS + ".,-/:%()=+")
+_ALPHA_TOKEN_CHARS = frozenset(UPPER + ".&/-")
+
+
+def charset_for_token(chars: list[str]) -> frozenset[str] | None:
+    """Kandidat yang boleh dipakai untuk sebuah kata, atau ``None``.
+
+    Aturannya **murni**: kata hanya dibatasi bila seluruh isinya memang
+    satu jenis. Ini penting karena struk penuh token campuran seperti
+    ``600ML``, ``250ML``, ``140ML``, dan ``403/5``. Versi pertama aturan
+    ini memakai mayoritas (>60%), dan akibatnya ``600ML`` dianggap kata
+    angka sehingga ``M`` dan ``L`` dibatasi menjadi digit.
+    """
+    if not chars:
+        return None
+    if all(c in _NUMERIC_TOKEN_CHARS for c in chars):
+        return NUMERIC_CHARSET
+    if all(c in _ALPHA_TOKEN_CHARS for c in chars):
+        return ALPHA_CHARSET
+    return None
+
+# Tanda baca kecil (koma, titik, hubung). Glyph setinggi 3-4 px tidak punya
+# informasi bentuk yang cukup untuk HOG, jadi kandidatnya dibatasi agar
+# hasilnya deterministik dan tidak berubah karena satu piksel.
+PUNCT_CHARSET = frozenset(".,-")
+TINY_GLYPH_HEIGHT_RATIO = 0.60
+TINY_GLYPH_WIDTH_RATIO = 0.55
 
 # ---------------------------------------------------------------------------
 # Ukuran kanvas karakter
@@ -79,6 +117,10 @@ CHAR_CLOSE_KERNEL = 2        # closing adaptif bila huruf terpecah
 CHAR_SPLIT_RATIO = 1.6       # bbox > 1.6x lebar median -> dipecah
 CHAR_OVERSPLIT_RATIO = 1.6   # komponen > 1.6x perkiraan -> coba closing
 SPACE_GAP_RATIO = 2.0        # celah > 2x median celah baris -> batas kata
+# Ambang spasi berbasis lebar karakter: celah > 0.9x lebar karakter median
+# dianggap batas kata. Dipakai karena tanda baca punya celah lebar di kedua
+# sisinya, sehingga ukuran berbasis celah menyisipkan spasi di tengah angka.
+SPACE_WIDTH_RATIO = 0.9
 
 # ---------------------------------------------------------------------------
 # Klasifikasi
@@ -86,6 +128,11 @@ SPACE_GAP_RATIO = 2.0        # celah > 2x median celah baris -> batas kata
 SVM_C = 1.0
 SVM_MAX_ITER = 20000
 CONFIDENCE_THRESHOLD = 0.55  # di bawah ini -> tandai tidak yakin
+
+# Data struk asli jauh lebih sedikit daripada data sintetis, tetapi jauh
+# lebih mewakili domain sesungguhnya. Bobot ini membuat tiap sampel asli
+# dihitung berkali-kali saat melatih sehingga pengaruhnya sebanding.
+REAL_SAMPLE_WEIGHT = 3
 
 # ---------------------------------------------------------------------------
 # Render data sintetis
@@ -98,6 +145,19 @@ FONTS = [
     "courbd.ttf",
     "lucon.ttf",
     "CascadiaMono.ttf",
+    "ARIALN.TTF",
+    "ARIALNB.TTF",
+    "arial.ttf",
+    "arialbd.ttf",
+    "tahoma.ttf",
+    "tahomabd.ttf",
+    "calibri.ttf",
+    "calibrib.ttf",
+    "bahnschrift.ttf",
+    "segoeui.ttf",
+    "segoeuib.ttf",
+    "trebuc.ttf",
+    "verdana.ttf",
 ]
 
 FONT_DIR = Path(r"C:\Windows\Fonts")

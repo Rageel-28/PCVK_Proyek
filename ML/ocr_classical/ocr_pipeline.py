@@ -25,6 +25,7 @@ import deskew as DK
 import features as F
 import paper as PPR
 import preprocess as PP
+import resize_cubic as RC
 import segment as SG
 from lexicon import Lexicon
 from render_synthetic import normalize_char
@@ -93,20 +94,47 @@ class CharClassifier:
 
     def predict(self, hog_vector: np.ndarray) -> tuple[str, float, float]:
         """Kembalikan (karakter, keyakinan, margin)."""
+        return self.predict_restricted(hog_vector, None)
+
+    def predict_restricted(
+        self,
+        hog_vector: np.ndarray,
+        allowed: frozenset[str] | None = None,
+    ) -> tuple[str, float, float]:
+        """Prediksi dengan kandidat dibatasi ke himpunan karakter tertentu.
+
+        Dipakai saat konteks sudah pasti: kolom harga hanya berisi angka
+        dan pemisah, sehingga karakter seperti ``S``/``G``/``B`` tidak
+        mungkin benar walaupun skor linearnya tinggi. Ini menyerang
+        kesalahan yang paling merusak struk (nominal uang) tanpa
+        melatih ulang model.
+        """
         scores = self.coef @ hog_vector + self.intercept
+
+        if allowed is not None:
+            mask = np.full(len(self.classes), -np.inf, dtype=np.float32)
+            for i, cls in enumerate(self.classes):
+                if cls < len(self.charset) and self.charset[cls] in allowed:
+                    mask[i] = 0.0
+            if np.isfinite(mask).any():
+                scores = scores + mask
+
         order = np.argsort(scores)[::-1]
         best = int(order[0])
 
         # Softmax atas skor linear sebagai keyakinan.
-        z = scores - scores.max()
-        exp = np.exp(z.astype(np.float64))
-        probs = exp / exp.sum()
-        confidence = float(probs[best])
+        finite = scores[np.isfinite(scores)]
+        z = scores - finite.max()
+        exp = np.where(np.isfinite(z), np.exp(z.astype(np.float64)), 0.0)
+        total = exp.sum()
+        confidence = float(exp[best] / total) if total > 0 else 0.0
 
         margin = float(scores[order[0]] - scores[order[1]]) if len(order) > 1 else float("inf")
+        if not np.isfinite(margin):
+            margin = 0.0
         idx = self.classes[best]
         char = self.charset[idx] if idx < len(self.charset) else "?"
-        return char, confidence, margin
+        return char.upper(), confidence, margin
 
 
 # ---------------------------------------------------------------------------
@@ -117,14 +145,26 @@ class ClassicalOCR:
         self,
         method: str = "sauvola",
         use_deskew: bool = True,
-        use_lexicon: bool = True,
+        use_lexicon: bool = False,
         use_paper_crop: bool = True,
+        use_context: bool = True,
         model_path: Path | None = None,
     ) -> None:
+        """Pipeline OCR klasik.
+
+        ``use_lexicon`` default **False**. Koreksi kamus dirancang untuk
+        data sintetis yang kosakatanya berasal dari katalog yang sama,
+        tetapi pada 28 baris struk asli ia menurunkan exact match dari
+        67,9% ke 60,7% (CER 7,46% -> 7,55%): nama produk yang benar
+        seperti ``GAM`` dan ``BACTERIAL`` justru "dikoreksi" menjadi
+        ``GA`` dan ``BATERAI``. Aktifkan hanya bila kamusnya memang
+        mencakup kosakata struk yang sedang dibaca.
+        """
         self.method = method
         self.use_deskew = use_deskew
         self.use_lexicon = use_lexicon
         self.use_paper_crop = use_paper_crop
+        self.use_context = use_context
         self.classifier = CharClassifier(model_path)
         self.lexicon = Lexicon.from_dataset() if use_lexicon else None
         if self.lexicon:
@@ -163,7 +203,12 @@ class ClassicalOCR:
 
         factor = self._adaptive_scale(ink)
         if factor > 1.0:
-            gray = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
+            # Pembulatan mengikuti Dart (setengah ke genap) dan interpolasi
+            # memakai modul yang sama dengan port Dart, supaya hasilnya
+            # identik bit-per-bit.
+            nw = max(1, int(round(gray.shape[1] * factor)))
+            nh = max(1, int(round(gray.shape[0] * factor)))
+            gray = RC.resize_bicubic(gray, nw, nh)
             gray, ink = self._binarize_once(gray)
 
         angle = 0.0
@@ -179,42 +224,156 @@ class ClassicalOCR:
         if not boxes:
             return LinePrediction(text="", confidence=0.0, box=line_box)
 
+        vecs: list[np.ndarray] = []
         preds: list[CharPrediction] = []
         for bb in boxes:
             patch = normalize_char(gray, bb)
             vec = F.hog(patch)
             char, conf, margin = self.classifier.predict(vec)
+            vecs.append(vec)
             preds.append(CharPrediction(char, conf, bb, margin))
+
+        if self.use_context:
+            preds = self._apply_context(preds, vecs, line_box)
 
         text = self._join_with_spaces(preds)
         conf = float(np.mean([p.confidence for p in preds])) if preds else 0.0
         return LinePrediction(text=text, confidence=conf, chars=preds, box=line_box)
 
+    # -- konteks per kata -------------------------------------------------
+    @staticmethod
+    def _space_threshold(preds: list[CharPrediction]) -> float:
+        """Ambang celah (piksel) yang dianggap batas kata.
+
+        Versi lama memakai kelipatan median celah. Itu gagal pada struk
+        karena tanda baca punya celah lebar di kedua sisinya: pada
+        ``121,500`` celah di sekitar koma (12 px) lebih besar daripada
+        median celah (5 px), sehingga spasi disisipkan di tengah angka.
+
+        Lebar karakter jauh lebih stabil: dalam satu baris, celah di
+        dalam kata selalu < 1x lebar karakter, sedangkan celah antar kata
+        selalu > 1,5x. Ambang 0,9x lebar karakter memisahkan keduanya.
+        """
+        if not preds:
+            return 2.0
+        widths = [p.bbox[2] - p.bbox[0] + 1 for p in preds]
+        median_w = float(np.median(widths))
+        return max(2.0, median_w * C.SPACE_WIDTH_RATIO)
+
+    def _word_groups(self, preds: list[CharPrediction]) -> list[list[int]]:
+        """Kelompokkan indeks karakter menjadi kata memakai celah yang sama
+        dengan :meth:`_join_with_spaces`, supaya batas kata konsisten."""
+        if not preds:
+            return []
+        if len(preds) == 1:
+            return [[0]]
+
+        threshold = self._space_threshold(preds)
+        groups: list[list[int]] = [[0]]
+        for i in range(1, len(preds)):
+            gap = preds[i].bbox[0] - preds[i - 1].bbox[2]
+            glued = self._glued_by_separator(preds[i - 1].char, preds[i].char)
+            if gap > threshold and not glued:
+                groups.append([i])
+            else:
+                groups[-1].append(i)
+        return groups
+
+    def _apply_context(
+        self,
+        preds: list[CharPrediction],
+        vecs: list[np.ndarray],
+        line_box: tuple[int, int],
+    ) -> list[CharPrediction]:
+        """Prediksi ulang tiap kata dengan kandidat yang sesuai konteks.
+
+        Struk thermal sangat sering menukar angka dengan huruf yang
+        bentuknya mirip: ``0`` dengan ``O``/``D``, ``1`` dengan ``I``/``L``,
+        ``5`` dengan ``S``, ``8`` dengan ``B``, ``2`` dengan ``Z``, dan
+        koma dengan titik atau ``S``. Model karakter tidak bisa memutuskan
+        sendiri karena bentuknya memang nyaris sama pada 32x32 piksel.
+
+        Konteks yang dipakai:
+
+        - **Ukuran glyph.** Tanda baca kecil (koma, titik, hubung) hanya
+          menempati sebagian kecil tinggi baris. Pada 3-4 piksel, HOG
+          praktis tidak informatif dan prediksi bisa berubah hanya karena
+          satu baris piksel berbeda. Glyph seperti ini dibatasi ke
+          ``.,-`` sehingga hasilnya deterministik.
+        - **Isi kata.** Kata yang mayoritasnya angka dibatasi ke angka dan
+          pemisah (``20,700`` tidak mungkin menjadi ``20. 70G``); kata yang
+          mayoritasnya huruf dibatasi ke huruf.
+        """
+        out = list(preds)
+        if not out:
+            return out
+
+        line_h = line_box[1] - line_box[0] + 1
+        widths = [p.bbox[2] - p.bbox[0] + 1 for p in out]
+        median_w = float(np.median(widths)) if widths else 1.0
+
+        # 1. Glyph sangat kecil -> tanda baca.
+        for i, p in enumerate(out):
+            h = p.bbox[3] - p.bbox[1] + 1
+            w = p.bbox[2] - p.bbox[0] + 1
+            if line_h > 0 and h < line_h * C.TINY_GLYPH_HEIGHT_RATIO and w < median_w * C.TINY_GLYPH_WIDTH_RATIO:
+                char, conf, margin = self.classifier.predict_restricted(
+                    vecs[i], C.PUNCT_CHARSET
+                )
+                out[i] = CharPrediction(char, conf, p.bbox, margin)
+
+        # 2. Konteks kata.
+        for group in self._word_groups(out):
+            if len(group) < 2:
+                continue
+            chars = [out[i].char for i in group]
+            allowed = C.charset_for_token(chars)
+            if allowed is None:
+                continue
+
+            for i in group:
+                char, conf, margin = self.classifier.predict_restricted(vecs[i], allowed)
+                out[i] = CharPrediction(char, conf, out[i].bbox, margin)
+        return out
+
     @staticmethod
     def _join_with_spaces(preds: list[CharPrediction]) -> str:
-        """Sisipkan spasi berdasarkan distribusi celah antar karakter.
+        """Sisipkan spasi berdasarkan lebar karakter pada baris itu.
 
-        Celah di dalam kata dan celah antar kata saling tumpang tindih,
-        jadi ambang tetap (misal "55% lebar huruf") tidak bisa memisahkan
-        keduanya. Yang lebih stabil: ambil median celah pada baris itu,
-        lalu anggap celah lebih dari 2x median sebagai batas kata.
+        Celah di dalam kata dan celah antar kata saling tumpang tindih bila
+        diukur dengan median celah, sehingga ambangnya memakai lebar
+        karakter (lihat :meth:`_space_threshold`).
         """
         if not preds:
             return ""
         if len(preds) == 1:
             return preds[0].char
 
-        gaps = [b.bbox[0] - a.bbox[2] for a, b in zip(preds, preds[1:])]
-        median_gap = float(np.median(gaps)) if gaps else 1.0
-        threshold = max(2.0, median_gap * C.SPACE_GAP_RATIO)
+        threshold = ClassicalOCR._space_threshold(preds)
 
         out: list[str] = [preds[0].char]
         for prev, cur in zip(preds, preds[1:]):
             gap = cur.bbox[0] - prev.bbox[2]
-            if gap > threshold:
+            if gap > threshold and not ClassicalOCR._glued_by_separator(prev.char, cur.char):
                 out.append(" ")
             out.append(cur.char)
         return "".join(out)
+
+    @staticmethod
+    def _glued_by_separator(left: str, right: str) -> bool:
+        """True bila dua karakter tidak boleh dipisah spasi.
+
+        Pemisah ribuan pada struk selalu menempel: ``113,100`` tidak pernah
+        ditulis ``113, 100``. Celah di sekitar koma/titik bisa melebihi
+        ambang karena glyph koma sempit, jadi aturan ini mencegah spasi
+        palsu di tengah nominal uang.
+        """
+        separators = ",."
+        if left in separators and (right.isdigit() or right in separators):
+            return True
+        if right in separators and left.isdigit():
+            return True
+        return False
 
     # -- tahap 3: publik --------------------------------------------------
     def run(self, image: np.ndarray, apply_lexicon: bool | None = None) -> OcrResult:

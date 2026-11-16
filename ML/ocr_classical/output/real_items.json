@@ -1,0 +1,370 @@
+{
+  "mode": "items",
+  "split": null,
+  "method": "sauvola",
+  "lexicon": true,
+  "summary": [
+    {
+      "label": "SEMUA",
+      "n": 28,
+      "cer": 0.2122898212315229,
+      "cer_median": 0.11428571428571428,
+      "wer": 0.6311224489795918,
+      "exact_match": 0.14285714285714285,
+      "mean_confidence": 0.7006025208819902
+    },
+    {
+      "label": "jenis=foto",
+      "n": 8,
+      "cer": 0.5427984546091164,
+      "cer_median": 0.3504464285714286,
+      "wer": 1.2738095238095237,
+      "exact_match": 0.0,
+      "mean_confidence": 0.5204065473789418
+    },
+    {
+      "label": "jenis=render",
+      "n": 20,
+      "cer": 0.08008636788048554,
+      "cer_median": 0.08697478991596638,
+      "wer": 0.3740476190476191,
+      "exact_match": 0.2,
+      "mean_confidence": 0.7726809102832096
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 2,
+      "cer": 0.275,
+      "cer_median": 0.275,
+      "wer": 0.9166666666666666,
+      "exact_match": 0.0,
+      "mean_confidence": 0.6221929198985847
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 2,
+      "cer": 0.3504464285714286,
+      "cer_median": 0.3504464285714286,
+      "wer": 1.1666666666666667,
+      "exact_match": 0.0,
+      "mean_confidence": 0.4761096451840664
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.868882098293863,
+      "cer_median": 0.45454545454545453,
+      "wer": 1.5634920634920635,
+      "exact_match": 0.0,
+      "mean_confidence": 0.4879515140669666
+    },
+    {
+      "label": "  CamScanner-19-11-2024-",
+      "n": 1,
+      "cer": 0.48484848484848486,
+      "cer_median": 0.48484848484848486,
+      "wer": 1.3333333333333333,
+      "exact_match": 0.0,
+      "mean_confidence": 0.502792706665332
+    },
+    {
+      "label": "  receipt-000_png",
+      "n": 2,
+      "cer": 0.04411764705882353,
+      "cer_median": 0.04411764705882353,
+      "wer": 0.21428571428571427,
+      "exact_match": 0.5,
+      "mean_confidence": 0.7664946690972909
+    },
+    {
+      "label": "  receipt-100_png",
+      "n": 5,
+      "cer": 0.07285714285714286,
+      "cer_median": 0.08333333333333333,
+      "wer": 0.2828571428571428,
+      "exact_match": 0.2,
+      "mean_confidence": 0.7739278431972485
+    },
+    {
+      "label": "  receipt-200_png",
+      "n": 4,
+      "cer": 0.11805555555555555,
+      "cer_median": 0.125,
+      "wer": 0.5238095238095238,
+      "exact_match": 0.0,
+      "mean_confidence": 0.7743485638799208
+    },
+    {
+      "label": "  receipt-250_png",
+      "n": 4,
+      "cer": 0.05694444444444445,
+      "cer_median": 0.056746031746031746,
+      "wer": 0.30952380952380953,
+      "exact_match": 0.25,
+      "mean_confidence": 0.7750115524229622
+    },
+    {
+      "label": "  receipt-300_png",
+      "n": 5,
+      "cer": 0.08984126984126985,
+      "cer_median": 0.11428571428571428,
+      "wer": 0.4609523809523809,
+      "exact_match": 0.2,
+      "mean_confidence": 0.7707098372543666
+    }
+  ],
+  "samples": [
+    {
+      "stem": "receipt-000_png",
+      "kind": "render",
+      "truth": "SINAR DUNIA BUKU GAM 3 6900 20,700",
+      "pred": "SINAR DUNIA BUKU GA 3 6900 20, 70G",
+      "cer": 0.0882,
+      "wer": 0.4286,
+      "confidence": 0.7644
+    },
+    {
+      "stem": "receipt-000_png",
+      "kind": "render",
+      "truth": "BUMILANGIT KOMIK MAN 1 189000 189,000",
+      "pred": "BUMILANGIT KOMIK MAN 1 189000 189,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7686
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "ZEN ANTI BACTERIAL B 9 22000 198,000",
+      "pred": "ZEN ANTI BATERAI B 9 22000 198,000",
+      "cer": 0.0833,
+      "wer": 0.1429,
+      "confidence": 0.756
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "MUTOUCH SHOWER CREAM 2 85200 170,400",
+      "pred": "MUTOUCH TOWER CREAM 2 85200 170M 400",
+      "cer": 0.1111,
+      "wer": 0.5,
+      "confidence": 0.7865
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "CHRYSANTHEMUM GRANUL 6 24000 144,000",
+      "pred": "CHRYSANTHEMUM GRAND 6 24000 144,000",
+      "cer": 0.0556,
+      "wer": 0.2,
+      "confidence": 0.7878
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "BAGUS AIR FRESHENER 7 16900 118,300",
+      "pred": "BAGUS AIR FRESHENER 7 16900 118,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7845
+    },
+    {
+      "stem": "receipt-100_png",
+      "kind": "render",
+      "truth": "MORRIS EAU DE PARFUM 2 45300 90,600",
+      "pred": "MRRS EAU DA PARFUM 2 45300 90, 600",
+      "cer": 0.1143,
+      "wer": 0.5714,
+      "confidence": 0.7549
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "BAYFRESH AIR FRESHEN 5 24900 124,500",
+      "pred": "BAYFRESH AIR FRESH 5 24900 124,500",
+      "cer": 0.0556,
+      "wer": 0.1667,
+      "confidence": 0.7632
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "MORRIS EAU DE PARFUM 3 40500 121,500",
+      "pred": "MRRS EAU DA PARFUM 3 40500 121 , 500G",
+      "cer": 0.1667,
+      "wer": 0.7143,
+      "confidence": 0.7703
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "MISTER POTATO SNACK 10 13500 135,000",
+      "pred": "INTER COTTO SNACK 1+ 13500 135,000",
+      "cer": 0.1389,
+      "wer": 0.5,
+      "confidence": 0.774
+    },
+    {
+      "stem": "receipt-200_png",
+      "kind": "render",
+      "truth": "VAPE PLUS OBAT NYAMU 3 37700 113,100",
+      "pred": "VAPE PLS OBAT NYAMUK 3 37700 1 13, 100",
+      "cer": 0.1111,
+      "wer": 0.7143,
+      "confidence": 0.7899
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "SIDO MUNCUL JAMU TOL 3 17900 53,700",
+      "pred": "SID MUNCUL JAM TOL 3 17900 53, 70G",
+      "cer": 0.1143,
+      "wer": 0.5714,
+      "confidence": 0.7933
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "SALONPAS KOYO PEREDA 6 14500 87,000",
+      "pred": "SALONPAS KOYO KERETA 6 14500 87, 000",
+      "cer": 0.0857,
+      "wer": 0.5,
+      "confidence": 0.7512
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "INDOMARET GULA BATU 3 8800 26,400",
+      "pred": "INDOMARET GULA BATU 3 8800 26,400",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7676
+    },
+    {
+      "stem": "receipt-250_png",
+      "kind": "render",
+      "truth": "FRISIAN FLAG KENTAL 10 12500 125,000",
+      "pred": "FRISIAN FLAG KENTAL 1+ 12500 125,000",
+      "cer": 0.0278,
+      "wer": 0.1667,
+      "confidence": 0.788
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "BELLA SPREAD CHOCO C 7 33500 234,500",
+      "pred": "BELA SPRAY CHOCO C 7 33500 234, 500G",
+      "cer": 0.1389,
+      "wer": 0.5714,
+      "confidence": 0.7738
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "LISTERINE MOUTHWASH 2 76900 153,800",
+      "pred": "LISTERINE MOUTHWASH 2 76900 153, 800G",
+      "cer": 0.0571,
+      "wer": 0.4,
+      "confidence": 0.7739
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "KAO ATTACK DETERGENT 7 19300 135,100",
+      "pred": "KA ATTACK DETERJEN 7 19300 135M 100",
+      "cer": 0.1389,
+      "wer": 0.6667,
+      "confidence": 0.7771
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "MAIZENAKU TEPUNG JAG 1 12900 12,900",
+      "pred": "MAIZENA TEPUNG JAM 1 12900 12, 900",
+      "cer": 0.1143,
+      "wer": 0.6667,
+      "confidence": 0.7864
+    },
+    {
+      "stem": "receipt-300_png",
+      "kind": "render",
+      "truth": "ELLIPS VITAMIN HAIR 7 29900 209,300",
+      "pred": "ELLIPS VITAMIN HAIR 7 29900 209,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.7423
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "kind": "foto",
+      "truth": "MARLBORO TRPCL BS16S 1 36000 36,000",
+      "pred": "A/ARL80R0 TRP8+. BA 16: 1 3(5,(), 36 800G ----,- Z -.=.R--- --= - -- - , --- . -.-=-B",
+      "cer": 1.8286,
+      "wer": 3.0,
+      "confidence": 0.4599
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "kind": "foto",
+      "truth": "IDM LGHT TOKAI MOTIF 1 4300 4,300",
+      "pred": "I,A, LGD.IT TOKAI A,0I.IF .I 4300 4 0300",
+      "cer": 0.4545,
+      "wer": 0.8571,
+      "confidence": 0.468
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "kind": "foto",
+      "truth": "ICHTHN THAI M.COFF300 1 9900 9,900",
+      "pred": "IC)37.N THAI A+ OC0FF300 1 9900 9 0900",
+      "cer": 0.3235,
+      "wer": 0.8333,
+      "confidence": 0.5359
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_15_jpg",
+      "kind": "foto",
+      "truth": "PUCUK/H TEH MLATI350 1 3800 3,800",
+      "pred": "PWLVK/H TEH I MLATIR.D 1 3:00 -= 3 0 800G",
+      "cer": 0.4848,
+      "wer": 1.3333,
+      "confidence": 0.5028
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_100_jpg",
+      "kind": "foto",
+      "truth": "ULTRA CKT 250ML 2 6,100 12,200",
+      "pred": "ULTRA CK 250/( 2 6, 1 00 1 2B 200G",
+      "cer": 0.3,
+      "wer": 1.3333,
+      "confidence": 0.6377
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_100_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,000",
+      "pred": "DMSC. -1,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.6067
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_101_jpg",
+      "kind": "foto",
+      "truth": "DLFI ALMD 403/5 7 17,700 123,900",
+      "pred": "DLFI AWI/D 406/5 / )7,7I30 123)988",
+      "cer": 0.3438,
+      "wer": 0.8333,
+      "confidence": 0.4912
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_101_jpg",
+      "kind": "foto",
+      "truth": "Disc. -100,800",
+      "pred": "D/SC. -100, 900",
+      "cer": 0.3571,
+      "wer": 1.5,
+      "confidence": 0.461
+    }
+  ]
+}

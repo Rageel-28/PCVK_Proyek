@@ -1,0 +1,270 @@
+{
+  "_comment": [
+    "Transkripsi manual dari foto struk ASLI di ML/Dataset Citra.",
+    "",
+    "`items`  : teks tiap bbox COCO, urut dari atas ke bawah. Anotasi COCO pada",
+    "           kedua dataset hanya menandai baris ITEM (kategori product_item,",
+    "           product_item_discount, product_item_voucher), bukan seluruh baris",
+    "           struk. Jadi jumlah `items` harus sama dengan jumlah bbox gambar.",
+    "`full`   : seluruh baris struk, untuk mengukur CER/WER tingkat dokumen.",
+    "",
+    "Tanda '-' berarti baris tidak terbaca jelas pada foto."
+  ],
+  "receipt-000_png": {
+    "source": "receipt_indomaret",
+    "kind": "render",
+    "items": [
+      "SINAR DUNIA BUKU GAM 3 6900 20,700",
+      "BUMILANGIT KOMIK MAN 1 189000 189,000"
+    ],
+    "full": [
+      "KS TUBUN 0293493733",
+      "JL KS TUBUN NO.05 RT02 RW04 KEL TEMANGGUNG",
+      "KEC TEMANGGUNG KAB TEMANGGUNG, 56213",
+      "01.12.24-15:53/3.0.20/FXBA-2339/IBRA/03",
+      "SINAR DUNIA BUKU GAM 3 6900 20,700",
+      "BUMILANGIT KOMIK MAN 1 189000 189,000",
+      "HARGA JUAL : 209,700",
+      "TOTAL : 209,700",
+      "TUNAI : 210,000",
+      "KEMBALI : 300",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "receipt-100_png": {
+    "source": "receipt_indomaret",
+    "kind": "render",
+    "items": [
+      "ZEN ANTI BACTERIAL B 9 22000 198,000",
+      "MUTOUCH SHOWER CREAM 2 85200 170,400",
+      "CHRYSANTHEMUM GRANUL 6 24000 144,000",
+      "BAGUS AIR FRESHENER 7 16900 118,300",
+      "MORRIS EAU DE PARFUM 2 45300 90,600"
+    ],
+    "full": [
+      "KS TUBUN 0293493733",
+      "JL KS TUBUN NO.05 RT02 RW04 KEL TEMANGGUNG",
+      "KEC TEMANGGUNG KAB TEMANGGUNG, 56213",
+      "01.12.24-15:53/3.0.20/FXBA-7890/SATRIO/05",
+      "ZEN ANTI BACTERIAL B 9 22000 198,000",
+      "MUTOUCH SHOWER CREAM 2 85200 170,400",
+      "CHRYSANTHEMUM GRANUL 6 24000 144,000",
+      "BAGUS AIR FRESHENER 7 16900 118,300",
+      "MORRIS EAU DE PARFUM 2 45300 90,600",
+      "HARGA JUAL : 721,300",
+      "TOTAL : 721,300",
+      "TUNAI : 725,000",
+      "KEMBALI : 3,700",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "receipt-200_png": {
+    "source": "receipt_indomaret",
+    "kind": "render",
+    "items": [
+      "BAYFRESH AIR FRESHEN 5 24900 124,500",
+      "MORRIS EAU DE PARFUM 3 40500 121,500",
+      "MISTER POTATO SNACK 10 13500 135,000",
+      "VAPE PLUS OBAT NYAMU 3 37700 113,100"
+    ],
+    "full": [
+      "KS TUBUN 0293493733",
+      "JL KS TUBUN NO.05 RT02 RW04 KEL TEMANGGUNG",
+      "KEC TEMANGGUNG KAB TEMANGGUNG, 56213",
+      "01.12.24-15:53/3.0.20/FXBA-6950/DONA/02",
+      "BAYFRESH AIR FRESHEN 5 24900 124,500",
+      "MORRIS EAU DE PARFUM 3 40500 121,500",
+      "MISTER POTATO SNACK 10 13500 135,000",
+      "VAPE PLUS OBAT NYAMU 3 37700 113,100",
+      "HARGA JUAL : 494,100",
+      "TOTAL : 494,100",
+      "TUNAI : 495,000",
+      "KEMBALI : 900",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "receipt-250_png": {
+    "source": "receipt_indomaret",
+    "kind": "render",
+    "items": [
+      "SIDO MUNCUL JAMU TOL 3 17900 53,700",
+      "SALONPAS KOYO PEREDA 6 14500 87,000",
+      "INDOMARET GULA BATU 3 8800 26,400",
+      "FRISIAN FLAG KENTAL 10 12500 125,000"
+    ],
+    "full": [
+      "KS TUBUN 0293493733",
+      "JL KS TUBUN NO.05 RT02 RW04 KEL TEMANGGUNG",
+      "KEC TEMANGGUNG KAB TEMANGGUNG, 56213",
+      "01.12.24-15:53/3.0.20/FXBA-4328/NUR/05",
+      "SIDO MUNCUL JAMU TOL 3 17900 53,700",
+      "SALONPAS KOYO PEREDA 6 14500 87,000",
+      "INDOMARET GULA BATU 3 8800 26,400",
+      "FRISIAN FLAG KENTAL 10 12500 125,000",
+      "HARGA JUAL : 292,100",
+      "TOTAL : 292,100",
+      "TUNAI : 295,000",
+      "KEMBALI : 2,900",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "receipt-300_png": {
+    "source": "receipt_indomaret",
+    "kind": "render",
+    "items": [
+      "BELLA SPREAD CHOCO C 7 33500 234,500",
+      "LISTERINE MOUTHWASH 2 76900 153,800",
+      "KAO ATTACK DETERGENT 7 19300 135,100",
+      "MAIZENAKU TEPUNG JAG 1 12900 12,900",
+      "ELLIPS VITAMIN HAIR 7 29900 209,300"
+    ],
+    "full": [
+      "KS TUBUN 0293493733",
+      "JL KS TUBUN NO.05 RT02 RW04 KEL TEMANGGUNG",
+      "KEC TEMANGGUNG KAB TEMANGGUNG, 56213",
+      "01.12.24-15:53/3.0.20/FXBA-1583/GITA/03",
+      "BELLA SPREAD CHOCO C 7 33500 234,500",
+      "LISTERINE MOUTHWASH 2 76900 153,800",
+      "KAO ATTACK DETERGENT 7 19300 135,100",
+      "MAIZENAKU TEPUNG JAG 1 12900 12,900",
+      "ELLIPS VITAMIN HAIR 7 29900 209,300",
+      "HARGA JUAL : 745,600",
+      "TOTAL : 745,600",
+      "TUNAI : 750,000",
+      "KEMBALI : 4,400",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "CamScanner-18-11-2024-12-48_7_jpg": {
+    "source": "alfamart_indomaret",
+    "kind": "foto",
+    "items": [
+      "MARLBORO TRPCL BS16S 1 36000 36,000",
+      "IDM LGHT TOKAI MOTIF 1 4300 4,300",
+      "ICHTHN THAI M.COFF300 1 9900 9,900"
+    ],
+    "full": [
+      "FRESH TEMANGGUNG 0293432317",
+      "JL JEND SUDIRMAN NO.38 RT8RW4 JAMPIROSO",
+      "KEC TEMANGGUNG KAB TEMANGGUNG, 56216",
+      "10.11.24-13:13/3.0.20/1AE0-1471115/FITRI/01",
+      "MARLBORO TRPCL BS16S 1 36000 36,000",
+      "IDM LGHT TOKAI MOTIF 1 4300 4,300",
+      "ICHTHN THAI M.COFF300 1 9900 9,900",
+      "HARGA JUAL : 50,200",
+      "TOTAL : 50,200",
+      "TUNAI : 100,000",
+      "KEMBALI : 49,800",
+      "PPN : DPP= 12,793 PPN= 1,407",
+      "CUK : DPP= 36,000",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "CamScanner-19-11-2024-16-49_15_jpg": {
+    "source": "alfamart_indomaret",
+    "kind": "foto",
+    "items": [
+      "PUCUK/H TEH MLATI350 1 3800 3,800"
+    ],
+    "full": [
+      "PERINTIS KEMERDEKAAN NO. 54",
+      "JL PERINTIS KEMERDEKAAN NO 54, KEL. JURANG",
+      "KEC. TEMANGGUNG, KAB. TEMANGGUNG, 56222",
+      "19.11.24-09:58/3.0.20/FXBA-151135/ANISH/02",
+      "PUCUK/H TEH MLATI350 1 3800 3,800",
+      "HARGA JUAL : 3,800",
+      "TOTAL : 3,800",
+      "TUNAI : 4,000",
+      "KEMBALI : 200",
+      "PPN : DPP= 3,423 PPN= 377",
+      "LAYANAN KONSUMEN",
+      "SMS/WA 0811.1500.280 TELP 1500280",
+      "KONTAK@INDOMARET.CO.ID",
+      "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+      "GRATIS ONGKIR 1 JAM SAMPAI"
+    ]
+  },
+  "CamScanner-18-11-2024-12-48_100_jpg": {
+    "source": "alfamart_indomaret",
+    "kind": "foto",
+    "items": [
+      "ULTRA CKT 250ML 2 6,100 12,200",
+      "Disc. -1,000"
+    ],
+    "full": [
+      "ALFAMIDI DEWI SARTIKA",
+      "081584471843",
+      "JL. RAYA DEWI SARTIKA 316 RT.",
+      "Kritik & Saran:1500959,Alfacare@mu.co.id",
+      "WWW.ALFAMIDIKU.COM",
+      "Bon VC17-101-2712XCW9 Kasir : WINARTI",
+      "ULTRA CKT 250ML 2 6,100 12,200",
+      "Disc. -1,000",
+      "Total Item 1 12,200",
+      "Total Disc. 1,000",
+      "Total Belanja 11,200",
+      "SHOPEEPAY 10,200",
+      "Tunai 1,000",
+      "Kembalian 0",
+      "PPN ( 1,109)",
+      "Tgl. 27-12-2021 18:07:25 V.2021.9.1",
+      "Member : Member Ponta",
+      "Selamat Poin anda bertambah 50",
+      "PT MIDI UTAMA INDONESIA TBK",
+      "NPWP : 02.672.927.7-054.000",
+      "ALFA TOWER LT. 12, JL JALUR SUTERA BARAT",
+      "KAV. 7-9 ALAM SUTERA PANUNGGANGAN TIMUR",
+      "PINANG KOTA TANGERANG BANTEN"
+    ]
+  },
+  "CamScanner-18-11-2024-12-48_101_jpg": {
+    "source": "alfamart_indomaret",
+    "kind": "foto",
+    "items": [
+      "DLFI ALMD 403/5 7 17,700 123,900",
+      "Disc. -100,800"
+    ],
+    "full": [
+      "ALFAMIDI KEBON KACANG 9",
+      "081399536312",
+      "JL.KEBON KACANG IX NO.64",
+      "Kritik & Saran:1500959,Alfacare@mu.co.id",
+      "WA/SMS : 081110643838",
+      "Bon AH25-101-16103HUB Kasir : YENI LIA",
+      "DLFI ALMD 403/5 7 17,700 123,900",
+      "Disc. -100,800",
+      "Total Item 1 123,900",
+      "Total Disc. 100,800",
+      "Total Belanja 23,100",
+      "Jenis Kartu PREPAID CARDMANDIRI",
+      "Nomor Kartu 603238*****7503",
+      "Card 23,100",
+      "Kembalian 0",
+      "PPN ( 11,238)",
+      "Tgl. 16-10-2023 10:05:50 V.2023.7.1"
+    ]
+  }
+}

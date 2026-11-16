@@ -144,6 +144,88 @@ def degrade(img: Image.Image, rng: random.Random, allow_rotate: bool = True) -> 
 
 
 # ---------------------------------------------------------------------------
+# Teks format struk Indonesia
+# ---------------------------------------------------------------------------
+# Data sintetis hanya pelengkap, tetapi harus berada di domain yang sama
+# dengan struk asli. Baris di bawah meniru format Indomaret/Alfamart:
+# harga dengan pemisah ribuan koma, label berTITIK DUA, DPP=/PPN=, email
+# dengan @, dan tanggal bertanda hubung.
+RECEIPT_ITEMS = [
+    "SINAR DUNIA BUKU GAM", "BUMILANGIT KOMIK MAN", "IDM LGHT TOKAI MOTIF",
+    "SINAR GULA MANIS", "MARLBORO TRPCL BS16S", "ICHTHN THAI M.COFF300",
+    "ZEN ANTI BACTERIAL B", "MUTOUCH SHOWER CREAM", "CHRYSANTHEMUM GRANUL",
+    "BAGUS AIR FRESHENER", "MORRIS EAU DE PARFUM", "SIDO MUNCUL JAMU TOL",
+    "SALONPAS KOYO PEREDA", "INDOMARET GULA BATU", "FRISIAN FLAG KENTAL",
+    "INDOMIE BWG GORENG", "YOU C ORG 140ML", "PUCUK/H TEH MLATI350",
+    "AQUA AIR MINERAL 600", "TELUR AYAM NEGERI", "BERAS SETRA RAMOS",
+]
+RECEIPT_STORES = [
+    "KS TUBUN 0293493733", "PERINTIS KEMERDEKAAN NO. 54",
+    "ALFAMIDI KEBAGUSAN 2", "INDOMARET FRESH TEMANGGUNG",
+]
+RECEIPT_ADDR = [
+    "JL KS TUBUN NO.05 RT02 RW04 KEL TEMANGGUNG",
+    "KEC TEMANGGUNG KAB TEMANGGUNG, 56213",
+    "JL JEND SUDIRMAN NO.38 RT8RW4 JAMPIROSO",
+    "JL PERINTIS KEMERDEKAAN NO 54, KEL. JURANG",
+]
+RECEIPT_CONTACT = [
+    "SMS/WA 0811.1500.280 TELP 1500280",
+    "KONTAK@INDOMARET.CO.ID",
+    "KRITIK & SARAN:1500959,ALFACARE.CO.ID",
+    "WA/SMS : 081110643868",
+]
+RECEIPT_FOOTER = [
+    "LAYANAN KONSUMEN", "BELANJA LEBIH MUDAH DI KLIKINDOMARET",
+    "GRATIS ONGKIR 1 JAM SAMPAI", "TERIMA KASIH",
+]
+RECEIPT_LABELS = ["HARGA JUAL :", "TOTAL :", "TUNAI :", "KEMBALI :", "DISKON :"]
+
+
+def _money(rng: random.Random, lo: int = 500, hi: int = 900000) -> str:
+    return f"{rng.randint(lo, hi):,}"
+
+
+def _receipt_template_texts(n: int, rng: random.Random) -> list[str]:
+    """Bangkitkan baris berformat struk asli untuk melengkapi data latih."""
+    out: list[str] = []
+    for _ in range(n):
+        kind = rng.randrange(10)
+        if kind == 0:
+            out.append(rng.choice(RECEIPT_STORES))
+        elif kind == 1:
+            out.append(rng.choice(RECEIPT_ADDR))
+        elif kind == 2:
+            # Tanggal + kode transaksi: 01.12.24-15:53/3.0.20/FXBA-2339/IBRA/03
+            out.append(
+                f"{rng.randint(1, 28):02d}.{rng.randint(1, 12):02d}.24-"
+                f"{rng.randint(0, 23):02d}:{rng.randint(0, 59):02d}/3.0.20/"
+                f"FXBA-{rng.randint(1000, 9999)}/IBRA/{rng.randint(1, 99):02d}"
+            )
+        elif kind == 3:
+            out.append(
+                f"{rng.choice(RECEIPT_ITEMS):24s} {rng.randint(1, 12):2d} "
+                f"{rng.randint(500, 90000):6d} {_money(rng):>9s}"
+            )
+        elif kind == 4:
+            out.append(f"{rng.choice(RECEIPT_LABELS):12s} {_money(rng):>10s}")
+        elif kind == 5:
+            out.append(
+                f"PPN     : DPP= {_money(rng, 500, 90000)} "
+                f"PPN= {_money(rng, 50, 9000)}"
+            )
+        elif kind == 6:
+            out.append(f"PPN ( {_money(rng, 50, 9000):>9s})")
+        elif kind == 7:
+            out.append(rng.choice(RECEIPT_CONTACT))
+        elif kind == 8:
+            out.append(rng.choice(RECEIPT_FOOTER))
+        else:
+            out.append(f"{rng.choice(RECEIPT_ITEMS)} {_money(rng)}")
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Normalisasi karakter
 # ---------------------------------------------------------------------------
 def crop_and_normalize(
@@ -230,6 +312,12 @@ def build(
     rng.shuffle(texts)
     texts = texts[:max_lines]
 
+    # Setengah data latih berasal dari format struk asli supaya tanda baca
+    # koma, titik dua, sama dengan, @, dan kurung benar-benar terwakili.
+    templates = _receipt_template_texts(max_lines, rng)
+    texts = texts + templates
+    rng.shuffle(texts)
+
     fonts = []
     for name in C.FONTS:
         if not (C.FONT_DIR / name).exists():
@@ -249,10 +337,10 @@ def build(
     skipped = 0
 
     for li, text in enumerate(texts):
-        text = text.upper()
         for _ in range(samples_per_line):
+            text_var = text.upper()
             _, _, font = rng.choice(fonts)
-            img, boxes = render_line(text, font)
+            img, boxes = render_line(text_var, font)
             if not boxes:
                 continue
             # Tanpa rotasi: bbox harus tetap valid untuk pelabelan.
