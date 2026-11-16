@@ -3,7 +3,8 @@
 Alur:
     grayscale -> denoise -> binarisasi -> deskew
     -> segmentasi baris -> segmentasi karakter
-    -> normalisasi 32x32 -> HOG -> Linear SVM
+    -> normalisasi 32x32 -> HOG + Zoning (340 dim)
+    -> StandardScaler -> Linear SVM
     -> rekonstruksi baris (spasi dari celah)
     -> koreksi leksikon
 
@@ -75,7 +76,14 @@ class OcrResult:
 # Model
 # ---------------------------------------------------------------------------
 class CharClassifier:
-    """Linear SVM yang dieksekusi manual: argmax(coef @ x + intercept)."""
+    """SVM linear yang dieksekusi manual: argmax(coef @ x + intercept).
+
+    Urutan penerapan mengikuti `train_char.py`:
+        fitur gabungan (HOG ++ Zoning) -> StandardScaler -> (PCA) -> SVM
+
+    Scaler dan PCA dibaca dari JSON model, bukan dari config, karena
+    parameternya melekat pada model yang dilatih.
+    """
 
     def __init__(self, model_path: Path | None = None) -> None:
         path = model_path or (C.MODEL_DIR / "char_svm.json")
@@ -85,15 +93,40 @@ class CharClassifier:
             )
         data = json.loads(path.read_text(encoding="utf-8"))
         svm = data["svm"]
-        self.coef = np.asarray(svm["coef"], dtype=np.float32)
-        self.intercept = np.asarray(svm["intercept"], dtype=np.float32)
+        # float64 dipakai agar sama dengan double di Dart.
+        self.coef = np.asarray(svm["coef"], dtype=np.float64)
+        self.intercept = np.asarray(svm["intercept"], dtype=np.float64)
         self.classes = [int(c) for c in svm["classes"]]
         self.charset = data.get("charset", C.CHARSET)
         self.threshold = float(data.get("confidence_threshold", C.CONFIDENCE_THRESHOLD))
 
-    def predict(self, hog_vector: np.ndarray) -> tuple[str, float, float]:
+        scaler = data.get("scaler")
+        self.scaler_mean = (
+            np.asarray(scaler["mean"], dtype=np.float64) if scaler else None
+        )
+        self.scaler_scale = (
+            np.asarray(scaler["scale"], dtype=np.float64) if scaler else None
+        )
+
+        pca = data.get("pca")
+        self.pca_mean = np.asarray(pca["mean"], dtype=np.float64) if pca else None
+        self.pca_components = (
+            np.asarray(pca["components"], dtype=np.float64) if pca else None
+        )
+
+    def transform(self, combined_vector: np.ndarray) -> np.ndarray:
+        """Terapkan StandardScaler lalu PCA (bila ada) pada vektor gabungan."""
+        vec = np.asarray(combined_vector, dtype=np.float64)
+        if self.scaler_mean is not None and self.scaler_scale is not None:
+            vec = (vec - self.scaler_mean) / self.scaler_scale
+        if self.pca_mean is not None and self.pca_components is not None:
+            vec = (vec - self.pca_mean) @ self.pca_components.T
+        return vec
+
+    def predict(self, combined_vector: np.ndarray) -> tuple[str, float, float]:
         """Kembalikan (karakter, keyakinan, margin)."""
-        scores = self.coef @ hog_vector + self.intercept
+        vec = self.transform(combined_vector)
+        scores = self.coef @ vec + self.intercept
         order = np.argsort(scores)[::-1]
         best = int(order[0])
 
@@ -182,7 +215,7 @@ class ClassicalOCR:
         preds: list[CharPrediction] = []
         for bb in boxes:
             patch = normalize_char(gray, bb)
-            vec = F.hog(patch)
+            vec = F.combined(patch)
             char, conf, margin = self.classifier.predict(vec)
             preds.append(CharPrediction(char, conf, bb, margin))
 

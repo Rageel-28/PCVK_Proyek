@@ -102,6 +102,7 @@ sehingga bila dosen sangat ketat, bagian ini dapat dipertanyakan.
 | Algoritma | Berkas | Status |
 |---|---|---|
 | HOG 324 dimensi | `features.py` | Manual, tidak memakai `skimage.hog` |
+| Zoning / Grid 16 dimensi | `features.py` | Manual: rata-rata tinta per zona grid 4x4 |
 | Sauvola thresholding | `preprocess.py` | Manual: mean + simpangan baku lokal |
 | Otsu 1D untuk profil baris | `segment.py` | Manual: histogram + variansi antar-kelas |
 | Deskew profil proyeksi | `deskew.py` | Manual: rotasi + pencarian variansi maksimum |
@@ -128,10 +129,11 @@ Foto struk
    ├─ [6]  Segmentasi baris           proyeksi horizontal + Otsu 1D
    ├─ [7]  Segmentasi karakter        connected components + split lembah
    ├─ [8]  Normalisasi karakter       32x32, rasio aspek dijaga
-   ├─ [9]  Ekstraksi fitur            HOG manual (324 dimensi)
-   ├─ [10] Klasifikasi karakter       Linear SVM
-   ├─ [11] Rekonstruksi baris         spasi dari median celah
-   └─ [12] Koreksi leksikon           Levenshtein ke 3.641 kata
+   ├─ [9]  Ekstraksi fitur            HOG 324 dim + Zoning 4x4 16 dim = 340
+   ├─ [10] Penskalaan                 StandardScaler (mean 0, variansi 1)
+   ├─ [11] Klasifikasi karakter       Linear SVM
+   ├─ [12] Rekonstruksi baris         spasi dari median celah
+   └─ [13] Koreksi leksikon           Levenshtein ke 3.641 kata
         │
      Teks: "INDOMIE GORENG 85 G"
 ```
@@ -262,20 +264,67 @@ Setiap crop diubah ke kanvas 32×32:
 **Kunci:** fungsi ini harus **identik** dengan yang dipakai saat
 membuat data latih. Perbedaan sedikit saja membuat akurasi jatuh.
 
-### Tahap 9 — Ekstraksi fitur HOG (`features.py`)
+### Tahap 9 — Ekstraksi fitur: HOG + Zoning (`features.py`)
 
-Lihat [bagian 5](#5-bagaimana-komputer-mengenali-huruf).
+Dua kelompok fitur digabung menjadi satu vektor 340 dimensi.
+
+**A. HOG (324 dimensi) — arah tepi.** Lihat
+[bagian 5](#5-bagaimana-komputer-mengenali-huruf).
+
+**B. Zoning / Grid Features (16 dimensi) — sebaran tinta.** Kanvas 32×32
+dibagi menjadi grid 4×4; tiap zona menyumbang satu nilai:
+
+```
+zona(r,c) = rata-rata (255 − piksel) / 255
+```
+
+Nilai 0 berarti zona kosong, 1 berarti zona tertutup tinta penuh.
+
+Kenapa keduanya digabung: HOG membuang posisi demi arah, zoning membuang
+arah demi posisi. Huruf `L` dan `7` bisa punya histogram gradien yang mirip,
+tetapi zonanya berbeda jelas — `L` padat di kolom kiri dan baris bawah,
+`7` padat di baris atas dan kolom kanan.
+
+```python
+def combined(img):
+    return np.concatenate([hog(img), zoning(img)])   # 324 + 16 = 340
+```
+
+### Tahap 9b — Penskalaan fitur (`train_char.py`)
+
+Gabungan vektor dilewatkan **StandardScaler** sebelum masuk SVM:
+
+```
+x' = (x − mean) / scale
+```
+
+Wajib karena kedua kelompok fitur punya skala berbeda:
+
+| Kelompok | Rentang nilai |
+|---|---|
+| HOG (L2-Hys) | ~0 .. 0.6 |
+| Zoning | 0 .. 1, rata-rata ~0.2 |
+
+Tanpa penyamaan skala, dimensi dengan nilai absolut lebih besar mendominasi
+margin SVM dan C menjadi tidak bermakna sama untuk semua fitur. `mean` dan
+`scale` dihitung dari data latih lalu **diekspor ke JSON**, sehingga Dart
+menerapkan transformasi identik.
+
+PCA diuji (200/120/64/32 komponen) dan **tidak dipakai** karena menurunkan
+akurasi: 99,92% (tanpa PCA) vs 99,88% / 99,71% / 99,71% / 99,05%.
 
 ### Tahap 10 — Klasifikasi karakter (`ocr_pipeline.py`)
 
 Linear SVM yang dieksekusi manual:
 
 ```python
-skor = coef @ hog_vector + intercept
+x = (gabungan - scaler_mean) / scaler_scale   # StandardScaler
+skor = coef @ x + intercept
 karakter = argmax(skor)
 ```
 
 Tidak perlu library ML di sisi aplikasi — cukup perkalian matriks.
+Hyperparameter C dipilih dengan GridSearchCV (C = 1,0).
 
 ### Tahap 11 — Rekonstruksi baris (`ocr_pipeline.py`)
 
@@ -361,21 +410,47 @@ Huruf "I"  → satu garis vertikal
 
 6. **Gabungkan.** 3×3 blok × 2×2 sel × 9 bin = **324 angka**.
 
-Vektor 324 angka inilah "sidik jari" bentuk huruf.
+### Langkah B — Menambahkan zoning (16 angka)
 
-### Langkah B — Menebak dari 324 angka (Linear SVM)
+HOG hanya merekam **arah** tepi; posisi tinta terbuang. Zoning menambahkan
+informasi yang hilang itu: kanvas 32×32 dibagi grid 4×4, dan tiap zona
+menyumbang kepadatan tinta.
 
-Model sudah belajar dari **66.830 contoh huruf** berlabel.
+```
+zona(0,0)  zona(0,1)  zona(0,2)  zona(0,3)     tiap sel satu angka 0..1
+zona(1,0)  ...                                  = rata-rata (255 − piksel)/255
+zona(2,0)  ...
+zona(3,0)  ...        ...        zona(3,3)
+```
+
+Hasil: **16 angka**. Digabung dengan HOG menjadi **340 angka** — inilah
+"sidik jari" bentuk huruf yang dipakai versi ini.
+
+### Langkah C — Menyamakan skala (StandardScaler)
+
+HOG bernilai ~0..0.6, zoning 0..1 dengan rata-rata ~0.2. Sebelum masuk SVM,
+setiap dari 340 angka dikurangi rata-ratanya lalu dibagi simpangan bakunya:
+
+```
+x' = (x − mean) / scale
+```
+
+`mean` dan `scale` dihitung sekali dari data latih dan disimpan di model
+JSON, sehingga aplikasi menerapkan angka yang sama persis.
+
+### Langkah D — Menebak dari 340 angka (Linear SVM)
+
+Model sudah belajar dari **35.432 contoh huruf** berlabel.
 
 Untuk setiap kelas (42 kemungkinan: 0–9, A–Z, dan `.&-/%+`), SVM
 menyimpan:
-- **vektor bobot** `w` (324 angka)
+- **vektor bobot** `w` (340 angka)
 - **bias** `b`
 
 Prediksi:
 
 ```
-skor(kelas) = w_kelas · x + b_kelas
+skor(kelas) = w_kelas · x' + b_kelas
 pilih kelas dengan skor tertinggi
 ```
 
@@ -631,8 +706,10 @@ tidak lagi dipakai di aplikasi.
 | `paper.py` | Deteksi dan potong area kertas struk |
 | `deskew.py` | Estimasi dan koreksi kemiringan |
 | `segment.py` | Segmentasi baris dan karakter |
-| `features.py` | HOG manual (324 dimensi) |
-| `train_char.py` | Latih Linear SVM, ekspor `.joblib` + `.json` |
+| `features.py` | HOG 324 dim + Zoning 16 dim (total 340) |
+| `train_char.py` | Latih HOG+Zoning → Scaler → (PCA) → SVM, GridSearchCV C |
+| `experiment_pca.py` | Uji jumlah komponen PCA (hasil: tidak dipakai) |
+| `experiment_endtoend.py` | Bandingkan HOG saja vs HOG+Zoning pada data uji sama |
 | `lexicon.py` | Koreksi kata (Levenshtein) |
 | `ocr_pipeline.py` | Pipeline lengkap + antarmuka CLI |
 | `evaluate.py` | CER, WER, ablasi |
@@ -658,21 +735,22 @@ Sepuluh modul Dart di `smart_receipt/lib/ocr/classical/`:
 | `paper_detector.dart` | `paper.py` |
 | `deskew.dart` | `deskew.py` |
 | `segmenter.dart` | `segment.py` |
-| `hog.dart` | `features.py` |
-| `char_classifier.dart` | inferensi Linear SVM |
+| `hog.dart` | `features.py` (bagian HOG) |
+| `zoning.dart` | `features.py` (bagian Zoning) |
+| `char_classifier.dart` | inferensi StandardScaler + (PCA) + Linear SVM |
 | `lexicon_corrector.dart` | `lexicon.py` |
 | `classical_ocr_engine.dart` | `ocr_pipeline.py` |
 
-Aset: `assets/ocr_char_svm.json` (117 KB) dan `assets/ocr_lexicon.json`
-(34 KB).
+Aset: `assets/ocr_char_svm.json` (156 KB: bobot 340 dim + scaler) dan
+`assets/ocr_lexicon.json` (34 KB).
 
 **Verifikasi paritas:**
 
 | Uji | Cakupan | Hasil |
 |---|---|---|
-| `ocr_classical_parity_test.dart` | HOG + SVM pada 16 patch | **100% identik** (toleransi 1e-4) |
+| `ocr_classical_parity_test.dart` | HOG, Zoning, vektor gabungan, prediksi pada 16 patch | **100% identik** (toleransi 1e-4) |
 | `ocr_classical_pipeline_test.dart` | 8 gambar end-to-end | **8/8 teks identik** |
-| Seluruh test suite | 179 test | **lolos** |
+| Seluruh test suite | 184 test | **lolos** |
 
 Enam perbedaan numerik yang harus disamakan agar paritas tercapai:
 

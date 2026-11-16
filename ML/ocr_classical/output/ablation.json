@@ -4,54 +4,54 @@
     "method": "otsu",
     "deskew": false,
     "lexicon": false,
-    "n": 150,
-    "cer": 0.21333980536239888,
-    "wer": 0.513888888888889,
-    "exact_match": 0.64,
-    "mean_confidence": 0.6464663960167244
+    "n": 120,
+    "cer": 0.3235397353072147,
+    "wer": 0.6631944444444444,
+    "exact_match": 0.55,
+    "mean_confidence": 0.5714112630331776
   },
   {
     "name": "sauvola",
     "method": "sauvola",
     "deskew": false,
     "lexicon": false,
-    "n": 150,
-    "cer": 0.31137985506483906,
-    "wer": 0.5088888888888888,
-    "exact_match": 0.6666666666666666,
-    "mean_confidence": 0.630637786384639
+    "n": 120,
+    "cer": 0.5097092512318766,
+    "wer": 0.6909722222222222,
+    "exact_match": 0.55,
+    "mean_confidence": 0.5407192067969656
   },
   {
     "name": "otsu+deskew",
     "method": "otsu",
     "deskew": true,
     "lexicon": false,
-    "n": 150,
-    "cer": 0.2118299891552142,
-    "wer": 0.5461111111111111,
-    "exact_match": 0.6266666666666667,
-    "mean_confidence": 0.6416046978354378
+    "n": 120,
+    "cer": 0.3163348332939356,
+    "wer": 0.6826388888888888,
+    "exact_match": 0.5416666666666666,
+    "mean_confidence": 0.5676674958443068
   },
   {
     "name": "otsu+deskew+lexicon",
     "method": "otsu",
     "deskew": true,
     "lexicon": true,
-    "n": 150,
-    "cer": 0.2103895638629954,
-    "wer": 0.49522222222222223,
-    "exact_match": 0.6666666666666666,
-    "mean_confidence": 0.6416046978354378
+    "n": 120,
+    "cer": 0.3069507065971827,
+    "wer": 0.6065277777777778,
+    "exact_match": 0.625,
+    "mean_confidence": 0.5676674958443068
   },
   {
     "name": "sauvola+deskew+lexicon",
     "method": "sauvola",
     "deskew": true,
     "lexicon": true,
-    "n": 150,
-    "cer": 0.29747994136122846,
-    "wer": 0.46077777777777773,
-    "exact_match": 0.72,
-    "mean_confidence": 0.6256482034110524
+    "n": 120,
+    "cer": 0.4772074697620519,
+    "wer": 0.5766666666666665,
+    "exact_match": 0.6333333333333333,
+    "mean_confidence": 0.5365373310526398
   }
 ]

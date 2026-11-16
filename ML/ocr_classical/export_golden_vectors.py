@@ -1,8 +1,8 @@
-"""Ekspor golden vectors untuk menguji paritas HOG + SVM di Dart.
+"""Ekspor golden vectors untuk menguji paritas HOG + Zoning + SVM di Dart.
 
-Menghasilkan JSON berisi beberapa patch karakter 32x32 beserta vektor HOG
-dan hasil prediksi Python. Unit test Dart membandingkan hasilnya; bila
-berbeda, port ke Dart salah.
+Menghasilkan JSON berisi beberapa patch karakter 32x32 beserta vektor HOG,
+vektor zoning, vektor gabungan, dan hasil prediksi Python. Unit test Dart
+membandingkan hasilnya; bila berbeda, port ke Dart salah.
 
 Jalankan:
     python export_golden_vectors.py
@@ -94,14 +94,18 @@ def main() -> None:
     classifier = CharClassifier()
     samples = []
     for patch, label in zip(patches, labels):
-        vec = F.hog(patch)
-        char, conf, margin = classifier.predict(vec)
+        hog_vec = F.hog(patch)
+        zone_vec = F.zoning(patch)
+        combined_vec = F.combined(patch)
+        char, conf, margin = classifier.predict(combined_vec)
         samples.append(
             {
                 "expected_char": char,
                 "truth_char": label,
                 "pixels": [int(v) for v in patch.ravel()],
-                "hog": [round(float(v), 7) for v in vec],
+                "hog": [round(float(v), 7) for v in hog_vec],
+                "zoning": [round(float(v), 7) for v in zone_vec],
+                "combined": [round(float(v), 7) for v in combined_vec],
                 "confidence": round(float(conf), 7),
                 "margin": round(float(margin), 5),
             }
@@ -110,6 +114,11 @@ def main() -> None:
     payload = {
         "char_size": C.CHAR_SIZE,
         "hog_dim": F.hog_dims(),
+        "zoning_grid": C.ZONING_GRID,
+        "zoning_dim": C.ZONING_DIM,
+        "combined_dim": F.combined_dims(),
+        "uses_scaler": classifier.scaler_mean is not None,
+        "uses_pca": classifier.pca_mean is not None,
         "samples": samples,
     }
     OUT.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")

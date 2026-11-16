@@ -20,6 +20,19 @@ const int kHogBlock = 2;
 /// Dimensi vektor HOG: (4-2+1)^2 blok x 2x2 sel x 9 bin = 324.
 const int kHogDim = 324;
 
+/// Grid zoning: kanvas dibagi 4x4 zona.
+const int kZoningGrid = 4;
+
+/// Dimensi vektor zoning: 4 x 4 = 16.
+const int kZoningDim = kZoningGrid * kZoningGrid;
+
+/// Vektor gabungan HOG ++ Zoning: 324 + 16 = 340 dimensi.
+///
+/// Nilai ini HARUS sama dengan `FEATURE_DIM` di `ML/ocr_classical/config.py`.
+/// Ukuran akhir yang masuk SVM dibaca dari model JSON, karena bisa lebih
+/// kecil bila pelatihan memakai PCA.
+const int kCombinedDim = kHogDim + kZoningDim;
+
 // --- Binarisasi -------------------------------------------------------------
 
 const int kSauvolaWindow = 25;

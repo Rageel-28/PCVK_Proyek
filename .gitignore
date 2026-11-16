@@ -18,3 +18,7 @@ ML/ocr_classical/data/
 ML/ocr_classical/output/*.npy
 ML/ocr_classical/output/*.joblib
 ~$*
+
+# --- Eksperimen OCR klasik ---
+# Model pembanding dari experiment_endtoend.py (dibuat ulang tiap dijalankan).
+ML/ocr_classical/output/cmp_*.json

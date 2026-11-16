@@ -27,30 +27,103 @@ Foto struk
    ├─ [6] Segmentasi baris         proyeksi horizontal + Otsu 1D
    ├─ [7] Segmentasi karakter      connected components + split lembah
    ├─ [8] Normalisasi              32x32, rasio aspek dijaga
-   ├─ [9] Ekstraksi fitur          HOG manual (324 dimensi)
-   ├─ [10] Klasifikasi karakter    Linear SVM
-   ├─ [11] Rekonstruksi baris      spasi dari median celah
-   └─ [12] Koreksi leksikon        Levenshtein ke 3.641 kata
+   ├─ [9] Ekstraksi fitur          HOG 324 dim + Zoning 4x4 16 dim = 340
+   ├─ [10] Penskalaan              StandardScaler (mean 0, variansi 1)
+   ├─ [11] Klasifikasi karakter    Linear SVM
+   ├─ [12] Rekonstruksi baris      spasi dari median celah
+   └─ [13] Koreksi leksikon        Levenshtein ke 3.641 kata
 ```
 
 Tidak ada satu pun tahap yang memakai model pre-trained atau API.
+
+### Fitur: HOG + Zoning
+
+| Kelompok | Dimensi | Yang direkam |
+|---|---:|---|
+| HOG | 324 | **Arah tepi** (bentuk goresan); sel 8x8, 9 bin, blok 2x2 L2-Hys |
+| Zoning / Grid | 16 | **Sebaran tinta**; kanvas dibagi grid 4x4, tiap zona = kepadatan tinta 0..1 |
+| **Gabungan** | **340** | `np.concatenate([hog, zoning])` |
+
+Keduanya saling melengkapi: HOG membuang posisi demi arah, zoning membuang
+arah demi posisi. `L` dan `7` dapat punya histogram gradien mirip, tetapi
+zonanya berbeda jelas.
+
+**StandardScaler wajib.** HOG bernilai ~0..0.6, zoning ~0..1 dengan rata-rata
+~0.2. Tanpa penyamaan skala, dimensi bernilai absolut lebih besar mendominasi
+margin SVM. Scaler di-fit pada data latih lalu parameternya diekspor ke JSON,
+sehingga Dart menerapkan transformasi yang sama.
+
+**PCA diuji dan tidak dipakai.** Dimensi 340 hampir seluruhnya berguna; PCA
+justru menurunkan akurasi:
+
+| Konfigurasi | Dimensi | Akurasi validasi |
+|---|---:|---:|
+| Tanpa PCA | 340 | **99,92%** |
+| PCA 200 | 200 | 99,88% |
+| PCA 120 | 120 | 99,71% |
+| PCA 64 | 64 | 99,71% |
+| PCA 32 | 32 | 99,05% |
 
 ---
 
 ## Hasil
 
-Diuji pada **150 baris sintetis** (render dari dataset, dengan degradasi
+**Perbandingan varian fitur** (data latih & validasi identik, seed 42;
+35.432 / 4.832 sampel):
+
+| Konfigurasi | Dimensi | Akurasi karakter |
+|---|---:|---:|
+| HOG saja, tanpa scaler | 324 | 99,81% |
+| HOG saja, + StandardScaler | 324 | 99,83% |
+| HOG+Zoning, tanpa scaler | 340 | 99,90% |
+| **HOG+Zoning, + StandardScaler** | **340** | **99,92%** |
+
+**GridSearchCV LinearSVC** (subsampel 12.000, 3-fold) memilih **C = 1,0**:
+
+| C | Akurasi CV |
+|---:|---:|
+| 0,01 | 98,98% |
+| 0,1 | 99,62% |
+| **1,0** | **99,69%** |
+| 10,0 | 99,68% |
+
+Gamma tidak disertakan karena kernel yang dipakai linear. RBF memang punya
+gamma, tetapi bobotnya tidak dapat diekspor sebagai satu matriks `coef`,
+sehingga inferensi Dart akan jauh lebih berat.
+
+**Perbandingan end-to-end** pada 120 baris uji yang sama
+(`python experiment_endtoend.py`):
+
+| Model | CER | WER | Exact match |
+|---|---:|---:|---:|
+| HOG saja | **30,25%** | 62,18% | 61,67% |
+| **HOG+Zoning+Scaler** | 30,70% | **60,65%** | **62,50%** |
+| Selisih | −0,44 poin | **+1,53 poin** | **+0,83 poin** |
+
+Ini hasil yang campuran, dan dilaporkan apa adanya:
+
+- **WER membaik 1,53 poin** — kata utuh lebih sering benar, dan inilah yang
+  dilihat pengguna.
+- **CER sedikit memburuk 0,44 poin** — jumlah karakter salah bertambah
+  sedikit pada token yang sudah hampir benar.
+
+Pola ini sama dengan yang tercatat pada koreksi leksikal: menarik token ke
+bentuk yang lebih "khas" menyelamatkan kata utuh tetapi kadang mengubah
+karakter yang sebenarnya sudah benar. Karena aplikasi menampilkan hasil per
+kata, **WER lebih relevan** daripada CER.
+
+Diuji pada **120 baris sintetis** (render dari dataset, dengan degradasi
 noise/blur/kontras):
 
 | Konfigurasi | CER | WER | Exact match |
 |---|---:|---:|---:|
-| Otsu | 21,33% | 51,39% | 64,00% |
-| Sauvola | 31,14% | 50,89% | 66,67% |
-| Otsu + deskew | 21,18% | 54,61% | 62,67% |
-| Otsu + deskew + leksikon | 21,04% | 49,52% | 66,67% |
-| **Sauvola + deskew + leksikon** | **29,75%** | **46,08%** | **72,00%** |
+| Otsu | 32,35% | 66,32% | 55,00% |
+| Sauvola | 50,97% | 69,10% | 55,00% |
+| Otsu + deskew | 31,63% | 68,26% | 54,17% |
+| Otsu + deskew + leksikon | 30,70% | 60,65% | 62,50% |
+| **Sauvola + deskew + leksikon** | **47,72%** | **57,67%** | **63,33%** |
 
-**Akurasi klasifikasi karakter: 99,73%** (validasi 8.019 sampel).
+**Akurasi klasifikasi karakter: 99,92%** (validasi 4.832 sampel).
 
 Catatan penting:
 
@@ -72,8 +145,10 @@ Catatan penting:
 | `paper.py` | Deteksi & potong area kertas struk |
 | `deskew.py` | Estimasi & koreksi kemiringan |
 | `segment.py` | Segmentasi baris & karakter |
-| `features.py` | HOG manual (324 dimensi) |
-| `train_char.py` | Latih Linear SVM, ekspor `.joblib` + `.json` |
+| `features.py` | HOG 324 dim + Zoning 4x4 16 dim, plus fungsi gabungan |
+| `train_char.py` | Latih HOG+Zoning -> Scaler -> (PCA) -> SVM, GridSearchCV C |
+| `experiment_pca.py` | Uji jumlah komponen PCA (hasil: tidak dipakai) |
+| `experiment_endtoend.py` | Bandingkan HOG saja vs HOG+Zoning pada data uji sama |
 | `lexicon.py` | Koreksi kata (Levenshtein) |
 | `ocr_pipeline.py` | Pipeline lengkap + CLI |
 | `evaluate.py` | CER, WER, ablasi per tahap |
@@ -100,18 +175,20 @@ Pipeline ini sudah diport ke Flutter dan **menggantikan Google ML Kit**.
 | `lib/ocr/classical/paper_detector.dart` | `paper.py` |
 | `lib/ocr/classical/deskew.dart` | `deskew.py` |
 | `lib/ocr/classical/segmenter.dart` | `segment.py` |
-| `lib/ocr/classical/hog.dart` | `features.py` |
-| `lib/ocr/classical/char_classifier.dart` | `train_char.py` (inferensi) |
+| `lib/ocr/classical/hog.dart` | `features.py` (bagian HOG) |
+| `lib/ocr/classical/zoning.dart` | `features.py` (bagian Zoning) |
+| `lib/ocr/classical/char_classifier.dart` | `train_char.py` (scaler + PCA + SVM) |
 | `lib/ocr/classical/lexicon_corrector.dart` | `lexicon.py` |
 | `lib/ocr/classical/classical_ocr_engine.dart` | `ocr_pipeline.py` |
 
-Aset: `assets/ocr_char_svm.json` (117 KB) dan `assets/ocr_lexicon.json` (34 KB).
+Aset: `assets/ocr_char_svm.json` (156 KB: 340 bobot + scaler) dan
+`assets/ocr_lexicon.json` (34 KB).
 
 ### Verifikasi paritas
 
 | Uji | Cakupan | Hasil |
 |---|---|---|
-| `test/ocr_classical_parity_test.dart` | HOG + SVM pada 16 patch | **100% identik** dengan Python (toleransi 1e-4) |
+| `test/ocr_classical_parity_test.dart` | HOG, Zoning, vektor gabungan, dan prediksi pada 16 patch | **100% identik** dengan Python (toleransi 1e-4) |
 | `test/ocr_classical_pipeline_test.dart` | 8 gambar end-to-end | **8/8 teks identik** dengan Python |
 
 Perbedaan numerik yang harus disamakan agar paritas tercapai:

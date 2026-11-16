@@ -50,6 +50,33 @@ HOG_BLOCK = 2           # 3x3 blok bertumpuk
 HOG_DIM = ((CHAR_SIZE // HOG_CELL) - HOG_BLOCK + 1) ** 2 * HOG_BLOCK ** 2 * HOG_BINS
 
 # ---------------------------------------------------------------------------
+# Zoning / Grid Features
+# ---------------------------------------------------------------------------
+# Kanvas karakter dibagi menjadi grid x grid zona; tiap zona menyumbang satu
+# nilai kepadatan tinta. Grid 4x4 = 16 dimensi.
+#
+# Zoning melengkapi HOG: HOG merekam ARAH tepi (bentuk goresan), sedangkan
+# zoning merekam SEBARAN tinta (huruf ini padat di bagian mana). Untuk font
+# thermal monospace keduanya saling mengisi.
+ZONING_GRID = 4
+ZONING_DIM = ZONING_GRID * ZONING_GRID
+
+# Vektor akhir = HOG ++ Zoning (324 + 16 = 340).
+FEATURE_DIM = HOG_DIM + ZONING_DIM
+
+# ---------------------------------------------------------------------------
+# Feature scaling & reduksi dimensi
+# ---------------------------------------------------------------------------
+# StandardScaler wajib: HOG dinormalisasi L2-Hys (nilai ~0..0.6) sedangkan
+# zoning berupa kepadatan 0..1 dengan rata-rata ~0.2. Tanpa penyamaan skala,
+# SVM memberi bobot berlebih pada zona yang volumenya lebih besar.
+USE_SCALER = True
+
+# PCA opsional. 0 = tidak dipakai. Bila > 0, dimensi gabungan direduksi
+# sebelum masuk SVM; parameternya ikut diekspor agar Dart dapat menirunya.
+PCA_COMPONENTS = 0
+
+# ---------------------------------------------------------------------------
 # Binarisasi
 # ---------------------------------------------------------------------------
 SAUVOLA_WINDOW = 25

@@ -1,8 +1,15 @@
 {
-  "val_accuracy": 0.9972565157750343,
-  "n_train": 58805,
-  "n_val": 8019,
-  "n_features": 324,
+  "val_accuracy": 0.9991721854304636,
+  "n_train": 35432,
+  "n_val": 4832,
+  "hog_dim": 324,
+  "zoning_dim": 16,
+  "combined_dim": 340,
+  "svm_input_dim": 340,
+  "scaler": true,
+  "pca_components": 0,
+  "pca_variance": null,
   "n_classes": 39,
-  "C": 1.0
+  "C": 1.0,
+  "comparison": []
 }
