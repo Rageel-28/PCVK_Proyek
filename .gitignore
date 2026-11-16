@@ -18,3 +18,15 @@ ML/ocr_classical/data/
 ML/ocr_classical/output/*.npy
 ML/ocr_classical/output/*.joblib
 ~$*
+
+# Arsip ZIP dataset struk **wajib** disimpan: ZIP inilah yang memuat
+# anotasi COCO (`_annotations.coco.json`). Folder `ML/Dataset Citra/`
+# hanya berisi piksel JPG tanpa anotasi, jadi tanpa ZIP ini
+# `real_data.py` dan `evaluate_real.py` tidak bisa jalan.
+# (Arsip COCO lama tetap diabaikan karena folder ekstraknya sudah
+# menyertakan anotasi.)
+ML/OCR Struk Belanja.v2i.coco.zip
+
+# Arsip duplikat: isinya sama dengan isi repo, bukan sumber data.
+pbl_colab.zip
+
