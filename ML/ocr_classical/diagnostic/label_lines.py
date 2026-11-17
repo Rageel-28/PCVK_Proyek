@@ -55,12 +55,17 @@ CANDIDATES = HERE / "labeling_candidates.csv"
 sys.path.insert(0, str(OCR))
 sys.path.insert(0, str(HERE))
 import dataset_source as DS  # noqa: E402
+import deskew as DK  # noqa: E402
 import paper as PPR  # noqa: E402
 import preprocess as PP  # noqa: E402
 import segment as SG  # noqa: E402
 
 MAX_DIM = 1400
 MIN_LINE_H = 14
+
+# Sudut deskew yang diterapkan per berkas, diisi oleh [load_mask] dan
+# ditampilkan di GUI supaya pengguna tahu citra itu dimiringkan.
+state_angles: dict[str, float] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -88,7 +93,15 @@ def resolve(name: str, index: dict[str, Path]) -> Path | None:
 # Pengolahan citra
 # ---------------------------------------------------------------------------
 def load_mask(path: Path) -> tuple[np.ndarray, np.ndarray, float]:
-    """Kembalikan (gray, ink, scale) siap segmentasi."""
+    """Kembalikan (gray, ink, scale) siap segmentasi.
+
+    Termasuk **koreksi kemiringan**: struk yang difoto miring atau tertekuk
+    membuat proyeksi horizontal gagal memisahkan baris, sehingga satu baris
+    bisa tercampur dengan baris lain dan segmentasi glyph kacau. Deskew
+    memakai variansi profil proyeksi (sudut yang membuat puncak/lembah
+    paling tajam), rentang diperlebar ke +-25 derajat karena foto HP sering
+    lebih miring daripada scan.
+    """
     img = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
     if img is None:
         raise FileNotFoundError(path)
@@ -104,6 +117,17 @@ def load_mask(path: Path) -> tuple[np.ndarray, np.ndarray, float]:
         img = cv2.resize(img, None, fx=scale, fy=scale,
                          interpolation=cv2.INTER_CUBIC)
     ink = PP.prepare(img, "sauvola")
+
+    # Koreksi kemiringan: struk miring/tertekuk membuat proyeksi horizontal
+    # gagal memisahkan baris. Rentang diperlebar ke +-25 derajat karena foto
+    # HP sering lebih miring daripada scan.
+    angle = DK.estimate_skew(ink, max_angle=25.0)
+    if abs(angle) >= 0.5:
+        img, ink, _used = DK.auto_deskew_pair(img, ink, max_angle=25.0)
+        state_angles[path.name] = round(float(_used), 1)
+    else:
+        state_angles[path.name] = 0.0
+
     return img, ink, scale
 
 
@@ -233,6 +257,9 @@ def run_gui(start: int = 0) -> None:
     cursor = min(start, len(queue) - 1)
     undo: list[tuple[str, int]] = []
 
+    # Berkas yang ditolak karena kualitas buruk (miring/tertekuk/buram).
+    image_skips: set[str] = set()
+
     root = tk.Tk()
     root.title("Pelabelan Baris Struk Thermal")
     root.geometry("1280x860")
@@ -278,9 +305,24 @@ def run_gui(start: int = 0) -> None:
 
         name, idx, (top, bottom, n) = current()
         gray, ink = cache[name]
+        angle = state_angles.get(name, 0.0)
         progress.config(text=f"Baris {cursor + 1}/{len(queue)}  |  "
                              f"tersimpan {len(labels)}  |  {name[:26]}")
-        info.config(text=f"glyph terdeteksi: {n}  |  baris y={top}-{bottom}")
+
+        # Peringatan kualitas: kemiringan besar dan/atau baris terlalu tinggi
+        # (ciri segmentasi kacau) ditandai agar pengguna waspada. Baris yang
+        # tingginya jauh di atas normal biasanya gabungan dua baris.
+        warnings = []
+        if abs(angle) >= 3.0:
+            warnings.append(f"citra dimiringkan {angle:.1f} deg")
+        if (bottom - top + 1) > 90:
+            warnings.append("baris ini sangat tinggi - mungkin 2 baris menyatu")
+        if n > 70:
+            warnings.append(f"{n} glyph dalam satu baris - mungkin kacau")
+        msg = f"glyph terdeteksi: {n}  |  baris y={top}-{bottom}"
+        if warnings:
+            msg += "   |   PERIKSA: " + "; ".join(warnings)
+        info.config(text=msg)
 
         win_w = canvas.winfo_width() or 1240
         win_h = canvas.winfo_height() or 520
@@ -331,6 +373,29 @@ def run_gui(start: int = 0) -> None:
         cursor = min(cursor + 1, len(queue))
         render()
 
+    def skip_image() -> None:
+        """Lewati SELURUH citra ini (kualitas buruk / terlalu miring).
+
+        Menolak citra adalah keputusan yang sah: label yang salah lebih
+        merusak data latih daripada kekurangan beberapa citra.
+        """
+        nonlocal cursor
+        if cursor >= len(queue):
+            return
+        name = queue[cursor][0]
+        skipped = sum(1 for (n, _, _) in queue if n == name)
+        for i, (n, _, _) in enumerate(queue):
+            if n == name:
+                cursor = max(cursor, i)
+        # Maju ke baris pertama citra berikutnya.
+        i = cursor
+        while i < len(queue) and queue[i][0] == name:
+            i += 1
+        cursor = min(i, len(queue))
+        image_skips.add(name)
+        info.config(text=f"citra dilewati: {name[:40]} ({skipped} baris)")
+        render()
+
     def do_undo() -> None:
         nonlocal cursor
         if not undo:
@@ -359,9 +424,10 @@ def run_gui(start: int = 0) -> None:
     btns = ttk.Frame(entry_row)
     btns.pack(side="left", padx=(8, 0))
     ttk.Button(btns, text="Simpan", command=lambda: commit(entry.get())).pack(side="left")
-    ttk.Button(btns, text="Lewati", command=skip).pack(side="left", padx=4)
-    ttk.Button(btns, text="Undo", command=do_undo).pack(side="left")
-    ttk.Button(btns, text="ASCII", command=show_ascii).pack(side="left", padx=4)
+    ttk.Button(btns, text="Lewati baris", command=skip).pack(side="left", padx=4)
+    ttk.Button(btns, text="Lewati citra", command=skip_image).pack(side="left")
+    ttk.Button(btns, text="Undo", command=do_undo).pack(side="left", padx=4)
+    ttk.Button(btns, text="ASCII", command=show_ascii).pack(side="left")
 
     entry.bind("<Return>", lambda _e: commit(entry.get()))
     root.bind("<Control-z>", lambda _e: do_undo())

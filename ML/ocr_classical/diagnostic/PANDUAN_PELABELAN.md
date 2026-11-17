@@ -45,6 +45,40 @@ Penanda bahasanya khas Indonesia: `TERIMA KASIH`, `ANDA HEMAT`,
 (RM, GST, Selangor, Johor) dan Amerika. Hanya ±4 citra bertanda Indonesia.
 v10 jauh lebih baik untuk tujuan ini.
 
+### Penting: anotasi COCO TIDAK memuat teks
+
+Dataset ini berformat COCO, tetapi anotasinya **hanya kotak area**, bukan
+transkripsi teks. Isi tiap anotasi (terverifikasi dari berkas JSON):
+
+```
+{'id': 1, 'image_id': 0, 'category_id': 2,
+ 'bbox': [32.23, 92.55, 216.43, 18.47], 'iscrowd': 0,
+ 'area': 3997.46, 'segmentation': []}
+```
+
+| Kategori | Arti |
+|---|---|
+| `OCR-Struk-Belanja` | seluruh struk |
+| `nama_toko` | kotak berisi nama toko |
+| `tanggal_waktu` | kotak berisi tanggal/jam |
+| `line_item` | kotak berisi baris barang |
+| `total_belanja` | kotak berisi total |
+
+Tidak ada kunci `text`, `transcription`, maupun `label`. Artinya anotasi
+itu memberi tahu **DI MANA** teks berada, bukan **APA** isinya.
+
+Model OCR memerlukan label **per karakter** — untuk setiap glyph harus
+diketahui huruf apa. Karena itu teks setiap baris tetap harus diketik
+manusia. Anotasi COCO hanya bisa dipakai untuk:
+
+- memvalidasi bahwa segmentasi kita kena area yang benar, dan
+- mengurutkan prioritas baris yang dilabeli (`line_item`, `total_belanja`).
+
+Total anotasi: 6.637 (train) + 844 (valid) + 790 (test) = **8.271 kotak**.
+Bila kelak Anda ingin memakai anotasi ini untuk pelabelan semi-otomatis,
+kotak `line_item` bisa dicocokkan dengan hasil segmentasi kita — tetapi
+teksnya tetap perlu diketik.
+
 ### Pilih berdasarkan skor, bukan urutan folder
 
 ```bash
@@ -102,10 +136,34 @@ python label_lines.py
 | Tombol | Fungsi |
 |---|---|
 | **Enter** | simpan & lanjut |
-| **Lewati** | lewati baris (mis. tidak terbaca) |
+| **Lewati baris** | lewati satu baris (mis. tidak terbaca) |
+| **Lewati citra** | tolak seluruh citra ini — pakai bila citra terlalu miring, tertekuk, atau buram |
 | **Undo** / Ctrl+Z | batalkan label terakhir |
 | **ASCII** / Tab | lihat glyph sebagai teks ASCII untuk memastikan segmentasi |
 | **Esc** | keluar, progres tersimpan |
+
+### Citra miring, tertekuk, atau buram
+
+Alat ini menjalankan **koreksi kemiringan (deskew) otomatis** sebelum
+segmentasi: sudut dicari dengan memaksimalkan variansi profil proyeksi,
+rentang ±25° (foto HP sering lebih miring daripada scan).
+
+Hasil terukur pada citra yang paling buruk di dataset:
+
+| Citra | Tanpa deskew | Sesudah deskew |
+|---|---:|---:|
+| `struk-14…89120d` (miring −6,9°) | 3 baris, 47 glyph | **14 baris, 343 glyph** |
+
+Bila setelah deskew hasilnya masih kacau, layar menampilkan peringatan
+**PERIKSA**:
+
+- `citra dimiringkan X°` — kemiringan besar
+- `baris ini sangat tinggi - mungkin 2 baris menyatu`
+- `N glyph dalam satu baris - mungkin kacau`
+
+Untuk kasus itu, tekan **Lewati citra**. Ini keputusan yang sah: **label
+yang salah lebih merusak data latih daripada kekurangan beberapa citra.**
+Anda tidak perlu memaksakan semua 71 citra terpakai.
 
 ### Aturan yang harus dipatuhi
 
