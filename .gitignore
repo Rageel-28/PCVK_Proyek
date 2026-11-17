@@ -22,3 +22,18 @@ ML/ocr_classical/output/*.joblib
 # --- Eksperimen OCR klasik ---
 # Model pembanding dari experiment_endtoend.py (dibuat ulang tiap dijalankan).
 ML/ocr_classical/output/cmp_*.json
+
+# Hasil pelabelan & diagnostik OCR (data kerja, bukan kode)
+ML/ocr_classical/diagnostic/labels/
+ML/ocr_classical/diagnostic/labeling_candidates.csv
+ML/ocr_classical/diagnostic/contact_sheet.jpg
+
+# Dataset v10 (120 MB, 1505 citra) — disimpan lokal, tidak di-commit.
+ML/OCR - Struk Belanja.v10-raw-dataset.coco/
+# Font unduhan untuk eksperimen thermal (34 MB) — tidak di-commit.
+ML/Font/
+# Lembar kontak hasil pemeriksaan visual.
+ML/ocr_classical/diagnostic/*.jpg
+# Keluaran eksperimen & citra struk pribadi
+ML/ocr_classical/diagnostic/*.txt
+ML/ocr_classical/diagnostic/testdata/
