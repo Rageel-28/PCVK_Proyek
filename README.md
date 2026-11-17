@@ -50,11 +50,19 @@ Foto struk
    ├─ [6]  Segmentasi baris           proyeksi + Otsu 1D
    ├─ [7]  Segmentasi karakter        connected components + split lembah
    ├─ [8]  Normalisasi                32x32
-   ├─ [9]  Ekstraksi fitur            HOG manual (324 dimensi)
-   ├─ [10] Klasifikasi karakter       Linear SVM
-   ├─ [11] Rekonstruksi baris         spasi dari median celah
-   └─ [12] Koreksi leksikon           Levenshtein (3.641 kata)
+   ├─ [9]  Ekstraksi fitur            HOG 324 dim + Zoning 4x4 16 dim = 340
+   ├─ [10] Penskalaan                 StandardScaler (mean 0, variansi 1)
+   ├─ [11] Klasifikasi karakter       Linear SVM
+   ├─ [12] Rekonstruksi baris         spasi dari median celah
+   └─ [13] Koreksi leksikon           Levenshtein (3.641 kata)
 ```
+
+**Fitur karakter: HOG + Zoning.** HOG merekam *arah tepi* (bentuk goresan)
+dan membuang posisi; Zoning membagi kanvas menjadi grid 4×4 dan merekam
+*kepadatan tinta per zona*, sehingga posisi ikut terwakili. Keduanya
+digabung dengan `np.concatenate` menjadi 340 dimensi, lalu discalakan
+**StandardScaler** sebelum masuk SVM (HOG ~0–0.6, Zoning 0–1 — beda skala).
+`mean`/`scale` diekspor ke JSON agar Dart menerapkan transformasi sama.
 
 ---
 
@@ -67,15 +75,15 @@ tanpa library OCR apa pun:
 |---|---|
 | Dependensi ML Kit | **dihapus** dari `pubspec.yaml` |
 | `MlKitOcrEngine` | **dihapus** |
-| `ClassicalOcrEngine` | **12 modul Dart** di `lib/ocr/classical/` |
-| Aset model | `ocr_char_svm.json` (117 KB) + `ocr_lexicon.json` (34 KB) |
+| `ClassicalOcrEngine` | **13 modul Dart** di `lib/ocr/classical/` |
+| Aset model | `ocr_char_svm.json` (156 KB: bobot 340 dim + scaler) + `ocr_lexicon.json` (34 KB) |
 | Klasifikasi TF-IDF + Naive Bayes | **tidak diubah** — hanya masukannya kini teks dari OCR klasik |
 
 ### Verifikasi paritas Dart vs Python
 
 | Uji | Hasil |
 |---|---|
-| HOG + SVM (16 patch, toleransi 1e-4) | **100% identik** |
+| HOG, Zoning, vektor gabungan, prediksi (16 patch, toleransi 1e-4) | **100% identik** |
 | End-to-end (8 gambar) | **8/8 teks identik** |
 | Seluruh test suite | **179 test lolos** |
 
@@ -177,6 +185,7 @@ Penjelasan lengkap beserta daftar algoritma yang ditulis manual ada di
 | Algoritma | Berkas |
 |---|---|
 | HOG 324 dimensi (tanpa `skimage.hog`) | `features.py` |
+| Zoning / Grid Features 16 dimensi | `features.py` |
 | Sauvola thresholding | `preprocess.py` |
 | Otsu 1D untuk profil baris | `segment.py` |
 | Deskew profil proyeksi | `deskew.py` |
