@@ -15,8 +15,10 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.smart_receipt"
+        // Branch rijaldzk: HOG + Zoning/Grid Features + StandardScaler.
+        // applicationId dibedakan dari varian ORI dan MIX agar ketiganya
+        // dapat terpasang berdampingan di satu perangkat.
+        applicationId = "com.example.smart_receipt_dzk"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // ML Kit text recognition requires API 21+; runtime camera/gallery

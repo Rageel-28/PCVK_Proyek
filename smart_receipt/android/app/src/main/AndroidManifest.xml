@@ -9,7 +9,7 @@
         android:maxSdkVersion="32"/>
 
     <application
-        android:label="smart_receipt"
+        android:label="smart_receiptDZK"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
