@@ -17,7 +17,9 @@ permissions:
 jobs:
   build-ios:
     name: Build iOS (IPA)
-    runs-on: macos-latest
+    # Use Intel runner pool because GitHub's macOS arm64 (`macos-latest`) queue
+    # currently times out under capacity constraints; Xcode still builds arm64 IPA.
+    runs-on: macos-15-intel
 
     defaults:
       run:
