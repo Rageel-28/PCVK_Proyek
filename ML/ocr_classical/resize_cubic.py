@@ -145,21 +145,19 @@ def rotate_nearest(img: np.ndarray, degrees: float, border_value: int = 0) -> np
     sin_a = math.sin(rad)
 
     h, w = img.shape[:2]
-    cx = w / 2.0
-    cy = h / 2.0
-    out = np.full((h, w), border_value, np.uint8)
+    cx = (w - 1) / 2.0
+    cy = (h - 1) / 2.0
+    dy = (np.arange(h, dtype=np.float64) - cy)[:, None]
+    dx = (np.arange(w, dtype=np.float64) - cx)[None, :]
+    src_x = cos_a * dx - sin_a * dy + cx
+    src_y = sin_a * dx + cos_a * dy + cy
 
-    for y in range(h):
-        dy = y - cy
-        for x in range(w):
-            dx = x - cx
-            src_x = cos_a * dx - sin_a * dy + cx
-            src_y = sin_a * dx + cos_a * dy + cy
-            sx = _py_round_half_even(src_x)
-            sy = _py_round_half_even(src_y)
-            if sx < 0 or sy < 0 or sx >= w or sy >= h:
-                continue
-            out[y, x] = img[sy, sx]
+    sx = np.where(src_x >= 0, np.floor(src_x + 0.5), -np.floor(-src_x + 0.5)).astype(np.int64)
+    sy = np.where(src_y >= 0, np.floor(src_y + 0.5), -np.floor(-src_y + 0.5)).astype(np.int64)
+    valid = (sx >= 0) & (sy >= 0) & (sx < w) & (sy < h)
+
+    out = np.full((h, w), border_value, np.uint8)
+    out[valid] = img[sy[valid], sx[valid]]
     return out
 
 def _round_half_away(v: float) -> int:
@@ -182,24 +180,23 @@ def resize_bilinear(img: np.ndarray, new_width: int, new_height: int) -> np.ndar
 
     sx = w / new_width
     sy = h / new_height
-    out = np.zeros((new_height, new_width), np.uint8)
-    src_i = src.astype(np.float64)
+    src_f = src.astype(np.float64)
 
-    for y in range(new_height):
-        fy = (y + 0.5) * sy - 0.5
-        y0 = min(max(int(math.floor(fy)), 0), h - 1)
-        y1 = min(y0 + 1, h - 1)
-        wy = min(max(fy - y0, 0.0), 1.0)
-        for x in range(new_width):
-            fx = (x + 0.5) * sx - 0.5
-            x0 = min(max(int(math.floor(fx)), 0), w - 1)
-            x1 = min(x0 + 1, w - 1)
-            wx = min(max(fx - x0, 0.0), 1.0)
-            v00 = src_i[y0, x0]
-            v01 = src_i[y0, x1]
-            v10 = src_i[y1, x0]
-            v11 = src_i[y1, x1]
-            top = v00 + (v01 - v00) * wx
-            bottom = v10 + (v11 - v10) * wx
-            out[y, x] = _round_half_away(min(max(top + (bottom - top) * wy, 0.0), 255.0))
-    return out
+    fy = (np.arange(new_height, dtype=np.float64) + 0.5) * sy - 0.5
+    y0 = np.clip(np.floor(fy).astype(np.int64), 0, h - 1)
+    y1 = np.minimum(y0 + 1, h - 1)
+    wy = np.clip(fy - y0, 0.0, 1.0)[:, None]
+
+    fx = (np.arange(new_width, dtype=np.float64) + 0.5) * sx - 0.5
+    x0 = np.clip(np.floor(fx).astype(np.int64), 0, w - 1)
+    x1 = np.minimum(x0 + 1, w - 1)
+    wx = np.clip(fx - x0, 0.0, 1.0)[None, :]
+
+    v00 = src_f[y0[:, None], x0[None, :]]
+    v01 = src_f[y0[:, None], x1[None, :]]
+    v10 = src_f[y1[:, None], x0[None, :]]
+    v11 = src_f[y1[:, None], x1[None, :]]
+    top = v00 + (v01 - v00) * wx
+    bottom = v10 + (v11 - v10) * wx
+    val = np.clip(top + (bottom - top) * wy, 0.0, 255.0)
+    return np.floor(val + 0.5).astype(np.uint8)

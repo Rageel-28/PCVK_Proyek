@@ -25,61 +25,124 @@ import config as C
 import features as F
 
 
-def load_split(val_ratio: float, seed: int):
-    """Muat data latih.
+def _augment_patch(patch: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """Augmentasi citra klasik ringan pada patch asli 32x32 (geser & gamma)."""
+    out = patch.astype(np.float32)
+    dx = int(rng.integers(-1, 2))
+    dy = int(rng.integers(-1, 2))
+    if dx != 0 or dy != 0:
+        shifted = np.full_like(out, 255.0)
+        sx0 = max(0, -dx)
+        sx1 = C.CHAR_SIZE - max(0, dx)
+        sy0 = max(0, -dy)
+        sy1 = C.CHAR_SIZE - max(0, dy)
+        tx0 = max(0, dx)
+        tx1 = C.CHAR_SIZE - max(0, -dx)
+        ty0 = max(0, dy)
+        ty1 = C.CHAR_SIZE - max(0, -dy)
+        shifted[ty0:ty1, tx0:tx1] = out[sy0:sy1, sx0:sx1]
+        out = shifted
 
-    Data struk **asli** yang berlabel benar adalah sumber utama; data
-    sintetis hanya pelengkap untuk menutup kelas yang tidak muncul di
-    panen data asli (tanda baca dan sebagian angka). Sampel asli diberi
-    bobot lebih besar lewat penggandaan agar domain thermal Indonesia
-    mendominasi keputusan model.
+    if rng.random() < 0.7:
+        gamma = float(rng.uniform(0.75, 1.30))
+        out = 255.0 * (np.clip(out, 0.0, 255.0) / 255.0) ** gamma
 
-    Berkas ``chars_real_gold.npz`` dibuat oleh ``build_real_chars.py``
-    dari transkripsi manual, jadi labelnya bukan hasil prediksi model.
+    return np.clip(out, 0, 255).astype(np.uint8)
 
-    ``chars_gold_real.npz`` dan ``chars_real.npz`` (panen lama) sengaja
-    tidak dipakai: keduanya dihasilkan saat charset masih memuat huruf
-    kecil, sehingga labelnya berasal dari prediksi model yang sedang
-    rusak. Terbukti meracuni kelas ``0`` -- model membacanya sebagai ``8``.
+
+def load_split(val_ratio: float, seed: int, with_synthetic: bool = False):
+    """Muat data latih dari potongan karakter struk asli (`chars_real_gold.npz`).
+
+    Secara default TIDAK memakai data sintetis; seluruh sampel berasal dari
+    potongan karakter struk asli di `ML/Dataset Citra/`. Augmentasi klasik
+    ringan diterapkan HANYA pada split latih (`Xtr_img`) untuk menyeimbangkan
+    kelas yang jumlah sampel aslinya sedikit.
     """
-    path = C.DATA_DIR / "chars_train.npz"
-    if not path.exists():
-        raise FileNotFoundError(
-            f"{path} belum ada. Jalankan dulu: python render_synthetic.py"
-        )
-    d = np.load(path)
-    X_img, y = d["X"], d["y"]
-    n_synth = len(y)
-
     real_path = C.DATA_DIR / "chars_real_gold.npz"
-    n_real = 0
-    if real_path.exists():
-        dr = np.load(real_path)
-        if len(dr["y"]) > 0:
-            Xr = np.repeat(dr["X"], C.REAL_SAMPLE_WEIGHT, axis=0)
-            yr = np.repeat(dr["y"], C.REAL_SAMPLE_WEIGHT, axis=0)
-            X_img = np.concatenate([X_img, Xr], axis=0)
-            y = np.concatenate([y, yr], axis=0)
-            n_real = len(dr["y"])
-            print(
-                f"  + struk asli berlabel: {n_real} karakter "
-                f"(bobot x{C.REAL_SAMPLE_WEIGHT} -> {len(yr)})"
-            )
+    if not real_path.exists():
+        raise FileNotFoundError(
+            f"{real_path} belum ada. Jalankan dulu: python build_real_chars.py"
+        )
+    dr = np.load(real_path)
+    X_real, y_real = dr["X"], dr["y"]
+    if len(y_real) == 0:
+        raise RuntimeError("chars_real_gold.npz kosong.")
 
-    # Buang kelas yang sampelnya terlalu sedikit agar tidak mengganggu.
-    counts = np.bincount(y, minlength=len(C.CHARSET))
-    keep = np.isin(y, np.nonzero(counts >= 5)[0])
-    dropped = int((~keep).sum())
-    X_img, y = X_img[keep], y[keep]
-    if dropped:
-        print(f"  {dropped} sampel dari kelas langka dibuang")
+    rng = np.random.default_rng(seed)
+    counts = np.bincount(y_real, minlength=len(C.CHARSET))
 
-    Xtr_img, Xva_img, ytr, yva = train_test_split(
-        X_img, y, test_size=val_ratio, random_state=seed, stratify=y
-    )
+    # Kelas dengan >= 4 sampel di-split ke latih + validasi; kelas sangat langka
+    # (1..3 sampel) masuk ke latih agar tetap dikenal tanpa membuangnya.
+    splittable = np.isin(y_real, np.nonzero(counts >= 4)[0])
+    if splittable.any():
+        X_sp, y_sp = X_real[splittable], y_real[splittable]
+        # Pastikan cukup sampel validasi per kelas (>= 1 per kelas).
+        Xtr_img, Xva_img, ytr, yva = train_test_split(
+            X_sp, y_sp, test_size=val_ratio, random_state=seed, stratify=y_sp
+        )
+    else:
+        Xtr_img, Xva_img = X_real[:0], X_real[:0]
+        ytr, yva = y_real[:0], y_real[:0]
+
+    rare_mask = ~splittable
+    if rare_mask.any():
+        Xtr_img = np.concatenate([Xtr_img, X_real[rare_mask]], axis=0)
+        ytr = np.concatenate([ytr, y_real[rare_mask]], axis=0)
+
+    # Augmentasi HANYA pada data latih asli untuk menyeimbangkan kelas langka
+    # dan memperkaya variasi ketebalan tinta / pergeseran 1 px. Tanda baca
+    # berlebih (`.` dan `,`) dibatasi agar blok buram resolusi rendah tidak
+    # mendominasi huruf kecil; simbol sangat langka (`%`, `+`, dll.) tidak
+    # digandakan paksa hingga 80-an agar tidak mencuri huruf.
+    aug_X: list[np.ndarray] = []
+    aug_y: list[np.ndarray] = []
+    for cls_id in np.unique(ytr):
+        cls_idx = np.nonzero(ytr == cls_id)[0]
+        n_cls = len(cls_idx)
+        ch = C.CHARSET[int(cls_id)]
+        if ch in ".,":
+            keep = cls_idx if n_cls <= 180 else rng.choice(cls_idx, 180, replace=False)
+            aug_X.append(Xtr_img[keep])
+            aug_y.append(np.full(len(keep), cls_id, dtype=ytr.dtype))
+            aug_n = min(40, len(keep))
+            gen_imgs = [_augment_patch(Xtr_img[int(rng.choice(keep))], rng) for _ in range(aug_n)]
+            if gen_imgs:
+                aug_X.append(np.stack(gen_imgs))
+                aug_y.append(np.full(aug_n, cls_id, dtype=ytr.dtype))
+        elif ch in "%&+:=()@/-":
+            aug_X.append(Xtr_img[cls_idx])
+            aug_y.append(np.full(n_cls, cls_id, dtype=ytr.dtype))
+            needed = min(20, n_cls * 2) if n_cls < 20 else min(40, n_cls)
+            if needed > 0:
+                gen_imgs = [_augment_patch(Xtr_img[int(rng.choice(cls_idx))], rng) for _ in range(needed)]
+                aug_X.append(np.stack(gen_imgs))
+                aug_y.append(np.full(needed, cls_id, dtype=ytr.dtype))
+        else:
+            aug_X.append(Xtr_img[cls_idx])
+            aug_y.append(np.full(n_cls, cls_id, dtype=ytr.dtype))
+            target_n = max(80, min(240, n_cls * 3))
+            needed = max(0, target_n - n_cls)
+            if needed > 0:
+                gen_imgs = [_augment_patch(Xtr_img[int(rng.choice(cls_idx))], rng) for _ in range(needed)]
+                aug_X.append(np.stack(gen_imgs))
+                aug_y.append(np.full(needed, cls_id, dtype=ytr.dtype))
+
+    Xtr_img = np.concatenate(aug_X, axis=0)
+    ytr = np.concatenate(aug_y, axis=0)
+
+    n_synth = 0
+    if with_synthetic:
+        path = C.DATA_DIR / "chars_train.npz"
+        if path.exists():
+            d = np.load(path)
+            Xs, ys = d["X"], d["y"]
+            n_synth = len(ys)
+            Xtr_img = np.concatenate([Xtr_img, Xs], axis=0)
+            ytr = np.concatenate([ytr, ys], axis=0)
+
     print(
-        f"  sintetis={n_synth}  asli={n_real}  "
-        f"latih={len(ytr)}  validasi={len(yva)}  kelas={len(np.unique(y))}"
+        f"  asli={len(y_real)}  sintetis={n_synth}  "
+        f"latih(aug)={len(ytr)}  validasi(asli)={len(yva)}  kelas={len(np.unique(ytr))}"
     )
     return Xtr_img, ytr, Xva_img, yva
 
@@ -107,10 +170,12 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--c", type=float, default=C.SVM_C)
     ap.add_argument("--max-iter", type=int, default=C.SVM_MAX_ITER)
+    ap.add_argument("--with-synthetic", action="store_true",
+                    help="gabungkan data sintetis sebagai pelengkap (default: hanya data asli)")
     args = ap.parse_args()
 
     print("[1/4] Memuat data karakter")
-    Xtr_img, ytr, Xva_img, yva = load_split(args.val_ratio, args.seed)
+    Xtr_img, ytr, Xva_img, yva = load_split(args.val_ratio, args.seed, args.with_synthetic)
 
     print("[2/4] Ekstraksi fitur HOG")
     Xtr = F.hog_batch(Xtr_img)
@@ -118,7 +183,7 @@ def main() -> None:
     print(f"  dimensi fitur: {Xtr.shape[1]}")
 
     print("[3/4] Melatih Linear SVM")
-    model = LinearSVC(C=args.c, max_iter=args.max_iter, dual=True, random_state=args.seed)
+    model = LinearSVC(C=args.c, max_iter=args.max_iter, dual=True, class_weight=None, random_state=args.seed)
     model.fit(Xtr, ytr)
 
     pred = model.predict(Xva)

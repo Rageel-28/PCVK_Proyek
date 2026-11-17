@@ -36,37 +36,66 @@ UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 # Struk Indonesia memakai pemisah ribuan koma, titik dua label, sama dengan
 # untuk DPP/PPN, @ pada email, dan tanda kurung untuk nominal PPN.
 SYMBOLS = ".&-/%+,:@()="
-CHARSET = DIGITS + UPPER + SYMBOLS
+# Huruf kecil yang bentuknya berbeda dari kapitalnya (setelah normalisasi
+# tight-bbox ke 32x32, c/o/s/v/w/x/z identik dengan C/O/S/V/W/X/Z).
+LOWER_DISTINCT = "abdefghijklmnpqrtuy"
+CHARSET = DIGITS + UPPER + SYMBOLS + LOWER_DISTINCT
 CHAR_TO_IDX = {c: i for i, c in enumerate(CHARSET)}
 IDX_TO_CHAR = {i: c for c, i in CHAR_TO_IDX.items()}
+
+
+def canonical_char(ch: str) -> str:
+    """Petakan huruf ke kelas bentuk kanoniknya (mempertahankan huruf kecil khas)."""
+    return ch if ch in LOWER_DISTINCT else ch.upper()
+
 
 # Kandidat per konteks kata. Dipakai saat karakter sudah diprediksi sekali
 # lalu diprediksi ulang dengan batasan, sehingga huruf mirip angka (O/0,
 # I/1, S/5, B/8, Z/2, G/6) tidak lagi saling tertukar di kolom harga.
 NUMERIC_CHARSET = frozenset(DIGITS + ".,-/:%()=+")
-ALPHA_CHARSET = frozenset(UPPER + ".&/-/")
+NUMERIC_PRICE_CHARSET = frozenset(DIGITS + ".,-%()+")
+NUMERIC_DIGITS_ONLY = frozenset(DIGITS)
+ALPHA_CHARSET = frozenset(UPPER + LOWER_DISTINCT + ".&/-/")
+ALPHA_NO_DOT_CHARSET = frozenset(UPPER + LOWER_DISTINCT + "&/")
+ALPHA_LETTERS_CHARSET = frozenset(UPPER + LOWER_DISTINCT)
 
 # Karakter yang boleh muncul di dalam token angka / token huruf. Dipakai
 # untuk memutuskan apakah sebuah kata "murni angka" atau "murni huruf".
 _NUMERIC_TOKEN_CHARS = frozenset(DIGITS + ".,-/:%()=+")
+_NUMERIC_LOOKALIKE_CHARS = frozenset("OISBGZ")
+_NUMERIC_PRICE_LOOKALIKE_CHARS = frozenset("ODQISBGZ")
 _ALPHA_TOKEN_CHARS = frozenset(UPPER + ".&/-")
 
 
 def charset_for_token(chars: list[str]) -> frozenset[str] | None:
     """Kandidat yang boleh dipakai untuk sebuah kata, atau ``None``.
 
-    Aturannya **murni**: kata hanya dibatasi bila seluruh isinya memang
-    satu jenis. Ini penting karena struk penuh token campuran seperti
-    ``600ML``, ``250ML``, ``140ML``, dan ``403/5``. Versi pertama aturan
-    ini memakai mayoritas (>60%), dan akibatnya ``600ML`` dianggap kata
-    angka sehingga ``M`` dan ``L`` dibatasi menjadi digit.
+    Aturan:
+    1. Murni angka/pemisah -> ``NUMERIC_CHARSET`` (atau ``NUMERIC_PRICE_CHARSET``
+       bila mengandung koma ribuan agar ``:`` tidak menggantikan ``8``).
+    2. Murni huruf -> ``ALPHA_CHARSET``.
+    3. Token ber-digit yang seluruh hurufnya hanya berupa karakter mirip angka:
+       - Bila memuat pemisah harga (``,`` atau ``.``), izinkan juga ``D``/``Q``
+         (seperti ``3,QO`` atau ``8.QD0``) dengan rasio >= 48%.
+       - Tanpa pemisah, tetap pakai syarat ketat >= 65% dan ``O,I,S,B,G,Z``
+         agar kode produk seperti ``600ML``, ``14G``, atau ``3D`` tetap aman.
     """
     if not chars:
         return None
     if all(c in _NUMERIC_TOKEN_CHARS for c in chars):
-        return NUMERIC_CHARSET
+        return NUMERIC_PRICE_CHARSET if "," in chars else NUMERIC_CHARSET
     if all(c in _ALPHA_TOKEN_CHARS for c in chars):
         return ALPHA_CHARSET
+    if len(chars) >= 2 and any(c.isdigit() for c in chars):
+        has_sep = "," in chars or "." in chars
+        allowed_mix = _NUMERIC_TOKEN_CHARS | (
+            _NUMERIC_PRICE_LOOKALIKE_CHARS if has_sep else _NUMERIC_LOOKALIKE_CHARS
+        )
+        if all(c in allowed_mix for c in chars):
+            num_count = sum(1 for c in chars if c in _NUMERIC_TOKEN_CHARS and c != ":")
+            min_ratio = 0.48 if has_sep and len(chars) >= 3 else 0.65
+            if num_count / len(chars) >= min_ratio:
+                return NUMERIC_PRICE_CHARSET if "," in chars else NUMERIC_CHARSET
     return None
 
 # Tanda baca kecil (koma, titik, hubung). Glyph setinggi 3-4 px tidak punya
@@ -84,8 +113,9 @@ HOG_CELL = 8            # 32/8 = 4 sel per sisi
 HOG_BINS = 9
 HOG_BLOCK = 2           # 3x3 blok bertumpuk
 
-# 324 dimensi: (4-2+1)^2 blok x 2x2 sel x 9 bin
-HOG_DIM = ((CHAR_SIZE // HOG_CELL) - HOG_BLOCK + 1) ** 2 * HOG_BLOCK ** 2 * HOG_BINS
+# 324 dimensi HOG + 16 kerapatan grid 4x4 + 4 geometri tinta = 344 dimensi
+HOG_BASE_DIM = ((CHAR_SIZE // HOG_CELL) - HOG_BLOCK + 1) ** 2 * HOG_BLOCK ** 2 * HOG_BINS
+HOG_DIM = HOG_BASE_DIM + 20
 
 # ---------------------------------------------------------------------------
 # Binarisasi
@@ -125,7 +155,7 @@ SPACE_WIDTH_RATIO = 0.9
 # ---------------------------------------------------------------------------
 # Klasifikasi
 # ---------------------------------------------------------------------------
-SVM_C = 1.0
+SVM_C = 0.5
 SVM_MAX_ITER = 20000
 CONFIDENCE_THRESHOLD = 0.55  # di bawah ini -> tandai tidak yakin
 

@@ -7,7 +7,9 @@ plus confusion matrix dan grafik ablasi.
 
 from __future__ import annotations
 
+import argparse
 import json
+from collections import Counter
 
 import cv2
 import matplotlib
@@ -19,6 +21,7 @@ import config as C
 import deskew as DK
 import paper as PPR
 import preprocess as PP
+import real_data as RD
 import segment as SG
 from evaluate import load_lines
 from ocr_pipeline import ClassicalOCR
@@ -145,30 +148,168 @@ def fig_ablation() -> str | None:
     return str(p)
 
 
+def fig_real_dataset() -> tuple[str, str, str] | None:
+    """Simpan ringkasan visual & metadata dataset karakter asli permanen."""
+    path = C.DATA_DIR / "chars_real_gold.npz"
+    if not path.exists():
+        return None
+    d = np.load(path)
+    X, y = d["X"], d["y"]
+    counts = Counter(C.IDX_TO_CHAR[int(v)] for v in y)
+
+    # 1. Sheet contoh potongan karakter 32x32 per kelas (maks 12 contoh/kelas)
+    rng = np.random.default_rng(42)
+    ordered = [ch for ch in C.CHARSET if counts.get(ch, 0) > 0]
+    n_cols = 12
+    tile = 34
+    row_h = tile + 4
+    label_w = 96
+    canvas_h = len(ordered) * row_h + 12
+    canvas_w = label_w + n_cols * tile + 12
+    sheet = np.full((canvas_h, canvas_w), 245, dtype=np.uint8)
+    for ri, ch in enumerate(ordered):
+        y0 = 6 + ri * row_h
+        idxs = np.nonzero(y == C.CHAR_TO_IDX[ch])[0]
+        picks = idxs if len(idxs) <= n_cols else rng.choice(idxs, n_cols, replace=False)
+        cv2.putText(sheet, f"{ch} ({len(idxs)})", (8, y0 + 23),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, 20, 1, cv2.LINE_AA)
+        for ci, idx in enumerate(picks):
+            x0 = label_w + ci * tile
+            sheet[y0 + 1 : y0 + 33, x0 + 1 : x0 + 33] = X[idx]
+    samples_png = OUT / "real_chars_samples.png"
+    cv2.imwrite(str(samples_png), sheet)
+
+    # 2. Grafik distribusi per kelas untuk laporan
+    labels = ordered
+    vals = [counts[ch] for ch in labels]
+    fig, ax = plt.subplots(figsize=(13.5, 4.2))
+    ax.bar(range(len(labels)), vals, color=BIRU, width=0.72)
+    ax.set_xticks(range(len(labels)))
+    ax.set_xticklabels(labels, fontsize=7.5)
+    ax.set_ylabel("Jumlah sampel asli")
+    ax.set_title(
+        f"Distribusi dataset karakter asli ({len(y)} potongan 32x32, {len(labels)} kelas, 0 sintetis)",
+        fontweight="bold", color="#1F3864",
+    )
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="y", color="#E0E0E0", linewidth=0.6)
+    ax.set_axisbelow(True)
+    fig.tight_layout()
+    dist_png = OUT / "real_chars_dist.png"
+    fig.savefig(dist_png, dpi=200, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+    # 3. Metadata lengkap sumber citra & label
+    tr_path = C.ROOT / "transcripts_real.json"
+    transcripts = (
+        {k: v for k, v in json.loads(tr_path.read_text(encoding="utf-8")).items() if not k.startswith("_")}
+        if tr_path.exists() else {}
+    )
+    imgs = {im.stem: im for im in RD.load_real_images(require_lines=False, stems=set(transcripts))}
+    split_counts: dict[str, int] = {}
+    sources_list = []
+    for stem in sorted(transcripts):
+        im = imgs.get(stem)
+        split = im.split if im is not None else "local"
+        split_counts[split] = split_counts.get(split, 0) + 1
+        sources_list.append({
+            "stem": stem,
+            "split": split,
+            "source": transcripts[stem].get("source", im.source if im else "?"),
+            "kind": transcripts[stem].get("kind", "?"),
+            "n_items_labels": len(transcripts[stem].get("items", [])),
+            "n_full_labels": len(transcripts[stem].get("full", [])),
+        })
+
+    meta = {
+        "dataset_file": str(path),
+        "transcripts_file": str(tr_path),
+        "total_chars": int(len(y)),
+        "synthetic_chars": 0,
+        "patch_size": [int(X.shape[1]), int(X.shape[2])],
+        "active_classes": len(ordered),
+        "class_counts": {ch: int(counts[ch]) for ch in ordered},
+        "transcript_stems_total": len(transcripts),
+        "transcript_splits": split_counts,
+        "sources": sources_list,
+    }
+    meta_json = OUT / "real_chars_metadata.json"
+    meta_json.write_text(json.dumps(meta, indent=2, ensure_ascii=False), encoding="utf-8")
+    return str(samples_png), str(dist_png), str(meta_json)
+
+
+def fig_real_receipt_stages(ocr: ClassicalOCR) -> str | None:
+    """Visualisasi langkah preprocessing & segmentasi pada struk foto asli."""
+    imgs = RD.load_real_images(splits=("valid",), require_lines=True)
+    photo = next((im for im in imgs if im.is_photo and len(im.lines) >= 3), None)
+    if photo is None:
+        return None
+    raw = cv2.imread(str(photo.path), cv2.IMREAD_GRAYSCALE)
+    if raw is None:
+        return None
+    cropped, _ = PPR.crop_paper(raw, enabled=True)
+    gray, ink, angle = ocr.binarize(raw)
+    lboxes = SG.segment_lines(ink)
+    vis = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+    for lb in lboxes:
+        cv2.rectangle(vis, (0, lb[0]), (vis.shape[1] - 1, lb[1]), (210, 140, 40), 1)
+        for l, t, r, b in SG.segment_characters(ink, lb):
+            cv2.rectangle(vis, (l, t), (r, b), (0, 110, 255), 1)
+
+    fig, axes = plt.subplots(1, 4, figsize=(13.5, 5.5))
+    steps = [
+        ("(a) Foto asli", raw),
+        ("(b) Crop kertas + bersihkan tepi", cropped),
+        (f"(c) Sauvola + deskew ({angle:+.1f}°)", 255 - ink),
+        (f"(d) Segmentasi ({len(lboxes)} baris)", cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)),
+    ]
+    for ax, (title, im_step) in zip(axes, steps):
+        if im_step.ndim == 3:
+            ax.imshow(im_step)
+        else:
+            ax.imshow(im_step, cmap="gray", vmin=0, vmax=255)
+        ax.set_title(title, fontsize=9, fontweight="bold", color="#1F3864")
+        ax.axis("off")
+    fig.suptitle(f"Pipeline PCVK pada struk foto asli ({photo.stem})",
+                 fontsize=11, fontweight="bold", color="#1F3864")
+    fig.tight_layout()
+    out_p = OUT / "real_stages_photo.png"
+    fig.savefig(out_p, dpi=180, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return str(out_p)
+
+
 def main() -> None:
-    print("Memuat model dan data uji...")
-    images, labels = load_lines()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--real-only", action="store_true",
+                    help="hanya buat visualisasi dataset & foto nyata")
+    args = ap.parse_args()
 
     ocr = ClassicalOCR(method="sauvola", use_deskew=True, use_lexicon=True)
-
-    # Pilih contoh yang berhasil dan yang gagal.
-    from evaluate import cer
-    results = []
-    for i in range(min(40, len(images))):
-        r = ocr.run(images[i])
-        results.append((cer(r.text, labels[i]), i, r))
-
-    results.sort()
-    best = results[0]
-    worst = results[-1]
-
-    print(f"  contoh terbaik: {labels[best[1]]!r} CER={best[0]*100:.1f}%")
-    print(f"  contoh terburuk: {labels[worst[1]]!r} CER={worst[0]*100:.1f}%")
-
-    print(fig_stages(ocr, images[best[1]], labels[best[1]], "best"))
-    print(fig_stages(ocr, images[worst[1]], labels[worst[1]], "worst"))
     print(fig_confusion())
     print(fig_ablation())
+    print(fig_real_dataset())
+    print(fig_real_receipt_stages(ocr))
+
+    if args.real_only:
+        return
+
+    lines_path = C.DATA_DIR / "lines_test.npz"
+    if lines_path.exists():
+        print("Memuat contoh baris uji...")
+        images, labels = load_lines()
+        from evaluate import cer
+        results = []
+        for i in range(min(40, len(images))):
+            r = ocr.run(images[i])
+            results.append((cer(r.text, labels[i]), i, r))
+        results.sort()
+        best = results[0]
+        worst = results[-1]
+        print(f"  contoh terbaik: {labels[best[1]]!r} CER={best[0]*100:.1f}%")
+        print(f"  contoh terburuk: {labels[worst[1]]!r} CER={worst[0]*100:.1f}%")
+        print(fig_stages(ocr, images[best[1]], labels[best[1]], "best"))
+        print(fig_stages(ocr, images[worst[1]], labels[worst[1]], "worst"))
 
 
 if __name__ == "__main__":

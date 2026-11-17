@@ -88,7 +88,9 @@ final List<_KeywordFix> _keywordFixes = <_KeywordFix>[
   _KeywordFix(RegExp(r'\bGRAND\s*T[O0]TAL\b', caseSensitive: false), 'GRAND TOTAL'),
   _KeywordFix(RegExp(r'\bSUBT[O0]TAL\b', caseSensitive: false), 'SUBTOTAL'),
   _KeywordFix(RegExp(r'\bSUB\s*T[O0]TAL\b', caseSensitive: false), 'SUB TOTAL'),
-  _KeywordFix(RegExp(r'\bT[O0]TAL\b', caseSensitive: false), 'TOTAL'),
+  _KeywordFix(RegExp(r'\b[T7][O0GC.]T[A4][LI1]\s*BEL[A4]NJ[A4]\b', caseSensitive: false), 'TOTAL BELANJA'),
+  _KeywordFix(RegExp(r'\bH[A4]RG[A4]\s*[IJ1][UV][A4][LI1]\b', caseSensitive: false), 'HARGA JUAL'),
+  _KeywordFix(RegExp(r'\b[T7][O0GC.]T[A4][LI1]\b', caseSensitive: false), 'TOTAL'),
   _KeywordFix(RegExp(r'\bTUNA[lI1]\b', caseSensitive: false), 'TUNAI'),
   _KeywordFix(RegExp(r'\bKEMBAL[lI1]\b', caseSensitive: false), 'KEMBALI'),
   _KeywordFix(RegExp(r'\bD[lI1]SK[O0]N\b', caseSensitive: false), 'DISKON'),
@@ -180,6 +182,10 @@ bool _looksLikeAmount(String token) {
   final String normalized = t
       .replaceAll('O', '0')
       .replaceAll('o', '0')
+      .replaceAll('D', '0')
+      .replaceAll('d', '0')
+      .replaceAll('Q', '0')
+      .replaceAll('q', '0')
       .replaceAll('l', '1')
       .replaceAll('I', '1')
       .replaceAll('S', '5')
@@ -213,6 +219,12 @@ class _LineParts {
 /// is a digit so no substitution on that position).
 String _fixNamePart(String name) {
   if (name.isEmpty) {
+    return name;
+  }
+  final String trimmed = name.trim();
+  // Short stacked-quantity tokens like 'L8' or 'T8' (misread '1x') must not be
+  // rewritten into letters ('LB'/'TB') before the receipt parser handles them.
+  if (trimmed.length < 4 && RegExp(r'^[1lILT|]?[0-9]+$', caseSensitive: false).hasMatch(trimmed)) {
     return name;
   }
   final StringBuffer buf = StringBuffer();
@@ -315,6 +327,10 @@ String _fixAmountToken(String token) {
 const Map<String, String> _letterToDigit = <String, String>{
   'O': '0',
   'o': '0',
+  'D': '0',
+  'd': '0',
+  'Q': '0',
+  'q': '0',
   'l': '1',
   'I': '1',
   'i': '1', // lowercase i in some fonts

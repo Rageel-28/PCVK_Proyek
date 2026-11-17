@@ -90,8 +90,8 @@ def load_transcripts() -> dict:
 # Mode: potongan baris item
 # ---------------------------------------------------------------------------
 def run_items(ocr: ClassicalOCR, split: str | None) -> list[Sample]:
-    images = {im.stem: im for im in RD.load_real_images()}
     transcripts = load_transcripts()
+    images = {im.stem: im for im in RD.load_real_images(stems=set(transcripts))}
     out: list[Sample] = []
 
     for stem, entry in transcripts.items():
@@ -157,8 +157,8 @@ def run_items_primary(
     """
     from segment import segment_lines
 
-    images = {im.stem: im for im in RD.load_real_images()}
     transcripts = load_transcripts()
+    images = {im.stem: im for im in RD.load_real_images(stems=set(transcripts))}
     out: list[Sample] = []
 
     for stem, entry in transcripts.items():
@@ -205,8 +205,8 @@ def run_items_primary(
 # Mode: dokumen penuh
 # ---------------------------------------------------------------------------
 def run_doc(ocr: ClassicalOCR, split: str | None) -> list[Sample]:
-    images = {im.stem: im for im in RD.load_real_images()}
     transcripts = load_transcripts()
+    images = {im.stem: im for im in RD.load_real_images(stems=set(transcripts))}
     out: list[Sample] = []
 
     for stem, entry in transcripts.items():

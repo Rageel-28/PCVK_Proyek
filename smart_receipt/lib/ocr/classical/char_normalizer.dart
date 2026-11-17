@@ -43,7 +43,21 @@ GrayImage normalizeChar(
     return out;
   }
 
-  final GrayImage crop = gray.crop(left, top, right, bottom);
+  GrayImage crop = gray.crop(left, top, right, bottom);
+  int lo = 255;
+  int hi = 0;
+  for (int i = 0; i < crop.data.length; i++) {
+    final int v = crop.data[i];
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  final int span = hi - lo;
+  if (span >= 30) {
+    for (int i = 0; i < crop.data.length; i++) {
+      final int stretched = ((crop.data[i] - lo) * 255) ~/ span;
+      crop.data[i] = stretched < 0 ? 0 : (stretched > 255 ? 255 : stretched);
+    }
+  }
 
   final double scale = (kCharSize - 4) / (ch > cw ? ch : cw);
   final int nh = _pyRound(ch * scale).clamp(1, kCharSize);

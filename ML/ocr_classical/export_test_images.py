@@ -67,7 +67,7 @@ def main() -> None:
             arr = np.asarray(degraded)
 
             result = ocr.run(arr)
-            if result.text.strip() != text:
+            if result.text.strip() != text or result.raw_text.strip() != text:
                 continue
 
             name = f"line_{len(entries)}.png"

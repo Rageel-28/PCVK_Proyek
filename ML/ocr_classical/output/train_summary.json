@@ -1,8 +1,8 @@
 {
-  "val_accuracy": 0.9951838105337575,
-  "n_train": 165967,
-  "n_val": 22632,
-  "n_features": 324,
-  "n_classes": 47,
-  "C": 1.0
+  "val_accuracy": 0.9615571776155718,
+  "n_train": 17712,
+  "n_val": 2055,
+  "n_features": 344,
+  "n_classes": 66,
+  "C": 0.5
 }

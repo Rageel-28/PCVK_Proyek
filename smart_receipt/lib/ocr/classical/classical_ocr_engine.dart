@@ -197,32 +197,35 @@ class ClassicalOcrEngine implements OcrEngine {
   ({GrayImage gray, GrayImage ink, double angle, double scale}) prepare(
     GrayImage source,
   ) {
-    GrayImage gray = source;
+    GrayImage gray = normalizeIllumination(source);
 
     // Foto struk sering berlatar gelap; potong dulu area kertasnya.
     if (usePaperCrop) {
       gray = cropPaper(gray).image;
     }
 
-    var first = _binarizeOnce(gray);
-    double factor = _adaptiveScale(first.ink);
+    final GrayImage rawGray = gray;
+    var first = _binarizeOnce(rawGray);
+    GrayImage scaleInk = first.ink;
+    if (useDeskew) {
+      final double estAngle = estimateSkew(first.ink);
+      if (estAngle.abs() >= 1e-6 && estAngle.abs() <= kDeskewMaxAngle) {
+        scaleInk = first.ink.rotated(estAngle, borderValue: 0);
+      }
+    }
+    double factor = _adaptiveScale(scaleInk);
 
     if (factor > 1.0) {
-      // Pembulatan mengikuti Python/cv2 (setengah ke genap) agar ukuran
-      // hasil resize identik dengan versi pelatihan.
-      final int nw = math.max(1, pythonRound(gray.width * factor));
-      final int nh = math.max(1, pythonRound(gray.height * factor));
-      // Yang diperbesar adalah grayscale yang SUDAH didenoise, sama
-      // seperti versi Python. Memperbesar citra mentah membuat noise
-      // ikut membesar dan binarisasi menghasilkan bintik palsu.
-      gray = first.gray.resizedBicubic(nw, nh);
-      first = _binarizeOnce(gray);
-      // Patch karakter dipotong dari grayscale yang sudah didenoise ulang.
-      // Tanpa ini, Dart memotong dari citra yang masih ber-noise sementara
-      // Python memotong dari citra bersih, dan fitur HOG menyimpang.
+      // Pembulatan mengikuti Python/cv2 (setengah ke genap); perbesar citra
+      // mentah sebelum median blur agar goresan tipis 1 px tidak terhapus.
+      final int nw = math.max(1, pythonRound(rawGray.width * factor));
+      final int nh = math.max(1, pythonRound(rawGray.height * factor));
+      final GrayImage up = rawGray.resizedBicubic(nw, nh);
+      first = _binarizeOnce(up);
       gray = first.gray;
     } else {
       factor = 1.0;
+      gray = first.gray;
     }
 
     double angle = 0.0;
@@ -351,24 +354,106 @@ class ClassicalOcrEngine implements OcrEngine {
     }
 
     // 2. Konteks kata.
+    final RegExp unitRe =
+        RegExp(r'\d+(?:ML|GR|KG|MG|LTR|LT|OZ|MM|CM|PCS|G|L|W|S|X)$');
+    bool isAlpha(String c) =>
+        c.length == 1 && c.codeUnitAt(0) >= 65 && c.codeUnitAt(0) <= 90;
+    bool isDigit(String c) =>
+        c.length == 1 && c.codeUnitAt(0) >= 48 && c.codeUnitAt(0) <= 57;
+    final bool isTallLine = lineH >= 15;
+
     for (final List<int> group in _wordGroups(out)) {
       if (group.length < 2) continue;
       final List<String> chars = <String>[for (final int i in group) out[i].char];
       final String? allowed = charsetForToken(chars);
-      if (allowed == null) continue;
+      if (allowed != null) {
+        for (final int i in group) {
+          String candAllowed = allowed;
+          final int gh = out[i].bottom - out[i].top + 1;
+          if (allowed == kCharsetNumeric || allowed == kCharsetNumericPrice) {
+            final String curCh = out[i].char;
+            if (lineH >= 12 && gh >= lineH * 0.65 && !'-/%()+:'.contains(curCh)) {
+              candAllowed = kCharsetDigitsOnly;
+            }
+          } else if (allowed == kCharsetAlpha && isTallLine && gh >= lineH * 0.56) {
+            candAllowed = kCharsetAlphaNoDot;
+          }
+          final CharPrediction pred =
+              _classifier.predictRestricted(features[i], candAllowed);
+          out[i] = PredictedChar(
+            char: pred.char,
+            confidence: pred.confidence,
+            margin: pred.margin,
+            left: out[i].left,
+            top: out[i].top,
+            right: out[i].right,
+            bottom: out[i].bottom,
+          );
+        }
+      } else if (group.length >= 3) {
+        int nAlpha = 0;
+        int nDigit = 0;
+        for (final String c in chars) {
+          if (isAlpha(c)) nAlpha++;
+          if (isDigit(c)) nDigit++;
+        }
+        final String wordStr = chars.join();
+        final Set<int> reAlpha = <int>{};
 
-      for (final int i in group) {
-        final CharPrediction pred =
-            _classifier.predictRestricted(features[i], allowed);
-        out[i] = PredictedChar(
-          char: pred.char,
-          confidence: pred.confidence,
-          margin: pred.margin,
-          left: out[i].left,
-          top: out[i].top,
-          right: out[i].right,
-          bottom: out[i].bottom,
-        );
+        if (isTallLine && nDigit == 0 && nAlpha >= 1) {
+          for (int gi = 0; gi < group.length; gi++) {
+            final int idx = group[gi];
+            final int gh = out[idx].bottom - out[idx].top + 1;
+            if (gh >= lineH * 0.56 && (chars[gi] == '.' || chars[gi] == ',')) {
+              reAlpha.add(gi);
+            }
+          }
+        }
+
+        final bool looksLikeUnit =
+            unitRe.hasMatch(wordStr) || isDigit(wordStr[0]);
+        if (group.length >= 4 &&
+            !looksLikeUnit &&
+            nAlpha >= 3 &&
+            (nAlpha / chars.length) >= 0.55 &&
+            nDigit <= 2) {
+          for (int gi = 0; gi < group.length; gi++) {
+            final String cur = chars[gi];
+            final int idx = group[gi];
+            final int gh = out[idx].bottom - out[idx].top + 1;
+            if ('0158627@&.,:-'.contains(cur)) {
+              final bool leftA = gi > 0 &&
+                  (isAlpha(chars[gi - 1]) ||
+                      (gi >= 2 && isAlpha(chars[gi - 2])));
+              final bool rightA = gi + 1 < group.length &&
+                  (isAlpha(chars[gi + 1]) ||
+                      (gi + 2 < group.length && isAlpha(chars[gi + 2])));
+              final bool isTall = lineH >= 12 && gh >= lineH * 0.48;
+              if ((leftA && rightA && isTall) ||
+                  ((cur == '0' || cur == '1') &&
+                      nDigit <= 1 &&
+                      (leftA || rightA) &&
+                      (gi == 0 || gi == group.length - 1))) {
+                reAlpha.add(gi);
+              }
+            }
+          }
+        }
+
+        for (final int gi in reAlpha) {
+          final int idx = group[gi];
+          final CharPrediction pred =
+              _classifier.predictRestricted(features[idx], kCharsetAlphaLetters);
+          out[idx] = PredictedChar(
+            char: pred.char,
+            confidence: pred.confidence,
+            margin: pred.margin,
+            left: out[idx].left,
+            top: out[idx].top,
+            right: out[idx].right,
+            bottom: out[idx].bottom,
+          );
+        }
       }
     }
     return out;
@@ -387,13 +472,40 @@ class ClassicalOcrEngine implements OcrEngine {
     if (chars.isEmpty) return null;
     bool allNumeric = true;
     bool allAlpha = true;
+    bool hasComma = false;
+    bool hasSep = false;
+    bool hasDigit = false;
+    bool allMix = true;
+    int numCount = 0;
+
     for (final String c in chars) {
       if (c.isEmpty) return null;
-      if (!kNumericTokenChars.contains(c)) allNumeric = false;
+      if (c == ',') hasComma = true;
+      if (c == ',' || c == '.') hasSep = true;
+      final bool isDigit = c.codeUnitAt(0) >= 48 && c.codeUnitAt(0) <= 57;
+      if (isDigit) hasDigit = true;
+      final bool isNumTok = kNumericTokenChars.contains(c);
+      if (!isNumTok) allNumeric = false;
       if (!kAlphaTokenChars.contains(c)) allAlpha = false;
+      final String lookalikes =
+          hasSep ? kNumericPriceLookalikeChars : kNumericLookalikeChars;
+      if (!isNumTok && !lookalikes.contains(c)) allMix = false;
+      if (isNumTok && c != ':') numCount++;
     }
-    if (allNumeric) return kCharsetNumeric;
+    if (allNumeric) {
+      return hasComma ? kCharsetNumericPrice : kCharsetNumeric;
+    }
     if (allAlpha) return kCharsetAlpha;
+    // Re-check allMix using final hasSep (in case comma/dot came after lookalike).
+    final String finalLookalikes =
+        hasSep ? kNumericPriceLookalikeChars : kNumericLookalikeChars;
+    allMix = chars.every(
+      (String c) => kNumericTokenChars.contains(c) || finalLookalikes.contains(c),
+    );
+    final double minRatio = (hasSep && chars.length >= 3) ? 0.48 : 0.65;
+    if (chars.length >= 2 && hasDigit && allMix && (numCount / chars.length) >= minRatio) {
+      return hasComma ? kCharsetNumericPrice : kCharsetNumeric;
+    }
     return null;
   }
 
@@ -475,6 +587,30 @@ class ClassicalOcrEngine implements OcrEngine {
     return sb.toString();
   }
 
+  static bool _isValidTextLine(PredictedLine line) {
+    final String ns = line.text.replaceAll(RegExp(r'\s+'), '');
+    if (ns.isEmpty) return false;
+    int punct = 0;
+    int alnum = 0;
+    bool hasDigit = false;
+    for (int i = 0; i < ns.length; i++) {
+      final int code = ns.codeUnitAt(i);
+      final bool isDigit = code >= 48 && code <= 57;
+      final bool isUpper = code >= 65 && code <= 90;
+      final bool isLower = code >= 97 && code <= 122;
+      if (isDigit) hasDigit = true;
+      if (isDigit || isUpper || isLower) {
+        alnum++;
+      } else if ('-=._,:;/+()@&*'.contains(ns[i])) {
+        punct++;
+      }
+    }
+    if (ns.length >= 3 && punct / ns.length >= 0.65) return false;
+    if (ns.length >= 5 && alnum / ns.length < 0.45) return false;
+    if (ns.length <= 2 && !hasDigit) return false;
+    return true;
+  }
+
   // -- Publik -------------------------------------------------------------
 
   /// Jalankan pipeline pada citra grayscale yang sudah didekode.
@@ -494,7 +630,7 @@ class ClassicalOcrEngine implements OcrEngine {
     final List<PredictedLine> lines = <PredictedLine>[];
     for (final ({int top, int bottom}) box in lineBoxes) {
       final PredictedLine line = _readLine(prep.gray, prep.ink, box);
-      if (line.text.trim().isNotEmpty) {
+      if (line.text.trim().isNotEmpty && _isValidTextLine(line)) {
         lines.add(line);
       }
     }
@@ -572,8 +708,9 @@ class ClassicalOcrEngine implements OcrEngine {
     final ClassicalOcrResult result = await runFile(imagePath);
 
     final List<OcrLine> out = <OcrLine>[];
+    final bool applyLex = useLexicon && _lexicon.isLoaded;
     for (final PredictedLine line in result.lines) {
-      out.addAll(_splitIntoWordLines(line));
+      out.addAll(_splitIntoWordLines(line, applyLexicon: applyLex));
     }
 
     return OcrRawResult(
@@ -583,7 +720,10 @@ class ClassicalOcrEngine implements OcrEngine {
   }
 
   /// Pecah satu baris menjadi beberapa `OcrLine` per kelompok kata.
-  List<OcrLine> _splitIntoWordLines(PredictedLine line) {
+  List<OcrLine> _splitIntoWordLines(
+    PredictedLine line, {
+    bool applyLexicon = false,
+  }) {
     final List<PredictedChar> chars = line.chars;
     if (chars.isEmpty) return const <OcrLine>[];
 
@@ -599,9 +739,11 @@ class ClassicalOcrEngine implements OcrEngine {
     void flush() {
       final String text = current.toString().trim();
       if (text.isNotEmpty) {
+        final String resolved =
+            applyLexicon ? _lexicon.correct(text).word : text;
         words.add(
           OcrLine(
-            text: text,
+            text: resolved,
             left: startLeft.toDouble(),
             top: top.toDouble(),
             right: endRight.toDouble(),

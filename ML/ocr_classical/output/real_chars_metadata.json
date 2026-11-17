@@ -1,0 +1,543 @@
+{
+  "dataset_file": "C:\\laragon\\www\\pcvk\\ML\\ocr_classical\\data\\chars_real_gold.npz",
+  "transcripts_file": "C:\\laragon\\www\\pcvk\\ML\\ocr_classical\\transcripts_real.json",
+  "total_chars": 17125,
+  "synthetic_chars": 0,
+  "patch_size": [
+    32,
+    32
+  ],
+  "active_classes": 66,
+  "class_counts": {
+    "0": 2208,
+    "1": 851,
+    "2": 624,
+    "3": 393,
+    "4": 261,
+    "5": 438,
+    "6": 278,
+    "7": 239,
+    "8": 245,
+    "9": 348,
+    "A": 1038,
+    "B": 271,
+    "C": 306,
+    "D": 337,
+    "E": 487,
+    "F": 94,
+    "G": 339,
+    "H": 139,
+    "I": 540,
+    "J": 127,
+    "K": 428,
+    "L": 443,
+    "M": 453,
+    "N": 618,
+    "O": 486,
+    "P": 312,
+    "Q": 12,
+    "R": 479,
+    "S": 504,
+    "T": 571,
+    "U": 376,
+    "V": 78,
+    "W": 87,
+    "X": 39,
+    "Y": 93,
+    "Z": 19,
+    ".": 365,
+    "&": 15,
+    "-": 167,
+    "/": 109,
+    "%": 2,
+    "+": 3,
+    ",": 585,
+    ":": 193,
+    "@": 17,
+    "(": 47,
+    ")": 45,
+    "=": 16,
+    "a": 198,
+    "b": 31,
+    "d": 33,
+    "e": 87,
+    "f": 6,
+    "g": 19,
+    "h": 7,
+    "i": 153,
+    "j": 9,
+    "k": 24,
+    "l": 90,
+    "m": 65,
+    "n": 88,
+    "p": 22,
+    "r": 55,
+    "t": 85,
+    "u": 23,
+    "y": 5
+  },
+  "transcript_stems_total": 57,
+  "transcript_splits": {
+    "train": 45,
+    "test": 4,
+    "valid": 8
+  },
+  "sources": [
+    {
+      "stem": "CamScanner-18-11-2024-12-48_100_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 2,
+      "n_full_labels": 23
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_101_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 2,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_102_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 2,
+      "n_full_labels": 20
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 6,
+      "n_full_labels": 22
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_11_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 1,
+      "n_full_labels": 16
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_12_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 15
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_14_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 4,
+      "n_full_labels": 24
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 6,
+      "n_full_labels": 13
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 9,
+      "n_full_labels": 23
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_20_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 1,
+      "n_full_labels": 16
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 25,
+      "n_full_labels": 33
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_22_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 1,
+      "n_full_labels": 14
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_27_jpg",
+      "split": "test",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 1,
+      "n_full_labels": 14
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_28_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 5,
+      "n_full_labels": 23
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_29_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_31_jpg",
+      "split": "test",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 22
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 6,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 6,
+      "n_full_labels": 26
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 7,
+      "n_full_labels": 23
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_38_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 5,
+      "n_full_labels": 21
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_3_jpg",
+      "split": "test",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 4,
+      "n_full_labels": 13
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_40_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 4,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 14,
+      "n_full_labels": 39
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 18,
+      "n_full_labels": 43
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 6,
+      "n_full_labels": 20
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 7,
+      "n_full_labels": 24
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_52_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_54_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 0,
+      "n_full_labels": 22
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_57_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 0,
+      "n_full_labels": 14
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_5_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 0,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_62_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 4,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 11,
+      "n_full_labels": 32
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 14,
+      "n_full_labels": 31
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_78_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_7_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_86_jpg",
+      "split": "valid",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 1,
+      "n_full_labels": 13
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "split": "valid",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 11,
+      "n_full_labels": 19
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "split": "valid",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 7,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_9_jpg",
+      "split": "valid",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 5,
+      "n_full_labels": 20
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_12_jpg",
+      "split": "valid",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 2,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_15_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 1,
+      "n_full_labels": 15
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_19_jpg",
+      "split": "valid",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 2,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_5_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 2,
+      "n_full_labels": 20
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_7_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 3,
+      "n_full_labels": 23
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_8_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 0,
+      "n_full_labels": 15
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_9_jpg",
+      "split": "train",
+      "source": "alfamart_indomaret",
+      "kind": "foto",
+      "n_items_labels": 0,
+      "n_full_labels": 3
+    },
+    {
+      "stem": "receipt-000_png",
+      "split": "valid",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 2,
+      "n_full_labels": 15
+    },
+    {
+      "stem": "receipt-001_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 7,
+      "n_full_labels": 20
+    },
+    {
+      "stem": "receipt-067_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 4,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "receipt-100_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 5,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "receipt-137_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 3,
+      "n_full_labels": 16
+    },
+    {
+      "stem": "receipt-184_png",
+      "split": "valid",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 7,
+      "n_full_labels": 20
+    },
+    {
+      "stem": "receipt-200_png",
+      "split": "test",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 4,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "receipt-214_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 1,
+      "n_full_labels": 14
+    },
+    {
+      "stem": "receipt-235_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 5,
+      "n_full_labels": 18
+    },
+    {
+      "stem": "receipt-250_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 4,
+      "n_full_labels": 17
+    },
+    {
+      "stem": "receipt-300_png",
+      "split": "train",
+      "source": "receipt_indomaret",
+      "kind": "render",
+      "n_items_labels": 5,
+      "n_full_labels": 18
+    }
+  ]
+}

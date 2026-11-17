@@ -33,6 +33,38 @@ def denoise(gray: np.ndarray, strength: int = 3) -> np.ndarray:
     return cv2.medianBlur(gray, strength)
 
 
+def normalize_illumination(gray: np.ndarray) -> np.ndarray:
+    """Ratakan bayangan / pencahayaan tak merata dengan rasio latar lokal.
+
+    Hanya dijalankan pada citra utuh (`min(h, w) >= 200`) agar crop baris
+    tunggal tetap tidak berubah. Estimasi latar memakai max-filter separabel
+    diikuti box-filter integer yang identik bit-per-bit dengan versi Dart.
+    """
+    h, w = gray.shape
+    if min(h, w) < 200:
+        return gray
+    k = min(51, max(15, (min(h, w) // 25) | 1))
+    half = k // 2
+
+    p = np.pad(gray, ((0, 0), (half, half)), mode="edge")
+    hmax = p[:, :w].copy()
+    for d in range(1, k):
+        np.maximum(hmax, p[:, d : d + w], out=hmax)
+
+    pv = np.pad(hmax, ((half, half), (0, 0)), mode="edge")
+    bg = pv[:h, :].copy()
+    for d in range(1, k):
+        np.maximum(bg, pv[d : d + h, :], out=bg)
+
+    pb = np.pad(bg.astype(np.int64), ((half, half), (half, half)), mode="edge")
+    cs = np.zeros((h + 2 * half + 1, w + 2 * half + 1), dtype=np.int64)
+    cs[1:, 1:] = pb.cumsum(axis=0).cumsum(axis=1)
+    bsum = cs[k:, k:] - cs[:-k, k:] - cs[k:, :-k] + cs[:-k, :-k]
+    area = k * k
+    out = (gray.astype(np.int64) * (area * 255)) // np.maximum(bsum, 1)
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
 def binarize_otsu(gray: np.ndarray) -> np.ndarray:
     """Otsu global: cepat, baik untuk citra dengan pencahayaan rata."""
     blur = cv2.GaussianBlur(gray, (3, 3), 0)

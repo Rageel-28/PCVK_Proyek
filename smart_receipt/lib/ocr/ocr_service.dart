@@ -54,7 +54,7 @@ enum OcrStage { preprocessing, recognizing, parsing, done }
 /// tanpa library OCR siap pakai dan tanpa deep learning.
 class OcrService {
   OcrService({OcrEngine? engine, ImagePreprocessor? preprocessor})
-      : _engine = engine ?? ClassicalOcrEngine(),
+      : _engine = engine ?? ClassicalOcrEngine(useLexicon: true),
         _preprocessor = preprocessor ?? ImagePreprocessor();
 
   final OcrEngine _engine;
@@ -84,10 +84,19 @@ class OcrService {
     }
 
     onStage?.call(OcrStage.recognizing);
+    // ClassicalOcrEngine handles orientation, paper crop, illumination
+    // normalization, and Sauvola locally; avoid pre-applying 8x8 CLAHE on its
+    // primary pass since CLAHE amplifies paper-fold shadow creases.
+    final bool preferRawFirst = _engine is ClassicalOcrEngine;
+    final String firstPassPath =
+        preferRawFirst ? sourcePath : quality.preparedPath;
+    final String altPassPath =
+        preferRawFirst ? quality.preparedPath : sourcePath;
+
     OcrRawResult raw;
     ParsedReceipt parsed;
     try {
-      final OcrRawResult rawFromEngine = await _engine.recognize(quality.preparedPath);
+      final OcrRawResult rawFromEngine = await _engine.recognize(firstPassPath);
       raw = correctOcrText(rawFromEngine);
       parsed = _parser.parse(raw);
     } on OcrEngineException catch (e) {
@@ -100,6 +109,8 @@ class OcrService {
     // keep whichever reading the parser trusts more.
     if (_isWeak(parsed)) {
       parsed = await _retryOcr(
+        alternatePath: altPassPath,
+        firstPassPath: firstPassPath,
         quality: quality,
         dir: dir,
         raw: raw,
@@ -195,6 +206,8 @@ class OcrService {
   /// reading. Each attempt is best-effort: a failure leaves the previous result
   /// in place rather than failing the scan.
   Future<ParsedReceipt> _retryOcr({
+    required String alternatePath,
+    required String firstPassPath,
     required ImageQualityReport quality,
     required Directory dir,
     required OcrRawResult raw,
@@ -212,6 +225,15 @@ class OcrService {
       if (ReceiptParser.scoreOf(retryParsed) > ReceiptParser.scoreOf(best)) {
         best = retryParsed;
         bestRaw = retryRaw;
+      }
+    }
+
+    // 0. Try the alternate pass (raw unstretched source or CLAHE prepared).
+    if (alternatePath != firstPassPath) {
+      try {
+        await attempt(alternatePath);
+      } catch (_) {
+        // Ignore and continue with cropped/perspective passes.
       }
     }
 

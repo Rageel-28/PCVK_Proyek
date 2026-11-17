@@ -17,8 +17,8 @@ const int kHogBins = 9;
 /// Ukuran blok (2x2 sel, bertumpuk dengan stride 1).
 const int kHogBlock = 2;
 
-/// Dimensi vektor HOG: (4-2+1)^2 blok x 2x2 sel x 9 bin = 324.
-const int kHogDim = 324;
+/// Dimensi vektor fitur: 324 HOG + 16 grid tinta 4x4 + 4 geometri = 344.
+const int kHogDim = 344;
 
 // --- Binarisasi -------------------------------------------------------------
 
@@ -88,13 +88,19 @@ const double kCharFragmentMaxWidthRatio = 1.25;
 
 /// Kandidat saat kata didominasi angka (kolom harga, qty, total).
 const String kCharsetNumeric = '0123456789.,-/:%()=+';
+const String kCharsetNumericPrice = '0123456789.,-%()+';
+const String kCharsetDigitsOnly = '0123456789';
 
 /// Kandidat saat kata didominasi huruf (nama produk, nama toko).
 const String kCharsetAlpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ.&/-';
+const String kCharsetAlphaNoDot = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ&/';
+const String kCharsetAlphaLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 /// Karakter yang boleh muncul di dalam token angka / token huruf. Dipakai
 /// untuk memutuskan apakah sebuah kata "murni angka" atau "murni huruf".
 const String kNumericTokenChars = '0123456789.,-/:%()=+';
+const String kNumericLookalikeChars = 'OISBGZ';
+const String kNumericPriceLookalikeChars = 'ODQISBGZ';
 const String kAlphaTokenChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ.&/-';
 
 /// Kandidat untuk glyph sangat kecil (koma, titik, hubung). Glyph setinggi

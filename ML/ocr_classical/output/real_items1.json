@@ -2,34 +2,34 @@
   "mode": "items1",
   "split": null,
   "method": "sauvola",
-  "lexicon": false,
+  "lexicon": true,
   "summary": [
     {
       "label": "SEMUA",
-      "n": 28,
-      "cer": 0.07126227384893351,
-      "cer_median": 0.0,
-      "wer": 0.18622448979591838,
-      "exact_match": 0.7142857142857143,
-      "mean_confidence": 0.7095645742780681
+      "n": 270,
+      "cer": 0.09374492276731825,
+      "cer_median": 0.03774928774928775,
+      "wer": 0.23757495590828925,
+      "exact_match": 0.3888888888888889,
+      "mean_confidence": 0.44303316092037753
     },
     {
       "label": "jenis=foto",
-      "n": 8,
-      "cer": 0.24594573624904506,
-      "cer_median": 0.23106060606060608,
-      "wer": 0.6101190476190477,
-      "exact_match": 0.125,
-      "mean_confidence": 0.5380506325130321
+      "n": 223,
+      "cer": 0.11285800023937594,
+      "cer_median": 0.06896551724137931,
+      "wer": 0.28416079436258807,
+      "exact_match": 0.2825112107623318,
+      "mean_confidence": 0.42250893624255353
     },
     {
       "label": "jenis=render",
-      "n": 20,
-      "cer": 0.0013888888888888887,
+      "n": 47,
+      "cer": 0.003059470080746676,
       "cer_median": 0.0,
-      "wer": 0.016666666666666666,
-      "exact_match": 0.95,
-      "mean_confidence": 0.7781701509840824
+      "wer": 0.016540020263424517,
+      "exact_match": 0.8936170212765957,
+      "mean_confidence": 0.5404140567321807
     },
     {
       "label": "  CamScanner-18-11-2024-",
@@ -38,34 +38,367 @@
       "cer_median": 0.125,
       "wer": 0.25,
       "exact_match": 0.5,
-      "mean_confidence": 0.6434617032670907
+      "mean_confidence": 0.5313601635353256
     },
     {
       "label": "  CamScanner-18-11-2024-",
       "n": 2,
-      "cer": 0.484375,
-      "cer_median": 0.484375,
-      "wer": 1.0,
+      "cer": 0.3348214285714286,
+      "cer_median": 0.3348214285714286,
+      "wer": 0.75,
       "exact_match": 0.0,
-      "mean_confidence": 0.39323461437885554
+      "mean_confidence": 0.3225052066213274
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 2,
+      "cer": 0.125,
+      "cer_median": 0.125,
+      "wer": 0.25,
+      "exact_match": 0.5,
+      "mean_confidence": 0.5648892134468746
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 6,
+      "cer": 0.024675324675324673,
+      "cer_median": 0.015151515151515152,
+      "wer": 0.11904761904761903,
+      "exact_match": 0.5,
+      "mean_confidence": 0.37914624000876396
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 1,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.523138478622363
     },
     {
       "label": "  CamScanner-18-11-2024-",
       "n": 3,
-      "cer": 0.1788982259570495,
-      "cer_median": 0.11764705882352941,
-      "wer": 0.5714285714285715,
+      "cer": 0.0761904761904762,
+      "cer_median": 0.02857142857142857,
+      "wer": 0.2619047619047619,
+      "exact_match": 0.3333333333333333,
+      "mean_confidence": 0.46187983202426247
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 4,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.5143530307709837
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 6,
+      "cer": 0.03974358974358975,
+      "cer_median": 0.019230769230769232,
+      "wer": 0.08888888888888889,
+      "exact_match": 0.5,
+      "mean_confidence": 0.47238503688258415
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 9,
+      "cer": 0.07304276486423028,
+      "cer_median": 0.08571428571428572,
+      "wer": 0.1863756613756614,
+      "exact_match": 0.2222222222222222,
+      "mean_confidence": 0.41777503962792534
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 1,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.5454262176504202
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 25,
+      "cer": 0.07064111086494454,
+      "cer_median": 0.06896551724137931,
+      "wer": 0.19780952380952377,
+      "exact_match": 0.28,
+      "mean_confidence": 0.432254572444294
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 1,
+      "cer": 0.14285714285714285,
+      "cer_median": 0.14285714285714285,
+      "wer": 0.2857142857142857,
       "exact_match": 0.0,
-      "mean_confidence": 0.5567437669497783
+      "mean_confidence": 0.4003650481768472
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 1,
+      "cer": 0.037037037037037035,
+      "cer_median": 0.037037037037037035,
+      "wer": 0.16666666666666666,
+      "exact_match": 0.0,
+      "mean_confidence": 0.40316225218612006
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 5,
+      "cer": 0.07758620689655173,
+      "cer_median": 0.06896551724137931,
+      "wer": 0.22000000000000003,
+      "exact_match": 0.4,
+      "mean_confidence": 0.4935858174542303
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.09991158267020335,
+      "cer_median": 0.06896551724137931,
+      "wer": 0.2619047619047619,
+      "exact_match": 0.3333333333333333,
+      "mean_confidence": 0.47195883391936005
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.11765922249793219,
+      "cer_median": 0.06451612903225806,
+      "wer": 0.27777777777777773,
+      "exact_match": 0.0,
+      "mean_confidence": 0.4176890795636949
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 6,
+      "cer": 0.1061698717948718,
+      "cer_median": 0.078125,
+      "wer": 0.3,
+      "exact_match": 0.5,
+      "mean_confidence": 0.43994163996095215
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 6,
+      "cer": 0.17147266313932982,
+      "cer_median": 0.2037037037037037,
+      "wer": 0.38888888888888884,
+      "exact_match": 0.16666666666666666,
+      "mean_confidence": 0.3267397766117167
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 7,
+      "cer": 0.2092589649875523,
+      "cer_median": 0.16129032258064516,
+      "wer": 0.4557823129251701,
+      "exact_match": 0.0,
+      "mean_confidence": 0.4261701032555658
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 5,
+      "cer": 0.06290322580645161,
+      "cer_median": 0.03225806451612903,
+      "wer": 0.19047619047619047,
+      "exact_match": 0.4,
+      "mean_confidence": 0.4290045910462211
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 4,
+      "cer": 0.030303030303030304,
+      "cer_median": 0.015151515151515152,
+      "wer": 0.07738095238095238,
+      "exact_match": 0.5,
+      "mean_confidence": 0.47730592730383836
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 4,
+      "cer": 0.18541666666666665,
+      "cer_median": 0.0375,
+      "wer": 0.3630952380952381,
+      "exact_match": 0.25,
+      "mean_confidence": 0.41072766624601403
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 14,
+      "cer": 0.128515575154698,
+      "cer_median": 0.08448275862068966,
+      "wer": 0.31088435374149664,
+      "exact_match": 0.0,
+      "mean_confidence": 0.49371662142034983
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 18,
+      "cer": 0.20481176603303042,
+      "cer_median": 0.16993087557603687,
+      "wer": 0.4025132275132275,
+      "exact_match": 0.0,
+      "mean_confidence": 0.38132277422778216
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 6,
+      "cer": 0.07415848527349228,
+      "cer_median": 0.03225806451612903,
+      "wer": 0.15873015873015872,
+      "exact_match": 0.5,
+      "mean_confidence": 0.4228406729506519
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 7,
+      "cer": 0.057988862711501395,
+      "cer_median": 0.034482758620689655,
+      "wer": 0.13605442176870747,
+      "exact_match": 0.42857142857142855,
+      "mean_confidence": 0.4469576055476498
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.18817204301075266,
+      "cer_median": 0.06451612903225806,
+      "wer": 0.42857142857142855,
+      "exact_match": 0.3333333333333333,
+      "mean_confidence": 0.2365746474719641
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 4,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.4844771483284014
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 11,
+      "cer": 0.19796406781946274,
+      "cer_median": 0.25,
+      "wer": 0.3887445887445887,
+      "exact_match": 0.18181818181818182,
+      "mean_confidence": 0.3381038549509792
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 14,
+      "cer": 0.13123869681354186,
+      "cer_median": 0.08410138248847926,
+      "wer": 0.4540816326530612,
+      "exact_match": 0.0,
+      "mean_confidence": 0.49176992027358013
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.08767576509511994,
+      "cer_median": 0.03225806451612903,
+      "wer": 0.2222222222222222,
+      "exact_match": 0.3333333333333333,
+      "mean_confidence": 0.3132530434586447
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 3,
+      "cer": 0.029411764705882356,
+      "cer_median": 0.0,
+      "wer": 0.16666666666666666,
+      "exact_match": 0.6666666666666666,
+      "mean_confidence": 0.4183538044977517
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 1,
+      "cer": 0.06451612903225806,
+      "cer_median": 0.06451612903225806,
+      "wer": 0.2857142857142857,
+      "exact_match": 0.0,
+      "mean_confidence": 0.41064079668904385
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 11,
+      "cer": 0.27204713687300874,
+      "cer_median": 0.2727272727272727,
+      "wer": 0.736904761904762,
+      "exact_match": 0.0,
+      "mean_confidence": 0.2773016640361262
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 7,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.44141849602112143
+    },
+    {
+      "label": "  CamScanner-18-11-2024-",
+      "n": 5,
+      "cer": 0.14999008834302952,
+      "cer_median": 0.16666666666666666,
+      "wer": 0.5026190476190476,
+      "exact_match": 0.0,
+      "mean_confidence": 0.31288814030213496
+    },
+    {
+      "label": "  CamScanner-19-11-2024-",
+      "n": 2,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.5066478455730213
     },
     {
       "label": "  CamScanner-19-11-2024-",
       "n": 1,
-      "cer": 0.21212121212121213,
-      "cer_median": 0.21212121212121213,
-      "wer": 0.6666666666666666,
+      "cer": 0.09090909090909091,
+      "cer_median": 0.09090909090909091,
+      "wer": 0.5,
       "exact_match": 0.0,
-      "mean_confidence": 0.5607811239630289
+      "mean_confidence": 0.39634798414675604
+    },
+    {
+      "label": "  CamScanner-19-11-2024-",
+      "n": 2,
+      "cer": 0.02857142857142857,
+      "cer_median": 0.02857142857142857,
+      "wer": 0.07142857142857142,
+      "exact_match": 0.5,
+      "mean_confidence": 0.525788272519423
+    },
+    {
+      "label": "  CamScanner-19-11-2024-",
+      "n": 2,
+      "cer": 0.06896551724137931,
+      "cer_median": 0.06896551724137931,
+      "wer": 0.26666666666666666,
+      "exact_match": 0.0,
+      "mean_confidence": 0.5107115588171897
+    },
+    {
+      "label": "  CamScanner-19-11-2024-",
+      "n": 3,
+      "cer": 0.023399014778325122,
+      "cer_median": 0.034482758620689655,
+      "wer": 0.1111111111111111,
+      "exact_match": 0.3333333333333333,
+      "mean_confidence": 0.4960221324947809
     },
     {
       "label": "  receipt-000_png",
@@ -74,7 +407,25 @@
       "cer_median": 0.0,
       "wer": 0.0,
       "exact_match": 1.0,
-      "mean_confidence": 0.7729296942214949
+      "mean_confidence": 0.543742130937468
+    },
+    {
+      "label": "  receipt-001_png",
+      "n": 7,
+      "cer": 0.008410636982065553,
+      "cer_median": 0.0,
+      "wer": 0.04421768707482993,
+      "exact_match": 0.7142857142857143,
+      "mean_confidence": 0.5422778093287147
+    },
+    {
+      "label": "  receipt-067_png",
+      "n": 4,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.5414951110026299
     },
     {
       "label": "  receipt-100_png",
@@ -83,7 +434,25 @@
       "cer_median": 0.0,
       "wer": 0.0,
       "exact_match": 1.0,
-      "mean_confidence": 0.7769328508587818
+      "mean_confidence": 0.5435409536520653
+    },
+    {
+      "label": "  receipt-137_png",
+      "n": 3,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.549908010357126
+    },
+    {
+      "label": "  receipt-184_png",
+      "n": 7,
+      "cer": 0.008163265306122448,
+      "cer_median": 0.0,
+      "wer": 0.04897959183673469,
+      "exact_match": 0.7142857142857143,
+      "mean_confidence": 0.5320325890110343
     },
     {
       "label": "  receipt-200_png",
@@ -92,16 +461,34 @@
       "cer_median": 0.0,
       "wer": 0.0,
       "exact_match": 1.0,
-      "mean_confidence": 0.7837736975101466
+      "mean_confidence": 0.5658307763538486
+    },
+    {
+      "label": "  receipt-214_png",
+      "n": 1,
+      "cer": 0.0,
+      "cer_median": 0.0,
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.5331386405338159
+    },
+    {
+      "label": "  receipt-235_png",
+      "n": 5,
+      "cer": 0.005555555555555555,
+      "cer_median": 0.0,
+      "wer": 0.025,
+      "exact_match": 0.8,
+      "mean_confidence": 0.5207886238981149
     },
     {
       "label": "  receipt-250_png",
       "n": 4,
-      "cer": 0.006944444444444444,
+      "cer": 0.0,
       "cer_median": 0.0,
-      "wer": 0.08333333333333333,
-      "exact_match": 0.75,
-      "mean_confidence": 0.7814917869117728
+      "wer": 0.0,
+      "exact_match": 1.0,
+      "mean_confidence": 0.5335808345504491
     },
     {
       "label": "  receipt-300_png",
@@ -110,7 +497,7 @@
       "cer_median": 0.0,
       "wer": 0.0,
       "exact_match": 1.0,
-      "mean_confidence": 0.7743634878514143
+      "mean_confidence": 0.5447332338351012
     }
   ],
   "samples": [
@@ -121,7 +508,7 @@
       "pred": "SINAR DUNIA BUKU GAM 3 6900 20,700",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7751
+      "confidence": 0.5272
     },
     {
       "stem": "receipt-000_png",
@@ -130,7 +517,7 @@
       "pred": "BUMILANGIT KOMIK MAN 1 189000 189,000",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7708
+      "confidence": 0.5602
     },
     {
       "stem": "receipt-100_png",
@@ -139,7 +526,7 @@
       "pred": "ZEN ANTI BACTERIAL B 9 22000 198,000",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7429
+      "confidence": 0.5391
     },
     {
       "stem": "receipt-100_png",
@@ -148,7 +535,7 @@
       "pred": "MUTOUCH SHOWER CREAM 2 85200 170,400",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7868
+      "confidence": 0.5659
     },
     {
       "stem": "receipt-100_png",
@@ -157,7 +544,7 @@
       "pred": "CHRYSANTHEMUM GRANUL 6 24000 144,000",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7985
+      "confidence": 0.541
     },
     {
       "stem": "receipt-100_png",
@@ -166,7 +553,7 @@
       "pred": "BAGUS AIR FRESHENER 7 16900 118,300",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7857
+      "confidence": 0.5314
     },
     {
       "stem": "receipt-100_png",
@@ -175,7 +562,7 @@
       "pred": "MORRIS EAU DE PARFUM 2 45300 90,600",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7709
+      "confidence": 0.5404
     },
     {
       "stem": "receipt-200_png",
@@ -184,7 +571,7 @@
       "pred": "BAYFRESH AIR FRESHEN 5 24900 124,500",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7661
+      "confidence": 0.5661
     },
     {
       "stem": "receipt-200_png",
@@ -193,7 +580,7 @@
       "pred": "MORRIS EAU DE PARFUM 3 40500 121,500",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7731
+      "confidence": 0.5394
     },
     {
       "stem": "receipt-200_png",
@@ -202,7 +589,7 @@
       "pred": "MISTER POTATO SNACK 10 13500 135,000",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7885
+      "confidence": 0.58
     },
     {
       "stem": "receipt-200_png",
@@ -211,7 +598,7 @@
       "pred": "VAPE PLUS OBAT NYAMU 3 37700 113,100",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.8074
+      "confidence": 0.5778
     },
     {
       "stem": "receipt-250_png",
@@ -220,7 +607,7 @@
       "pred": "SIDO MUNCUL JAMU TOL 3 17900 53,700",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7892
+      "confidence": 0.5137
     },
     {
       "stem": "receipt-250_png",
@@ -229,7 +616,7 @@
       "pred": "SALONPAS KOYO PEREDA 6 14500 87,000",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7643
+      "confidence": 0.541
     },
     {
       "stem": "receipt-250_png",
@@ -238,16 +625,16 @@
       "pred": "INDOMARET GULA BATU 3 8800 26,400",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7555
+      "confidence": 0.5355
     },
     {
       "stem": "receipt-250_png",
       "kind": "render",
       "truth": "FRISIAN FLAG KENTAL 10 12500 125,000",
-      "pred": "FRISIAN FLAG KENTAL 10 12500 125 000",
-      "cer": 0.0278,
-      "wer": 0.3333,
-      "confidence": 0.8169
+      "pred": "FRISIAN FLAG KENTAL 10 12500 125,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5441
     },
     {
       "stem": "receipt-300_png",
@@ -256,7 +643,7 @@
       "pred": "BELLA SPREAD CHOCO C 7 33500 234,500",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7713
+      "confidence": 0.5414
     },
     {
       "stem": "receipt-300_png",
@@ -265,7 +652,7 @@
       "pred": "LISTERINE MOUTHWASH 2 76900 153,800",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7774
+      "confidence": 0.5501
     },
     {
       "stem": "receipt-300_png",
@@ -274,7 +661,7 @@
       "pred": "KAO ATTACK DETERGENT 7 19300 135,100",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.7761
+      "confidence": 0.5501
     },
     {
       "stem": "receipt-300_png",
@@ -283,7 +670,7 @@
       "pred": "MAIZENAKU TEPUNG JAG 1 12900 12,900",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.799
+      "confidence": 0.5333
     },
     {
       "stem": "receipt-300_png",
@@ -292,43 +679,43 @@
       "pred": "ELLIPS VITAMIN HAIR 7 29900 209,300",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.748
+      "confidence": 0.5487
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_7_jpg",
       "kind": "foto",
       "truth": "MARLBORO TRPCL BS16S 1 36000 36,000",
-      "pred": "MARLB0R0 TRPCL BS16S 1 36000 368000",
-      "cer": 0.0857,
-      "wer": 0.3333,
-      "confidence": 0.5938
+      "pred": "MARLBORO TRPCL BS16S 1 36000 36,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4081
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_7_jpg",
       "kind": "foto",
       "truth": "IDM LGHT TOKAI MOTIF 1 4300 4,300",
-      "pred": "I,A, LGFIT T0KAI A/0MIF 1 4300 40300",
-      "cer": 0.3333,
-      "wer": 0.7143,
-      "confidence": 0.4638
+      "pred": "IDM LGHT TOKAI MOTIF 1 4300 4,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4525
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_7_jpg",
       "kind": "foto",
       "truth": "ICHTHN THAI M.COFF300 1 9900 9,900",
-      "pred": "ICHTN T/AI M.C0FF300 1 9900 9,9@0",
-      "cer": 0.1176,
-      "wer": 0.6667,
-      "confidence": 0.6126
+      "pred": "ICHTN THAI M.C0FF300 1 9900 9,9N0",
+      "cer": 0.0882,
+      "wer": 0.5,
+      "confidence": 0.3945
     },
     {
       "stem": "CamScanner-19-11-2024-16-49_15_jpg",
       "kind": "foto",
       "truth": "PUCUK/H TEH MLATI350 1 3800 3,800",
-      "pred": "PWLVK/H TEH,MLATI350 1 3:00-= 3,800",
-      "cer": 0.2121,
-      "wer": 0.6667,
-      "confidence": 0.5608
+      "pred": "PUCUK/H TEH.MLATI350 1 3800-- 3,800",
+      "cer": 0.0909,
+      "wer": 0.5,
+      "confidence": 0.3963
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_100_jpg",
@@ -337,34 +724,2212 @@
       "pred": "ULTRA CKT 250ML 2 6,100 12,200",
       "cer": 0.0,
       "wer": 0.0,
-      "confidence": 0.6894
+      "confidence": 0.5127
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_100_jpg",
       "kind": "foto",
       "truth": "Disc. -1,000",
-      "pred": "DMSC. -1,000",
+      "pred": "DISC. -1,000",
       "cer": 0.25,
       "wer": 0.5,
-      "confidence": 0.5976
+      "confidence": 0.55
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_101_jpg",
       "kind": "foto",
       "truth": "DLFI ALMD 403/5 7 17,700 123,900",
-      "pred": "0LFI AL/) 40A4 / )7,7(,1K,9N",
-      "cer": 0.4688,
-      "wer": 1.0,
-      "confidence": 0.3829
+      "pred": "DLFI ALMD 40AR 7 L7,710 1R,GY",
+      "cer": 0.3125,
+      "wer": 0.5,
+      "confidence": 0.2455
     },
     {
       "stem": "CamScanner-18-11-2024-12-48_101_jpg",
       "kind": "foto",
       "truth": "Disc. -100,800",
-      "pred": ",+SC. -10,,H0",
+      "pred": "DISC. -100,50",
+      "cer": 0.3571,
+      "wer": 1.0,
+      "confidence": 0.3995
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_102_jpg",
+      "kind": "foto",
+      "truth": "ULTRA CKT 250ML 2 6,100 12,200",
+      "pred": "ULTRA CKT 250ML 2 6,100 12,200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5417
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_102_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,000",
+      "pred": "DISC. -1,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5881
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "kind": "foto",
+      "truth": "IDM KTG PLSTK 1W BSR 1 300 300",
+      "pred": "IDM KTG PLSTK 1W BSR 1 300 300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3605
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "kind": "foto",
+      "truth": "AQUA AIR MINERAL 600 1 3800 3,800",
+      "pred": "QUA AIR MINERAL 600 1 3800 3,800",
+      "cer": 0.0303,
+      "wer": 0.1429,
+      "confidence": 0.4205
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "kind": "foto",
+      "truth": "MR.NATA JEL BLU/B126 1 3800 3,800",
+      "pred": "MR.NATA JEL BLU/B126 1 3800 3,800",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3798
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "kind": "foto",
+      "truth": "VC MAKMUR PILAR : (1,000)",
+      "pred": "VC MAKMUR PILAR : (1,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.362
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "kind": "foto",
+      "truth": "S.BRD TA DOUB.CH ROL 1 10000 10,000",
+      "pred": "S,BRD TA DOUB.CH R0L 1 10000 10,000",
+      "cer": 0.0571,
+      "wer": 0.2857,
+      "confidence": 0.4102
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_10_jpg",
+      "kind": "foto",
+      "truth": "AICE ICE MOCHI VAN30 1 3700 3,700",
+      "pred": "ALCE ICE MUCHI VAN30 1 3700 3,700",
+      "cer": 0.0606,
+      "wer": 0.2857,
+      "confidence": 0.342
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_11_jpg",
+      "kind": "foto",
+      "truth": "AICE HSTERIA VNLA 70 1 9200 9,200",
+      "pred": "AICE HSTERIA VNLA 70 1 9200 9,200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5231
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_12_jpg",
+      "kind": "foto",
+      "truth": "CRNETTO COFF.CRML 80 3 7000 21,000",
+      "pred": "CRNETTO COFF.CRML 80 3 7000 21,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4497
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_12_jpg",
+      "kind": "foto",
+      "truth": "PSM GULA PREMIUM 1KG 1 14500 14,500",
+      "pred": "PSM GULA PREMIUM 1KG 1 14500.14,500",
+      "cer": 0.0286,
+      "wer": 0.2857,
+      "confidence": 0.4941
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_12_jpg",
+      "kind": "foto",
+      "truth": "IDM KTG PLSTK 1W SDG 1 200 200",
+      "pred": "IDM KTG PLSTK .1W SDG 5 1 200%..200",
+      "cer": 0.2,
+      "wer": 0.5,
+      "confidence": 0.4419
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_14_jpg",
+      "kind": "foto",
+      "truth": "GOOD DAY GRVY CKS250 1 7500 7,500",
+      "pred": "GOOD DAY GRVY CKS250 1 7500 7,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.517
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_14_jpg",
+      "kind": "foto",
+      "truth": "VC SANTOS JAYA A : (1,000)",
+      "pred": "VC SANTOS JAYA A : (1,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5207
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_14_jpg",
+      "kind": "foto",
+      "truth": "YC ONGRI SP.CHKN MYO 1 13000 13,000",
+      "pred": "YC ONGRI SP.CHKN MYO 1 13000 13,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4884
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_14_jpg",
+      "kind": "foto",
+      "truth": "PEDULI ANAK CERDAS 1 500 500",
+      "pred": "PEDULI ANAK CERDAS 1 500 500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5313
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "kind": "foto",
+      "truth": "SEDAP KCP SPCL 520ML 1 24200 24,200",
+      "pred": "SEDAP KCP SPCL 520ML 1 24200 24,200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5164
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "kind": "foto",
+      "truth": "VC SAYAP MAS UTA : (4,900)",
+      "pred": "VC SAYAP MAS UTA : (4.900)",
+      "cer": 0.0385,
+      "wer": 0.1667,
+      "confidence": 0.4817
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "kind": "foto",
+      "truth": "EKONOMI LQ.SEREH 650 1 10500 10,500",
+      "pred": "EKONOMI LGQSEREFL 650 1 10500 10,500",
+      "cer": 0.1143,
+      "wer": 0.1667,
+      "confidence": 0.4429
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "kind": "foto",
+      "truth": "VC SAYAP MAS UTA : (2,000)",
+      "pred": "VC SAYAP MAS UTA : (2,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4825
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "kind": "foto",
+      "truth": "EKONOMI LIQ.SW&JR650 1 10500 10,500",
+      "pred": "EKONOMI LIO.SW&.IR650 1 10500 10,500",
+      "cer": 0.0857,
+      "wer": 0.2,
+      "confidence": 0.4035
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_16_jpg",
+      "kind": "foto",
+      "truth": "VC SAYAP MAS UTA : (2,000)",
+      "pred": "VC SAYAP MAS UTA : (2,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5074
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_20_jpg",
+      "kind": "foto",
+      "truth": "SPRITE PET 390 ML 1 5900 5,900",
+      "pred": "SPRITE PET 390 ML 1 5900 5,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5454
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_22_jpg",
+      "kind": "foto",
+      "truth": "ZEBRA SARASA 05 BLCK 1 24200 24,200",
+      "pred": "2EAR:- SARASA 05 BLCK 1 24200 24.200",
+      "cer": 0.1429,
+      "wer": 0.2857,
+      "confidence": 0.4004
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_27_jpg",
+      "kind": "foto",
+      "truth": "HDENT WHT 14G 1 4,400 4,400",
+      "pred": "HDENT WHT 140 1 4,400 4,400",
+      "cer": 0.037,
+      "wer": 0.1667,
+      "confidence": 0.4032
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_31_jpg",
+      "kind": "foto",
+      "truth": "RAJA BRS ULT5KG 1 69,500 69,500",
+      "pred": "RAJA BRS ULT5KG 1 6L500 69,500",
+      "cer": 0.0645,
+      "wer": 0.1667,
+      "confidence": 0.3286
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_31_jpg",
+      "kind": "foto",
+      "truth": "SQ CSW 58G 1 18,100 18,100",
+      "pred": "SQ CSW 580 1 18,100 18,100",
+      "cer": 0.0385,
+      "wer": 0.1667,
+      "confidence": 0.4723
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_31_jpg",
+      "kind": "foto",
+      "truth": "Disc. -8,100",
+      "pred": "DISC. -8,100",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4522
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_3_jpg",
+      "kind": "foto",
+      "truth": "AQUA AIR MINERAL 600 1 3500 3,500",
+      "pred": "AQUA AIR MINERAL 600 1 3500 3.500",
+      "cer": 0.0303,
+      "wer": 0.1429,
+      "confidence": 0.4845
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_3_jpg",
+      "kind": "foto",
+      "truth": "SARI ROTI TAWAR SPCL 1 14000 14,000",
+      "pred": "SARI ROTI TAWAR SPCL 1 14000 14,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4901
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_3_jpg",
+      "kind": "foto",
+      "truth": "INDOFOOD KCP MANS135 1 6900 6,900",
+      "pred": "IND0F00D KCP MANS135 1 6900 6,900",
+      "cer": 0.0909,
+      "wer": 0.1667,
+      "confidence": 0.4446
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_3_jpg",
+      "kind": "foto",
+      "truth": "STRPSILS VIT.C 6S/8S 1 18000 18,000",
+      "pred": "STRPSILS VIT.C 6S/8S 1 18000 18,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.49
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_86_jpg",
+      "kind": "foto",
+      "truth": "SGM A 6-12 600G 1 59,600 59,600",
+      "pred": "SGM A 6-12 6006 1 59,600 59,6L0",
+      "cer": 0.0645,
+      "wer": 0.2857,
+      "confidence": 0.4106
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "LE MINERALE 6X330ML 1 15000 15,000",
+      "pred": "LE MINERW.E 6X330MI- L 15000 0 15,000",
+      "cer": 0.2059,
+      "wer": 0.6667,
+      "confidence": 0.3405
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "K/API KOPI SPC.60GR 1 7000 7,000",
+      "pred": "K/APL KTPI SPC.A0LI)R 1 7000 7,000",
+      "cer": 0.1875,
+      "wer": 0.5,
+      "confidence": 0.3063
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "SALONPAS KOYO 10X2'S 1 14300 14,300",
+      "pred": "SALONPAS K0Y0 L0X2.S L L4.(M 14.300",
+      "cer": 0.2857,
+      "wer": 0.8333,
+      "confidence": 0.2661
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "ULTRA SLIM PLAIN 200 1 5800 5,800",
+      "pred": "ULIDA SL.IM PI.ALN 200 L 95800.5,800",
+      "cer": 0.2727,
+      "wer": 0.8571,
+      "confidence": 0.3527
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "KNZLER SNGL GCHJNG60 1 8800 8,800",
+      "pred": "0ZLE)T SNGL (W)LIN(MJA L 8800 8.600",
+      "cer": 0.4848,
+      "wer": 0.6667,
+      "confidence": 0.2231
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "NESCAFE CLSC 10X2G 1 6700 6,700",
+      "pred": "A/ESCAFE 0SC 10X2G I 670() 6.70()",
+      "cer": 0.3226,
+      "wer": 0.8333,
+      "confidence": 0.2618
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "S/ROTI DORAYAKI CKLT 1 6000 6,000",
+      "pred": "S/ROTI L)TRAYAKI CKLL I 6(M)0 6,000",
+      "cer": 0.2424,
+      "wer": 0.6667,
+      "confidence": 0.2293
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "B/P TR SMKG MRH T.BJ 1 8000 8,000",
+      "pred": "B/P TR SMKG MRLU L .BJ L 8000 EB.000",
+      "cer": 0.2424,
+      "wer": 0.625,
+      "confidence": 0.2625
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "B/P TR NAGA MERAH 1 11000 11,000",
+      "pred": "8/P TR NAGA MERALL 1 1100() 1 L .000",
+      "cer": 0.2812,
+      "wer": 0.8571,
+      "confidence": 0.2883
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "VC INDOMARCO PRI : (4,800)",
+      "pred": "VC INDOMARC0 PRI : (4.800)",
+      "cer": 0.0769,
+      "wer": 0.4,
+      "confidence": 0.3044
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_91_jpg",
+      "kind": "foto",
+      "truth": "VC CASHBACKTERUS/INDOMARCO PRI : (10,000)",
+      "pred": "/LC CASPD13ACKTE1TDS/IND0MARC0 FFLI - ( 10,000)",
+      "cer": 0.3902,
+      "wer": 1.2,
+      "confidence": 0.2155
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "KUSUKA KRP AYM LD 60 1 5000 5,000",
+      "pred": "KUSUKA KRP AYM LD 60 1 5000 5,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5039
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "KUSUKA KRP KJ.BKR 60 3 5000 15,000",
+      "pred": "KUSUKA KRP KJ.BKR 60 3 5000 15,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4862
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "KUSUKA RMPT LAUT 60 2 5000 10,000",
+      "pred": "KUSUKA RMPT LAUT 60 2 5000 10,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4871
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "DK USAGI PUF CRML 60 6 6000 36,000",
+      "pred": "DK USAGI PUF CRML 60 6 6000 36,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4814
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "PLASTIK BSR 1 1 1",
+      "pred": "PLASTIK BSR 1 1 1",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3659
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "DISKON : (1)",
+      "pred": "DISKON : (1)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3298
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_94_jpg",
+      "kind": "foto",
+      "truth": "VC KUSUKA 60G/CV ARIRA : (9,000)",
+      "pred": "VC KUSUKA 60G/CV ARIRA : (9,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4355
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_9_jpg",
+      "kind": "foto",
+      "truth": "PPSODENT SG SL.CHAR 1 20300 20,300",
+      "pred": ",PSODENT S(I SL.CHAR 0 2(4300 20,300",
+      "cer": 0.1765,
+      "wer": 0.6667,
+      "confidence": 0.3558
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_9_jpg",
+      "kind": "foto",
+      "truth": "VC UNILEVER IND : (5,000)",
+      "pred": "VC UNILEVER INKI - (5,000)",
+      "cer": 0.12,
+      "wer": 0.4,
+      "confidence": 0.367
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_9_jpg",
+      "kind": "foto",
+      "truth": "SERASOFT SHP HFT 170 1 24000 24,000",
+      "pred": "BERASOFT SHP LHFT 170 1 24300 24.30C",
+      "cer": 0.1714,
+      "wer": 0.5714,
+      "confidence": 0.3086
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_9_jpg",
+      "kind": "foto",
+      "truth": "VC SAYAP MAS UTA : (5,900)",
+      "pred": "VC SAYAF MAS UTA : L5 900)",
+      "cer": 0.1154,
+      "wer": 0.5,
+      "confidence": 0.3029
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_9_jpg",
+      "kind": "foto",
+      "truth": "IDM KTG PLSTK 1W BSR 1 300 300",
+      "pred": "TDM KTG PLSTK 1W BSR 1 0(10 30R",
+      "cer": 0.1667,
+      "wer": 0.375,
+      "confidence": 0.2302
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_12_jpg",
+      "kind": "foto",
+      "truth": "K/API KOPI SPC.60GR 2 9900 19,800",
+      "pred": "K/API KOPI SPC.60GR 2 9900 19,800",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5008
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_12_jpg",
+      "kind": "foto",
+      "truth": "VC PT SJA : (2,000)",
+      "pred": "VC PT SJA : (2,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5125
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_19_jpg",
+      "kind": "foto",
+      "truth": "LA FILTER LIGHT 16'S 2 36000 72,000",
+      "pred": "LA FILTER LIGHT 16,9 2 36000 72,000",
+      "cer": 0.0571,
+      "wer": 0.1429,
+      "confidence": 0.5102
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_19_jpg",
+      "kind": "foto",
+      "truth": "RELAXA PLAY FRZEN 40 1 5300 5,300",
+      "pred": "RELAXA PLAY FRZEN 40 1 5300 5,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5414
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "DELMONTE KETCHUP SAU 3 6500 19,500",
+      "pred": "DELMONTE KETCHUP SAU 3 6500 19,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.53
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "OATSIDE OAT MILK CAR 2 9900 19,800",
+      "pred": "OATSIDE OAT MILK CAR 2 9900 19,800",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5571
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "AGAR RASA AGAR AGAR 5 6600 33,000",
+      "pred": "AGAR RASA AGAR AGAR 5 6600 33,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5229
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "INDOCAFE WHITE COFFE 9 26300 236,700",
+      "pred": "INDOCAFE WHITE COFFE 9 26300 236,700",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.549
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "ABC SAMBAL ASLI 380G 2 16900 33,800",
+      "pred": "ABC SAMBAL ASLI 3806 2 16900 33,800",
+      "cer": 0.0286,
+      "wer": 0.1429,
+      "confidence": 0.578
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "SHARON ROTI ROLL WOO 2 7000 14,000",
+      "pred": "SHARON ROTI ROLL WOO 2 7000 14,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5345
+    },
+    {
+      "stem": "receipt-001_png",
+      "kind": "render",
+      "truth": "SUPER BUBUR INSTANT 6 6000 36,000",
+      "pred": "SUPER BUBUR INSTAN 6 6000 36,000",
+      "cer": 0.0303,
+      "wer": 0.1667,
+      "confidence": 0.5244
+    },
+    {
+      "stem": "receipt-067_png",
+      "kind": "render",
+      "truth": "JOYDAY JOY KLIK C 2 85800 171,600",
+      "pred": "JOYDAY JOY KLIK C 2 85800 171,600",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.578
+    },
+    {
+      "stem": "receipt-067_png",
+      "kind": "render",
+      "truth": "BUMBU KITCHEN DAUN S 5 16000 80,000",
+      "pred": "BUMBU KITCHEN DAUN S 5 16000 80,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.511
+    },
+    {
+      "stem": "receipt-067_png",
+      "kind": "render",
+      "truth": "IMBOOST TABLET UNTUK 9 19900 179,100",
+      "pred": "IMBOOST TABLET UNTUK 9 19900 179,100",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5315
+    },
+    {
+      "stem": "receipt-067_png",
+      "kind": "render",
+      "truth": "HAPPY POP SNACK SEAW 9 9100 81,900",
+      "pred": "HAPPY POP SNACK SEAW 9 9100 81,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5455
+    },
+    {
+      "stem": "receipt-137_png",
+      "kind": "render",
+      "truth": "SO GOOD CHICKEN NUGG 2 53000 106,000",
+      "pred": "SO GOOD CHICKEN NUGG 2 53000 106,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5201
+    },
+    {
+      "stem": "receipt-137_png",
+      "kind": "render",
+      "truth": "JOYDAY JOY KLIK C 3 85800 257,400",
+      "pred": "JOYDAY JOY KLIK C 3 85800 257,400",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5747
+    },
+    {
+      "stem": "receipt-137_png",
+      "kind": "render",
+      "truth": "MORRIS EAU DE PARFUM 4 24400 97,600",
+      "pred": "MORRIS EAU DE PARFUM 4 24400 97,600",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.555
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "WALL'S ICE CREAM ORE 9 10000 90,000",
+      "pred": "WALL.S ICE CREAM ORE 9 10000 90,000",
+      "cer": 0.0286,
+      "wer": 0.1429,
+      "confidence": 0.5088
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "SUNSILK KONDITIONER 6 32600 195,600",
+      "pred": "SUNSILK CONDITIONER 6 32600 195,600",
+      "cer": 0.0286,
+      "wer": 0.2,
+      "confidence": 0.5272
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "GARNIER HAIR COLOR N 3 21600 64,800",
+      "pred": "GARNIER HAIR COLOR N 3 21600 64,800",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5315
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "BISKUAT BISKUIT COKE 1 9100 9,100",
+      "pred": "BISKUAT BISKUIT COKE 1 9100 9,100",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5072
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "NUTELLA JAM SPREAD H 3 72000 216,000",
+      "pred": "NUTELLA JAM SPREAD H 3 72000 216,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5428
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "HERBAAY 5% CERAMIDE 5 46900 234,500",
+      "pred": "HERBAAY 5% CERAMIDE 5 46900 234,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5733
+    },
+    {
+      "stem": "receipt-184_png",
+      "kind": "render",
+      "truth": "RINSO DETERJEN LIQUI 3 71900 215,700",
+      "pred": "RINSO DETERJEN LIQUI 3 71900 215,700",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5334
+    },
+    {
+      "stem": "receipt-214_png",
+      "kind": "render",
+      "truth": "NIVEA DEO ROLL ON IN 5 23900 119,500",
+      "pred": "NIVEA DEO ROLL ON IN 5 23900 119,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5331
+    },
+    {
+      "stem": "receipt-235_png",
+      "kind": "render",
+      "truth": "SENSODYNE SIKAT GIGI 5 38000 190,000",
+      "pred": "SENSODYNE SIKAT GIGI 5 38000 190,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5176
+    },
+    {
+      "stem": "receipt-235_png",
+      "kind": "render",
+      "truth": "MAYBELLINE HYPER SHA 2 141000 282,000",
+      "pred": "MAYBELLINE HYPER SHA 2 141000 282,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.574
+    },
+    {
+      "stem": "receipt-235_png",
+      "kind": "render",
+      "truth": "FRUITAMIN MINUMAN CO 8 7200 57,600",
+      "pred": "FRUITAMIN MINUMAN CO 8 7200 57,600",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5332
+    },
+    {
+      "stem": "receipt-235_png",
+      "kind": "render",
+      "truth": "ABC JUICE (BELI 2 GR 5 10200 51,000",
+      "pred": "ABC JUICE (BELI 2 GR 5 10200 51,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5029
+    },
+    {
+      "stem": "receipt-235_png",
+      "kind": "render",
+      "truth": "AQUA (GALON + ISI) 1 2 56000 112,000",
+      "pred": "AQUA GALON + ISI) 1 2 56000 112,000",
+      "cer": 0.0278,
+      "wer": 0.125,
+      "confidence": 0.4762
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "FORTUNE MYK.GRG RF2L 2 30600 61,200",
+      "pred": "FORTUREE MYK.GRG RF2L 2 30600 61,20U",
+      "cer": 0.0857,
+      "wer": 0.3333,
+      "confidence": 0.3639
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "DISKON : (1,800)",
+      "pred": "DISKON : (1,800)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4555
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "SNLIGHT LIME PCH 755 1 17800 17,800",
+      "pred": "SUNLIGHT LIME PCH 755 1 17800 L7,A00",
+      "cer": 0.0857,
+      "wer": 0.2857,
+      "confidence": 0.4375
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "SO KLIN P/L LMN 780 1 13900 13,900",
+      "pred": "SO KLIN P/L LMN 780 1 13900 LJ,:YY",
+      "cer": 0.1471,
+      "wer": 0.125,
+      "confidence": 0.4296
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "PEDULI PENDIDIKAN 1 100 100",
+      "pred": "PEDULI PENDIDIKAN 1 100 LWU",
+      "cer": 0.1111,
+      "wer": 0.2,
+      "confidence": 0.3722
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "PLASTIK KCL 1 1 1",
+      "pred": "PLASTIK KCL 1 1,.2",
+      "cer": 0.1765,
+      "wer": 0.4,
+      "confidence": 0.3956
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "DISKON : (1)",
+      "pred": "DISKON : (1)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4165
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "VC SUNLIGHT LIME/PT UNILEVER : (4,300)",
+      "pred": "VC SUNLIGHT LIME/PT UNILEVER - (4,300)",
+      "cer": 0.0263,
+      "wer": 0.1667,
+      "confidence": 0.4621
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_1_jpg",
+      "kind": "foto",
+      "truth": "VC SOKLIN LANTAI/SAYAPMAS FAIR : (3,000)",
+      "pred": "LVC SOKLIN LANTAI/SAYAPMAS FAIR : (3,000)",
+      "cer": 0.025,
+      "wer": 0.1667,
+      "confidence": 0.427
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "IDM TAS RMH LNGK JK 1 3100 3,100",
+      "pred": "HM4 TAS RMH LNGK JK 1 R00 3,100",
+      "cer": 0.1562,
+      "wer": 0.25,
+      "confidence": 0.4073
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "NELLCO OBH SPCL 100 1 44200 44,200",
+      "pred": "NELLCO 0BH SPCL 100 1 44200 44,200",
+      "cer": 0.0294,
+      "wer": 0.1429,
+      "confidence": 0.4892
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "ROHTO OBT MATA COL 7 1 19500 19,500",
+      "pred": "ROHT0 0BT MATA C0L 7 1 19500 19,500",
+      "cer": 0.0857,
+      "wer": 0.375,
+      "confidence": 0.4719
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "HYDRO COCO 250ML 1 7400 7,400",
+      "pred": "HYDRO C0C0 250ML 1 7400 7,400",
+      "cer": 0.069,
+      "wer": 0.1667,
+      "confidence": 0.4352
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "CL KOOL FEVER DEWASA 3 10500 31,500",
+      "pred": "CL K00L FEVER DEWASA 3 10500 31,500",
+      "cer": 0.0571,
+      "wer": 0.1429,
+      "confidence": 0.5055
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "SALONPAS PAIN REL 5S 1 31900 31,900",
+      "pred": "SALONPAS PAIN REL 5S 1 31900 31,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4475
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "H/PLAST KOYO HNGT10S 1 7100 7,100",
+      "pred": "H/PLAST K0Y0 HNGT10S 1 7100 7-1NN",
+      "cer": 0.1515,
+      "wer": 0.3333,
+      "confidence": 0.3612
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "SALONPAS KOYO 10X2'S 1 13500 13,500",
+      "pred": "SALONPAS K0Y0 10X2.S 1 13500 13,500",
+      "cer": 0.0857,
+      "wer": 0.3333,
+      "confidence": 0.4575
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "KALPANAX K CREAM 5GR 1 16300 16,300",
+      "pred": "KALPANAX K CREAM 5GR 1 16300 16,300",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5174
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "MYLANTA MAAG MINT 50 1 17700 17,700",
+      "pred": "MYLANTA MAAG MINT 50 1 17700 17,700",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.538
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VICKS VAPORUB POT 25 1 19500 19,500",
+      "pred": "VICKS VAPORUB P0T 25 1 19500 19,500",
+      "cer": 0.0286,
+      "wer": 0.1429,
+      "confidence": 0.4999
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "ENERVON-C 30'S 1 43100 43,100",
+      "pred": "ENERVON-C 3009 1 43100 43,100",
+      "cer": 0.069,
+      "wer": 0.2,
+      "confidence": 0.4547
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "HOT IN CRM STRNG 120 1 29000 29,000",
+      "pred": "H0T IN CRM STRNG 120 1 2YUUU 29,000",
+      "cer": 0.1429,
+      "wer": 0.25,
+      "confidence": 0.4118
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "PANADOL FLU&BTK 10'S 1 13500 13,500",
+      "pred": "PANAD0L FLU&BTK 1003 1 L3BUU 13,500",
+      "cer": 0.2,
+      "wer": 0.5,
+      "confidence": 0.3755
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "PROMAG 10'S 1 8900 8,900",
+      "pred": "PROMAG 1008 1 8900 8,900",
+      "cer": 0.0833,
+      "wer": 0.2,
+      "confidence": 0.4532
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "S/M TLK ANGIN BG 5'S 1 22800 22,800",
+      "pred": "S/M TLK ANGIN BG 501 1 22800 22800",
+      "cer": 0.0857,
+      "wer": 0.25,
+      "confidence": 0.4917
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VSLNE HB SRM S+G 180 1 37900 37,900",
+      "pred": "VSLNE HB SRM S+G 180 1 37900 37100",
+      "cer": 0.0571,
+      "wer": 0.125,
+      "confidence": 0.5045
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "NIVEA LOT.EXTR WH200 1 35500 35,500",
+      "pred": "NIVEA LOT.EXTR WH200 1 35500 35,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4744
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "GAJAH MINYAK KY/PT60 1 20600 20,600",
+      "pred": "GAJAH MINYAK KY/PT60 1 20600 20,600",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4854
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VC MEDICINE/FAIR : (10,000)",
+      "pred": "VC MEDICINE/FAIR : (10,000)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3597
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VC BORDEN EAGLE : (1,500)",
+      "pred": "VC BERDEN EAGLE , (10500)",
+      "cer": 0.12,
+      "wer": 0.6,
+      "confidence": 0.319
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VC HISAMITSU PHA : (5,000)",
+      "pred": "VC HISAMITSU P0, (50000)",
+      "cer": 0.1923,
+      "wer": 0.6,
+      "confidence": 0.3338
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VC PROCTER & GAM : (1,700)",
+      "pred": "VC PROCTER & GAM : L1J00)",
+      "cer": 0.1154,
+      "wer": 0.1667,
+      "confidence": 0.2285
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VC DARYA VARIA L : (13,600)",
+      "pred": "VC DARYA VARIA L : (130600)",
+      "cer": 0.037,
+      "wer": 0.1667,
+      "confidence": 0.434
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_21_jpg",
+      "kind": "foto",
+      "truth": "VC UNILEVER INDO : (8,900)",
+      "pred": "VC UNILEVER INDO : (8,900)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3496
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_28_jpg",
+      "kind": "foto",
+      "truth": "LEMNRL AIR600ML 1 4,000 4,000",
+      "pred": "LEMARI AIR600ML 1 4,000 4,000",
+      "cer": 0.069,
+      "wer": 0.2,
+      "confidence": 0.4665
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_28_jpg",
+      "kind": "foto",
+      "truth": "OTSIDE COF200ML 1 9,900 9,900",
+      "pred": "0TSIDE C0F200ML 1 9,900 9,900",
+      "cer": 0.069,
+      "wer": 0.4,
+      "confidence": 0.4323
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_28_jpg",
+      "kind": "foto",
+      "truth": "ALFA MASK 3D 5S 1 12,900 12,900",
+      "pred": "ALFA MASK 3D 5S 1 12,900 12,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5014
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_28_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2,000",
+      "pred": "DISC. -2,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5649
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_28_jpg",
+      "kind": "foto",
+      "truth": "ALFA MKR EP200G 1 17,500 17,500",
+      "pred": "ALFA MKR EP200G 1 17,500 17,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.5029
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "kind": "foto",
+      "truth": "RTE OD CHIKUWA 1 6,000 6,000",
+      "pred": "RTE 0D 0NKUWA 1 6000 X000",
+      "cer": 0.25,
+      "wer": 0.6667,
+      "confidence": 0.2433
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "kind": "foto",
+      "truth": "RTE OD SIOMAY 1 7,000 7,000",
+      "pred": "RTE 0D SIOMAY 1 N000 A000",
+      "cer": 0.1852,
+      "wer": 0.5,
+      "confidence": 0.2224
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "kind": "foto",
+      "truth": "RTE OD SHRIMP 1 6,000 6,000",
+      "pred": "RTE 0D S4RIMP 1 6,000 6,LIUI",
+      "cer": 0.2222,
+      "wer": 0.5,
+      "confidence": 0.2684
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "kind": "foto",
+      "truth": "CRYST AIR 600ML 1 3,900 3,900",
+      "pred": "CRYST AIR 600ML 1 3,900 3,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3623
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "kind": "foto",
+      "truth": "Disc. -900",
+      "pred": "DISC. -900",
+      "cer": 0.3,
+      "wer": 0.5,
+      "confidence": 0.5241
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_36_jpg",
+      "kind": "foto",
+      "truth": "AQUA AIR 330ML 1 3,400 3,400",
+      "pred": "AQUA AIR 330ML 1 E400 3,400",
+      "cer": 0.0714,
+      "wer": 0.1667,
+      "confidence": 0.34
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "GOLDA COF 200ML 1 3,100 3,100",
+      "pred": "GOLDA C0F 200ML 1 3,100 3,100",
+      "cer": 0.0345,
+      "wer": 0.1667,
+      "confidence": 0.4244
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "VAPE OP ORCHD10 1 26,000 26,000",
+      "pred": "VAPE 0P 0R0HI0 1 26,000 26,000",
+      "cer": 0.1613,
+      "wer": 0.3333,
+      "confidence": 0.4269
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "Disc. -6,100",
+      "pred": "DISC. -6,100",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5658
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "VAPE OP LMN 10 1 27,000 27,000",
+      "pred": "VAP5 0P DW 10 1 2A000 2%5000",
+      "cer": 0.3,
+      "wer": 0.7143,
+      "confidence": 0.3179
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "CMP MOC CHO45ML 1 6,000 6,000",
+      "pred": "CMP M0C CH04ML 1 6,000 6,000",
+      "cer": 0.1034,
+      "wer": 0.3333,
+      "confidence": 0.3927
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "RTD KP JDL 160Z 1 15,000 15,000",
+      "pred": "RTD KP JDL 1607 1 15,000 15,000",
+      "cer": 0.0323,
+      "wer": 0.1429,
+      "confidence": 0.5125
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_37_jpg",
+      "kind": "foto",
+      "truth": "Disc. -5,000",
+      "pred": "DISC.46000",
+      "cer": 0.5833,
+      "wer": 1.0,
+      "confidence": 0.3429
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "ECO BAG 30X40 1 4,000 4,000",
+      "pred": "EC0 BAG 30X40 1 4,000 4,000",
+      "cer": 0.037,
+      "wer": 0.1667,
+      "confidence": 0.4316
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "MITU PINK50S 1 14,900 14,900",
+      "pred": "MLTU PINK50S 1 14,900 14,900",
+      "cer": 0.0357,
+      "wer": 0.2,
+      "confidence": 0.4417
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2,000",
+      "pred": "DISC. -2,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5655
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "SLK BB LNDR450 1 26,800 26,800",
+      "pred": "SLK BB IIDR450 1 26,800 26,8M",
+      "cer": 0.1333,
+      "wer": 0.3333,
+      "confidence": 0.3896
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "PIATTOS RL 75G 2 11,300 22,600",
+      "pred": "PLATT0S RL 756 2 11,300 22,600",
+      "cer": 0.1,
+      "wer": 0.3333,
+      "confidence": 0.4767
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "Disc. -6,000",
+      "pred": "DISC. -6,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5121
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "PGN BOTOL 240 1 46,700 46,700",
+      "pred": "PGN B0T0L 240 1 46,700 46,700",
+      "cer": 0.069,
+      "wer": 0.1667,
+      "confidence": 0.5035
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "Disc. -4,000",
+      "pred": "DISC. -4,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5283
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "MY BB OIL PLS90 1 19,900 19,900",
+      "pred": "MY BB OLL PLS90 1 19,900 19,900",
+      "cer": 0.0323,
+      "wer": 0.1429,
+      "confidence": 0.466
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "GERY SM CC 126G 1 8,700 8,700",
+      "pred": "GERY SM CC 1266 1 8,700 8,700",
+      "cer": 0.0345,
+      "wer": 0.1429,
+      "confidence": 0.5345
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "KG ABON 135G 1 9,400 9,400",
+      "pred": "KG ABON 1356 1 9,400 9,400",
+      "cer": 0.0385,
+      "wer": 0.1667,
+      "confidence": 0.54
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "Disc. -4,400",
+      "pred": "DISC. -4,400",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5566
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "SERENA TOGO128G 1 8,900 8,900",
+      "pred": "SERENA T0G0128G 1 8,900 8,900",
+      "cer": 0.069,
+      "wer": 0.2,
+      "confidence": 0.4239
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_41_jpg",
+      "kind": "foto",
+      "truth": "Disc. -3,900",
+      "pred": "DISC. -3,900",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.542
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "PROCHIZ CDR170G 1 20,500 20,500",
+      "pred": "MOCHIZ CDR170G 1 20,500 205UU",
+      "cer": 0.1613,
+      "wer": 0.4,
+      "confidence": 0.2544
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "PROCHIZ OLES170 1 15,400 15,400",
+      "pred": "RXIGA I GR GM",
+      "cer": 0.8387,
+      "wer": 1.0,
+      "confidence": 0.1395
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2,900",
+      "pred": "DISC. -2,900",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5185
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "PROCHIZ CDR170G -1 20,500 -20,500",
+      "pred": "PROCHIZ CDR170G -1 20,5M -R,500",
+      "cer": 0.1212,
+      "wer": 0.4,
+      "confidence": 0.2985
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "SEMANGKA MRH TB 1238 8.90 11,018",
+      "pred": "FMANGKA MRH TB 1238 090 1L018",
+      "cer": 0.1875,
+      "wer": 0.5,
+      "confidence": 0.3383
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,238",
+      "pred": "DISC. -1,238",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5306
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "SEDAAP GRG 5S 1 13,000 13,000",
+      "pred": "S1A, GRG 5S 1 13,000 13,M0",
+      "cer": 0.2069,
+      "wer": 0.3333,
+      "confidence": 0.3758
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "A/MD PCRN CML75 1 9,500 9,500",
+      "pred": "A/MD PCN CM75 1 9,5M X5M",
+      "cer": 0.2759,
+      "wer": 0.6667,
+      "confidence": 0.2503
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,600",
+      "pred": "DISC. -1,600",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5196
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "GS LMN&GRP250ML 1 6,000 6,000",
+      "pred": "GS LM&GRP250ML 1 6,0M 6,000",
+      "cer": 0.1034,
+      "wer": 0.4,
+      "confidence": 0.3226
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "PAZTO KJ 63G 1 5,900 5,900",
+      "pred": "PRTO KJ 630 1 5,900 5,900",
+      "cer": 0.1154,
+      "wer": 0.3333,
+      "confidence": 0.4687
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "SOSRO T B K200 3 3,100 9,300",
+      "pred": "SOSRO T B K200 3 3JM .9,300",
+      "cer": 0.1786,
+      "wer": 0.2857,
+      "confidence": 0.3366
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "GF UHT FC 125ML 1 3,900 3,900",
+      "pred": "F UHT FC 125ML 1 3,900 3,900",
+      "cer": 0.0345,
+      "wer": 0.1429,
+      "confidence": 0.4186
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "KNGS FS TMT155 1 8,700 8,700",
+      "pred": "KNGS FS TMTIJ 1 8,700 8,700",
+      "cer": 0.1071,
+      "wer": 0.1667,
+      "confidence": 0.4325
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "TLR NG/G 688 25.90 17,819",
+      "pred": "1R NG/G 688 25.90 17,819",
+      "cer": 0.08,
+      "wer": 0.2,
+      "confidence": 0.5223
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "SB MIDI REGULER 1 200 200",
+      "pred": "SB MLDI REGULER 1 200 200",
+      "cer": 0.04,
+      "wer": 0.1667,
+      "confidence": 0.4219
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "STAMPSAT2020 1 1 1",
+      "pred": "STWPSAT2020 1 1 1",
+      "cer": 0.1111,
+      "wer": 0.25,
+      "confidence": 0.2337
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_44_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1",
+      "pred": "DISC. -1",
+      "cer": 0.375,
+      "wer": 0.5,
+      "confidence": 0.4815
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_29_jpg",
+      "kind": "foto",
+      "truth": "SUNCO MYK 2L 2 41,200 82,400",
+      "pred": "SUNCO MYK 2L 2 41,200 82,400",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4751
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_29_jpg",
+      "kind": "foto",
+      "truth": "Disc. -15,400",
+      "pred": "DISC. -15,400",
+      "cer": 0.2308,
+      "wer": 0.5,
+      "confidence": 0.5251
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_29_jpg",
+      "kind": "foto",
+      "truth": "YOU C ORG 500ML 1 9,100 9,100",
+      "pred": "YDU C 0RG 500ML 1 9,100 9,100",
+      "cer": 0.069,
+      "wer": 0.2857,
+      "confidence": 0.4156
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_38_jpg",
+      "kind": "foto",
+      "truth": "SUTRA KNDM OK 3 1 13,400 13,400",
+      "pred": "SUTRA KNDM OK 3 1.13,400 13,400",
+      "cer": 0.0323,
+      "wer": 0.2857,
+      "confidence": 0.4741
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_38_jpg",
+      "kind": "foto",
+      "truth": "MY ROTI SUSU58G 1 5,000 5,000",
+      "pred": "MY ROTI SUSU58G 1 5,000 5,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3803
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_38_jpg",
+      "kind": "foto",
+      "truth": "NSCF CRML 220ML 1 7,500 7,500",
+      "pred": "NSCF CRML 220ML 1 7,500 7,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4067
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_38_jpg",
+      "kind": "foto",
+      "truth": "KINDER GIRLS 20 1 15,600 15,600",
+      "pred": "BINDER GIRLS 20 1 15,600 15,600",
+      "cer": 0.0323,
+      "wer": 0.1667,
+      "confidence": 0.4463
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_38_jpg",
+      "kind": "foto",
+      "truth": "Disc. -3,700",
+      "pred": "DISC. -3,700",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4377
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_40_jpg",
+      "kind": "foto",
+      "truth": "KP BRD L 0.020 1 500 500",
+      "pred": "KP BRD L 0.020 1 500.500",
+      "cer": 0.0417,
+      "wer": 0.2857,
+      "confidence": 0.511
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_40_jpg",
+      "kind": "foto",
+      "truth": "MMP ORG 1L 1 16,000 16,000",
+      "pred": "MMP ORG 1L 1 16,000 16,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4488
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_40_jpg",
+      "kind": "foto",
+      "truth": "PRT KM/AR 200G 1 16,000 16,000",
+      "pred": "PRT KM/AR 2006 1 16,000 16,000",
+      "cer": 0.0333,
+      "wer": 0.1667,
+      "confidence": 0.4777
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_40_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2,000",
+      "pred": "DISC. -ZFUUU",
+      "cer": 0.6667,
+      "wer": 1.0,
+      "confidence": 0.2054
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "kind": "foto",
+      "truth": "BIORE A.BAC 450 1 27,100 27,100",
+      "pred": "BIORE A.BAC 4J 1 27,100 27,100",
+      "cer": 0.0645,
+      "wer": 0.1667,
+      "confidence": 0.4194
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2,300",
+      "pred": "DISC. -2,300",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4391
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "kind": "foto",
+      "truth": "GLADE ESCPE 162 2 36,100 72,200",
+      "pred": "GLADE ESCPE 162 2 36,100 72,200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4705
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "kind": "foto",
+      "truth": "ABC ALK LR-06 A 1 21,900 21,900",
+      "pred": "ABC ALK LR-06 A 1 21,900 21,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4181
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "kind": "foto",
+      "truth": "PPSDNT MINT 190 1 13,000 13,000",
+      "pred": "PPSDNT MINT 190 1 13,000 13,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4334
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_45_jpg",
+      "kind": "foto",
+      "truth": "SB MIDI SPM L 1 200 200",
+      "pred": "SB MLDI JM L 1 200 200",
+      "cer": 0.1304,
+      "wer": 0.2857,
+      "confidence": 0.3565
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "SB MIDI REG M 1 200 200",
+      "pred": "SB MLDL REG M 1 200 200",
+      "cer": 0.087,
+      "wer": 0.1429,
+      "confidence": 0.3836
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "MIZONE ACT500ML 1 5,200 5,200",
+      "pred": "MIZONE ACT500ML 1 5,200 5,200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3986
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "S-TEE JSMN350ML 1 3,000 3,000",
+      "pred": "S-TEE JSMN350ML 1 3,000 3,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4473
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "GARUDA WGY 100G 1 9,700 9,700",
+      "pred": "GARUDA WGY 1006 1 9,700 9,700",
+      "cer": 0.0345,
+      "wer": 0.1667,
+      "confidence": 0.4756
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,800",
+      "pred": "DISC. -1,800",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4961
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "NABATI BSVT144G 1 9,500 9,500",
+      "pred": "NABATI BSVT144G 1 9,500 9,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4337
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_51_jpg",
+      "kind": "foto",
+      "truth": "PRT CRM MSS 40G 1 3,500 3,500",
+      "pred": "PRT CRM MSS 406 1 3,500 3,500",
+      "cer": 0.0345,
+      "wer": 0.1429,
+      "confidence": 0.4939
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "kind": "foto",
+      "truth": "KP BRD L 0.020 1 500 500",
+      "pred": "KP BRD L 0.020 1 500 500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4774
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "kind": "foto",
+      "truth": "KP BRD L 0.020 -1 500 -500",
+      "pred": "KP BRD L 0.020 -1 500 -500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4951
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "kind": "foto",
+      "truth": "BOOM LAVENDR800 7 16,900 118,300",
+      "pred": "B00M LAVELLDR800 7 16,900 1 18,300",
+      "cer": 0.1562,
+      "wer": 0.8,
+      "confidence": 0.3194
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "kind": "foto",
+      "truth": "Disc. -49,000",
+      "pred": "DISC. -49,000",
+      "cer": 0.2308,
+      "wer": 0.5,
+      "confidence": 0.5051
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "kind": "foto",
+      "truth": "BOOM RS CRIA800 1 16,900 16,900",
+      "pred": "BOOM RS CRIA800 1 16,900 16,900",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.3839
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_33_jpg",
+      "kind": "foto",
+      "truth": "Disc. -7,000",
+      "pred": "DISC. -7,000",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4587
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_52_jpg",
+      "kind": "foto",
+      "truth": "AMBI PUR VENT B 1 37,400 37,400",
+      "pred": "AMBL PUR VENT B L 37,400 37,400",
+      "cer": 0.0645,
+      "wer": 0.2857,
+      "confidence": 0.3542
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_52_jpg",
+      "kind": "foto",
+      "truth": "KP REG S 1 1 1",
+      "pred": "KP REG S 1 1 1",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.1747
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_52_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1",
+      "pred": "DISC. -L",
       "cer": 0.5,
       "wer": 1.0,
-      "confidence": 0.4035
+      "confidence": 0.1808
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_62_jpg",
+      "kind": "foto",
+      "truth": "DAILY JUICE JMB 1 11,500 11,500",
+      "pred": "DAILY JUICE JMB 1 11,500 11,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4965
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_62_jpg",
+      "kind": "foto",
+      "truth": "NEW DCF B.NAGA 1 17,000 17,000",
+      "pred": "NEW DCF B.NAGA 1 17,000 17,000",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.491
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_62_jpg",
+      "kind": "foto",
+      "truth": "NEW DCF S.MERAH 1 6,500 6,500",
+      "pred": "NEW DCF S.MERAH 1 6,500 6,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4529
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_62_jpg",
+      "kind": "foto",
+      "truth": "NEW DCF MGLD SP 1 11,500 11,500",
+      "pred": "NEW DCF MGLD SP 1 11,500 11,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4974
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "WALLS PP SHK150 2 9,500 19,000",
+      "pred": "NALLS PP SMUM 2 L500 M,000",
+      "cer": 0.3333,
+      "wer": 0.6667,
+      "confidence": 0.2217
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "TANGO CHO 125G 2 9,200 18,400",
+      "pred": "TANGO MN 1250 2 0200 1X400",
+      "cer": 0.2759,
+      "wer": 0.6667,
+      "confidence": 0.3082
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "CHITATO SP PGGG 1 11,500 11,500",
+      "pred": "UNTATO SP PXG 1 11,500 11,500",
+      "cer": 0.1613,
+      "wer": 0.3333,
+      "confidence": 0.3635
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "CHITATO AYM BMB 1 11,500 11,500",
+      "pred": "ULLTATO AYM BMB 1 11,500 11,500",
+      "cer": 0.0968,
+      "wer": 0.1667,
+      "confidence": 0.3578
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "FRENCHFRIES 68G 1 7,000 7,000",
+      "pred": "FRENCMFRUS 680 1 6000 6000",
+      "cer": 0.2759,
+      "wer": 0.8,
+      "confidence": 0.3589
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "KP BRANDING L 1 1 1",
+      "pred": "KP BRANDING L 1 1 1",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.236
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1",
+      "pred": "DISC. -1",
+      "cer": 0.375,
+      "wer": 0.5,
+      "confidence": 0.4014
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "STAMP VKB WB 2 1 2",
+      "pred": "STAMP VKB WB 2 1 2",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.2744
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2",
+      "pred": "DISC. -2",
+      "cer": 0.375,
+      "wer": 0.5,
+      "confidence": 0.3471
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "YOU C APL 140ML 1 6,900 6,900",
+      "pred": "Y0U C APL 140ML 1 6,900 6,900",
+      "cer": 0.0345,
+      "wer": 0.1429,
+      "confidence": 0.3791
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_63_jpg",
+      "kind": "foto",
+      "truth": "Disc. -1,900",
+      "pred": "DISC. -1,900",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4711
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "KP BRD L 0.020 1 200 200",
+      "pred": "KP BRD L0.020 1 200 200",
+      "cer": 0.0417,
+      "wer": 0.2857,
+      "confidence": 0.4938
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "POTABEE AYM 68G 1 10,700 10,700",
+      "pred": "POTABEEPM 683 1 10,700 10,700",
+      "cer": 0.129,
+      "wer": 0.5,
+      "confidence": 0.5091
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "Disc. -2,700",
+      "pred": "DISC. -2,700",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5032
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "PUCUK LS 500ML 1 6,500 6,500",
+      "pred": "PUCUKLS500ML 1 6,500 6,500",
+      "cer": 0.0714,
+      "wer": 0.5,
+      "confidence": 0.4565
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "Disc. -600",
+      "pred": "DISC. -600",
+      "cer": 0.3,
+      "wer": 0.5,
+      "confidence": 0.4879
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "NU TEH TRK330ML 1 7,900 7,900",
+      "pred": "NUTEHTRK330ML 1 7,900 7,900",
+      "cer": 0.069,
+      "wer": 0.5,
+      "confidence": 0.4923
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "SOSRO ORI 350ML 1 3,500 3,500",
+      "pred": "SOSROORL 350ML 1 3,500 3,500",
+      "cer": 0.069,
+      "wer": 0.3333,
+      "confidence": 0.4745
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "WLS KP NGR110ML 1 11,000 11,000",
+      "pred": "VVLS KPNGR110ML 1 11,000 11,000",
+      "cer": 0.0968,
+      "wer": 0.5,
+      "confidence": 0.4487
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "WLS F DBLT75ML 1 7,200 7,200",
+      "pred": "WVLS F DBT75ML 1 7,200 7,200",
+      "cer": 0.0714,
+      "wer": 0.3333,
+      "confidence": 0.448
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "IHB CB POLO CHS 1 8,500 8,500",
+      "pred": "LHBCB POLOCHS 1 8,500 8,500",
+      "cer": 0.1034,
+      "wer": 0.5714,
+      "confidence": 0.5001
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "NUVO TP 450ML 1 24,500 24,500",
+      "pred": "NUVOTP450ML 1 24,500 24,500",
+      "cer": 0.069,
+      "wer": 0.5,
+      "confidence": 0.4948
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "Disc. -8,600",
+      "pred": "DISC. -8,600",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.5423
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "VIXAL BLUE 780 1 19,900 19,900",
+      "pred": "VDXALBLUE 780 1 19,900 19,900",
+      "cer": 0.0667,
+      "wer": 0.3333,
+      "confidence": 0.5525
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_73_jpg",
+      "kind": "foto",
+      "truth": "Disc. -9,900",
+      "pred": "DISC. -9,900",
+      "cer": 0.25,
+      "wer": 0.5,
+      "confidence": 0.4809
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_78_jpg",
+      "kind": "foto",
+      "truth": "AQUA BKL NAS19L 1 19,900 19,900",
+      "pred": "AQVA BKL NAS19L 1 19,900 19,900",
+      "cer": 0.0323,
+      "wer": 0.1667,
+      "confidence": 0.2842
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_78_jpg",
+      "kind": "foto",
+      "truth": "GALON AQUA(BKL) 1 33,500 33,500",
+      "pred": "GALON AQUA(BKL) 1 33,500 33,500",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.2756
+    },
+    {
+      "stem": "CamScanner-18-11-2024-12-48_78_jpg",
+      "kind": "foto",
+      "truth": "Disc. -27,900",
+      "pred": "DISC. -27,900",
+      "cer": 0.2308,
+      "wer": 0.5,
+      "confidence": 0.3799
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_5_jpg",
+      "kind": "foto",
+      "truth": "LEMNRL AIR600ML 1 3,700 3,700",
+      "pred": "LEMARI AIR600ML 1 3,700 3,700",
+      "cer": 0.069,
+      "wer": 0.2,
+      "confidence": 0.4671
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_5_jpg",
+      "kind": "foto",
+      "truth": "CLIMAX MIX 20 1 29,200 29,200",
+      "pred": "CLLMAX MLX 20 1 29,200 29,200",
+      "cer": 0.069,
+      "wer": 0.3333,
+      "confidence": 0.5544
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_7_jpg",
+      "kind": "foto",
+      "truth": "SEDAAP ABWG 70G 2 3,000 6,000",
+      "pred": "SEDAAP ABWG 706 2 3,000 6,000",
+      "cer": 0.0345,
+      "wer": 0.1667,
+      "confidence": 0.5214
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_7_jpg",
+      "kind": "foto",
+      "truth": "SEDAAP MDR 70G 2 3,100 6,200",
+      "pred": "SEDAAP MDR 700 2 3,100 6,200",
+      "cer": 0.0357,
+      "wer": 0.1667,
+      "confidence": 0.5255
+    },
+    {
+      "stem": "CamScanner-19-11-2024-16-49_7_jpg",
+      "kind": "foto",
+      "truth": "KP BRANDING (M) 1 200 200",
+      "pred": "KP BRANDING (M) 1 200 200",
+      "cer": 0.0,
+      "wer": 0.0,
+      "confidence": 0.4412
     }
   ]
 }

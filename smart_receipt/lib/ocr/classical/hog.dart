@@ -101,10 +101,11 @@ Float32List hog(
     }
   }
 
-  // Blok 2x2 sel bertumpuk, normalisasi L2-Hys.
+  // Blok 2x2 sel bertumpuk, normalisasi L2-Hys, lalu 20 fitur spasial/geometri.
   final int blocksPerSide = nCells - block + 1;
   final int blockLen = block * block * bins;
-  final Float32List out = Float32List(blocksPerSide * blocksPerSide * blockLen);
+  final int hogLen = blocksPerSide * blocksPerSide * blockLen;
+  final Float32List out = Float32List(hogLen + 20);
 
   int writeIndex = 0;
   for (int by = 0; by < blocksPerSide; by++) {
@@ -141,6 +142,50 @@ Float32List hog(
         out[i] = out[i] / norm;
       }
     }
+  }
+
+  // 16 fitur kerapatan tinta grid 4x4 (sel 8x8).
+  for (int cy = 0; cy < 4; cy++) {
+    for (int cx = 0; cx < 4; cx++) {
+      double sum = 0;
+      for (int py = cy * 8; py < (cy + 1) * 8; py++) {
+        final int rowBase = py * size;
+        for (int px = cx * 8; px < (cx + 1) * 8; px++) {
+          sum += inv[rowBase + px];
+        }
+      }
+      out[writeIndex++] = sum / 64.0;
+    }
+  }
+
+  // 4 fitur geometri kotak tinta (ambang inv > 0.25).
+  int nInk = 0;
+  int minX = size;
+  int maxX = -1;
+  int minY = size;
+  int maxY = -1;
+  for (int y = 0; y < size; y++) {
+    final int rowBase = y * size;
+    for (int x = 0; x < size; x++) {
+      if (inv[rowBase + x] > 0.25) {
+        nInk++;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  out[writeIndex++] = nInk / (size * size);
+  if (nInk > 0) {
+    out[writeIndex++] = (maxX - minX + 1) / size;
+    out[writeIndex++] = (maxY - minY + 1) / size;
+    out[writeIndex++] = ((minY + maxY) * 0.5) / (size - 1);
+  } else {
+    out[writeIndex++] = 0.0;
+    out[writeIndex++] = 0.0;
+    out[writeIndex++] = 0.0;
   }
 
   return out;

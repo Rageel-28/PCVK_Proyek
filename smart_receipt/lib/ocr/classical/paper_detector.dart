@@ -106,6 +106,101 @@ int otsuThresholdFromHistogram(List<int> hist, int total) {
   return bestThreshold;
 }
 
+/// Hilangkan segitiga latar gelap di tepi kertas miring dengan banjir tepi.
+GrayImage _cleanPaperBorders(GrayImage crop) {
+  final int w = crop.width;
+  final int h = crop.height;
+  final int total = w * h;
+  if (w < 8 || h < 8) return crop;
+
+  final int tBg = otsuThresholdFromHistogram(crop.histogram(), total);
+  final List<int> borderMask = List<int>.filled(total, 0);
+  final List<int> stack = <int>[];
+
+  void seed(int x, int y) {
+    final int idx = y * w + x;
+    if (borderMask[idx] == 0 && crop.data[idx] <= tBg) {
+      borderMask[idx] = 1;
+      stack.add(idx);
+    }
+  }
+
+  for (int x = 0; x < w; x++) {
+    seed(x, 0);
+    seed(x, h - 1);
+  }
+  for (int y = 0; y < h; y++) {
+    seed(0, y);
+    seed(w - 1, y);
+  }
+
+  while (stack.isNotEmpty) {
+    final int idx = stack.removeLast();
+    final int x = idx % w;
+    final int y = idx ~/ w;
+    if (x > 0) seed(x - 1, y);
+    if (x + 1 < w) seed(x + 1, y);
+    if (y > 0) seed(x, y - 1);
+    if (y + 1 < h) seed(x, y + 1);
+  }
+
+  if (stack.isEmpty && !borderMask.any((int v) => v == 1)) {
+    return crop;
+  }
+
+  // Dilasi 5x5 untuk membersihkan bayangan transisi di tepi kertas.
+  final List<int> dilated = List<int>.filled(total, 0);
+  int bgCount = 0;
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      if (borderMask[y * w + x] == 0) continue;
+      final int y0 = math.max(0, y - 2);
+      final int y1 = math.min(h - 1, y + 2);
+      final int x0 = math.max(0, x - 2);
+      final int x1 = math.min(w - 1, x + 2);
+      for (int ny = y0; ny <= y1; ny++) {
+        final int rowBase = ny * w;
+        for (int nx = x0; nx <= x1; nx++) {
+          if (dilated[rowBase + nx] == 0) {
+            dilated[rowBase + nx] = 1;
+            bgCount++;
+          }
+        }
+      }
+    }
+  }
+
+  if (bgCount <= 0 || bgCount >= total * 0.40) {
+    return crop;
+  }
+
+  final List<int> remHist = List<int>.filled(256, 0);
+  for (int i = 0; i < total; i++) {
+    if (dilated[i] == 0) {
+      remHist[crop.data[i]]++;
+    }
+  }
+  final int remTotal = total - bgCount;
+  final int target = (remTotal + 1) ~/ 2;
+  int acc = 0;
+  int med = 255;
+  for (int v = 0; v < 256; v++) {
+    acc += remHist[v];
+    if (acc >= target) {
+      med = v;
+      break;
+    }
+  }
+
+  final GrayImage out = crop.clone();
+  for (int i = 0; i < total; i++) {
+    if (dilated[i] != 0) {
+      out.data[i] = med;
+    }
+  }
+  return out;
+}
+
 /// Potong area kertas bila terdeteksi; jika tidak, kembalikan aslinya.
 ///
 /// `crop` juga mengembalikan box agar koordinat hasil OCR dapat
@@ -121,5 +216,5 @@ int otsuThresholdFromHistogram(List<int> hist, int total) {
   }
   final GrayImage cropped =
       gray.crop(box.left, box.top, box.right, box.bottom);
-  return (image: cropped, box: box);
+  return (image: _cleanPaperBorders(cropped), box: box);
 }

@@ -72,6 +72,70 @@ def find_paper_region(gray: np.ndarray) -> tuple[int, int, int, int] | None:
     return None
 
 
+def _clean_paper_borders(crop: np.ndarray) -> np.ndarray:
+    """Hilangkan segitiga latar gelap di tepi kertas miring dengan banjir tepi.
+
+    Menjaga keseragaman kertas putih agar tepi kertas yang miring tidak ikut
+    terbinarisasi menjadi deretan huruf palsu ('L', 'I', 'U') di pinggir baris.
+    """
+    h, w = crop.shape
+    if h < 8 or w < 8:
+        return crop
+    hist = np.bincount(crop.ravel(), minlength=256)
+    total = h * w
+    sum_all = float(np.dot(np.arange(256, dtype=np.float64), hist))
+    w_bg = 0.0
+    sum_bg = 0.0
+    best_var = -1.0
+    best_t = 0
+    for t in range(256):
+        w_bg += float(hist[t])
+        if w_bg == 0.0:
+            continue
+        w_fg = float(total) - w_bg
+        if w_fg == 0.0:
+            break
+        sum_bg += t * float(hist[t])
+        m_bg = sum_bg / w_bg
+        m_fg = (sum_all - sum_bg) / w_fg
+        var = w_bg * w_fg * (m_bg - m_fg) * (m_bg - m_fg)
+        if var > best_var:
+            best_var = var
+            best_t = t
+
+    dark = (crop <= best_t).astype(np.uint8)
+    num, labels = cv2.connectedComponents(dark, connectivity=4)
+    if num <= 1:
+        return crop
+    border = set(
+        int(v)
+        for v in np.concatenate([labels[0, :], labels[-1, :], labels[:, 0], labels[:, -1]])
+    ) - {0}
+    if not border:
+        return crop
+
+    mask = np.isin(labels, list(border)).astype(np.uint8)
+    mask = cv2.dilate(mask, np.ones((5, 5), np.uint8))
+    bg_count = int(mask.sum())
+    if bg_count <= 0 or bg_count >= total * 0.40:
+        return crop
+
+    rem_hist = np.bincount(crop[mask == 0], minlength=256)
+    rem_total = total - bg_count
+    target = (rem_total + 1) // 2
+    acc = 0
+    med = 255
+    for v in range(256):
+        acc += int(rem_hist[v])
+        if acc >= target:
+            med = v
+            break
+
+    out = crop.copy()
+    out[mask > 0] = med
+    return out
+
+
 def crop_paper(gray: np.ndarray, enabled: bool = True) -> tuple[np.ndarray, tuple[int, int, int, int] | None]:
     """Potong area kertas bila terdeteksi; jika tidak, kembalikan aslinya."""
     if not enabled:
@@ -83,4 +147,4 @@ def crop_paper(gray: np.ndarray, enabled: bool = True) -> tuple[np.ndarray, tupl
     # Jangan potong bila hasilnya nyaris sama dengan gambar asli.
     if w * h > 0.98 * gray.shape[0] * gray.shape[1]:
         return gray, None
-    return gray[y : y + h, x : x + w], box
+    return _clean_paper_borders(gray[y : y + h, x : x + w]), box

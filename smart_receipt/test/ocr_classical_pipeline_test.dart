@@ -64,6 +64,17 @@ void main() {
           lexicon.correct('INDOMIE');
       expect(r.word, 'INDOMIE');
       expect(r.changed, isFalse);
+      expect(lexicon.correct('BACTERIAL').word, 'BACTERIAL');
+    });
+
+    test('memulihkan kesalahan visual OCR umum tanpa merusak kata aman', () {
+      expect(lexicon.correct('CIAORY').word, 'CIMORY');
+      expect(lexicon.correct('CIMCR,').word, 'CIMORY');
+      expect(lexicon.correct('HAEETNUT').word, 'HAZELNUT');
+      expect(lexicon.correct('CREAI').word, 'CREAM');
+      expect(lexicon.correct('KANAIER').word, 'KANZLER');
+      expect(lexicon.correct('MTNERALE').word, 'MINERALE');
+      expect(lexicon.correct('ALFA,ART').word, 'ALFAMART');
     });
   });
 

@@ -52,7 +52,7 @@ int levenshtein(String a, String b, {int? maxDist}) {
   return prev[lb];
 }
 
-/// Bersihkan kata: huruf besar, hanya karakter yang relevan.
+/// Bersihkan kata kamus: huruf besar, hanya karakter yang relevan.
 String _clean(String word) {
   final String upper = word.toUpperCase();
   final StringBuffer sb = StringBuffer();
@@ -67,6 +67,76 @@ String _clean(String word) {
     }
   }
   return sb.toString();
+}
+
+/// Bersihkan token OCR dengan mempertahankan koma/@ yang mungkin salah baca.
+String _cleanToken(String word) {
+  final String upper = word.toUpperCase();
+  final StringBuffer sb = StringBuffer();
+  for (int i = 0; i < upper.length; i++) {
+    final String ch = upper[i];
+    final int code = ch.codeUnitAt(0);
+    final bool isDigit = code >= 48 && code <= 57;
+    final bool isUpper = code >= 65 && code <= 90;
+    final bool isSymbol = '.,@&/-'.contains(ch);
+    if (isDigit || isUpper || isSymbol) {
+      sb.write(ch);
+    }
+  }
+  return sb.toString();
+}
+
+/// Pasangan karakter yang sering tertukar secara visual pada cetakan thermal.
+const Set<String> _kConfusionPairs = <String>{
+  '0O', 'O0', 'CO', 'OC', 'OQ', 'QO', 'DO', 'OD', '.O', 'O.', ',O', 'O,', 'GO', 'OG',
+  '1I', 'I1', 'IL', 'LI', 'IT', 'TI', 'LT', 'TL', 'IJ', 'JI', 'EL', 'LE',
+  'MN', 'NM', 'AM', 'MA', 'MW', 'WM', 'HM', 'MH', 'MR', 'RM', 'IM', 'MI', '.M', 'M.', ',M', 'M,',
+  'AN', 'NA', 'HN', 'NH', 'NU', 'UN',
+  '2Z', 'Z2', 'GZ', 'ZG', 'AZ', 'ZA', 'EZ', 'ZE', '&Z', 'Z&', '7Z', 'Z7',
+  '@E', 'E@', '3E', 'E3', 'EF', 'FE', 'BE', 'EB',
+  '8B', 'B8', 'BH', 'HB', 'BR', 'RB',
+  'AD', 'DA', 'DS', 'SD', '0D', 'D0',
+  'UV', 'VU', 'AU', 'UA', '4U', 'U4', ',U', 'U,',
+  ',Y', 'Y,', 'VY', 'YV', 'TY', 'YT',
+  '5S', 'S5', '6G', 'G6', '7T', 'T7',
+  '4A', 'A4', 'FP', 'PF', 'KR', 'RK',
+};
+
+int _subCost(String a, String b) {
+  if (a == b) return 0;
+  return _kConfusionPairs.contains('$a$b') ? 9 : 20;
+}
+
+/// Jarak edit berbobot kesamaan visual OCR (skala x20, identik dengan Python).
+int _weightedLevenshtein(String a, String b, int maxCost) {
+  final int la = a.length;
+  final int lb = b.length;
+  if ((la - lb).abs() > 1) return maxCost + 1;
+  if (la <= 6 && la != lb) return maxCost + 1;
+
+  List<int> prev = List<int>.generate(lb + 1, (int i) => i * 23);
+  List<int> cur = List<int>.filled(lb + 1, 0);
+
+  for (int i = 1; i <= la; i++) {
+    cur[0] = i * 23;
+    int rowMin = cur[0];
+    final String ca = a[i - 1];
+    for (int j = 1; j <= lb; j++) {
+      final int cost = _subCost(ca, b[j - 1]);
+      final int del = prev[j] + 23;
+      final int ins = cur[j - 1] + 23;
+      final int sub = prev[j - 1] + cost;
+      int best = del < ins ? del : ins;
+      if (sub < best) best = sub;
+      cur[j] = best;
+      if (best < rowMin) rowMin = best;
+    }
+    if (rowMin > maxCost) return maxCost + 1;
+    final List<int> swap = prev;
+    prev = cur;
+    cur = swap;
+  }
+  return prev[lb];
 }
 
 /// Kamus kata untuk koreksi OCR.
@@ -121,19 +191,13 @@ class LexiconCorrector {
   /// Bila jarak kecil (<= 1), hanya kata berhuruf awal sama yang diuji.
   /// Untuk jarak lebih besar, semua kata pada panjang tersebut ikut
   /// karena huruf pertama pun bisa salah baca.
-  Iterable<String> _candidates(String word, int maxDist) sync* {
+  Iterable<String> _candidates(String word, int maxLenDiff) sync* {
     if (word.isEmpty) return;
-    final String first = word[0];
-    for (int len = (word.length - maxDist).clamp(1, 1 << 30);
-        len <= word.length + maxDist;
-        len++) {
+    final int minLen = (word.length - maxLenDiff).clamp(kLexiconMinLength, 1 << 30);
+    final int maxLen = word.length + maxLenDiff;
+    for (int len = minLen; len <= maxLen; len++) {
       final List<String>? bucket = _byLength[len];
-      if (bucket == null) continue;
-      if (maxDist <= 1) {
-        for (final String w in bucket) {
-          if (w[0] == first) yield w;
-        }
-      } else {
+      if (bucket != null) {
         yield* bucket;
       }
     }
@@ -141,53 +205,59 @@ class LexiconCorrector {
 
   /// Kembalikan (kata terbaik, jarak, apakah dikoreksi).
   ///
-  /// Koreksi sengaja konservatif. Pada struk asli, nama produk jarang ada di
-  /// kamus, sehingga koreksi agresif justru merusak kata yang sudah benar:
-  /// pengukuran pada 28 baris struk asli menunjukkan exact match turun dari
-  /// 67,9% ke 60,7% ketika kamus diterapkan tanpa syarat. Karena itu koreksi
-  /// hanya dilakukan bila:
-  ///
-  /// - token tidak mengandung angka (nominal, PLU, dan kode transaksi tidak
-  ///   boleh diubah),
-  /// - token cukup panjang (>= [kLexiconMinLength]), karena kata pendek punya
-  ///   terlalu banyak tetangga pada jarak edit 1, dan
-  /// - ada tepat satu kandidat pada jarak edit terkecil.
+  /// Koreksi konservatif memakai biaya edit berbobot kesamaan OCR:
+  /// token berangka, terlalu pendek (< [kLexiconMinLength]), atau mengandung
+  /// < 2 huruf dibiarkan; kata <= 6 huruf tidak boleh berubah panjangnya;
+  /// pemenang harus unggul jelas dari kandidat runner-up.
   ({String word, int distance, bool changed}) correct(
     String word, {
     int? maxDist,
   }) {
-    final String w = _clean(word);
+    final String w = _cleanToken(word);
     if (w.length < kLexiconMinLength) {
       return (word: word, distance: 0, changed: false);
     }
     if (RegExp('[0-9]').hasMatch(w)) {
       return (word: word, distance: 0, changed: false);
     }
-
-    final int limit = maxDist ?? (w.length ~/ 3).clamp(1, 3);
+    int alphaCount = 0;
+    for (int i = 0; i < w.length; i++) {
+      final int code = w.codeUnitAt(i);
+      if (code >= 65 && code <= 90) alphaCount++;
+    }
+    if (alphaCount < 2) {
+      return (word: word, distance: 0, changed: false);
+    }
 
     if (_words.contains(w)) {
       return (word: w, distance: 0, changed: false);
     }
 
-    final List<String> best = <String>[];
-    int bestDist = limit + 1;
+    final int limit = maxDist != null
+        ? maxDist * 20
+        : (w.length <= 5 ? 13 : (w.length <= 7 ? 24 : (w.length <= 9 ? 29 : 33)));
+    final int maxLenDiff = w.length <= 6 ? 0 : 1;
 
-    for (final String cand in _candidates(w, limit)) {
+    int bestCost = limit + 1;
+    int secondCost = limit + 1;
+    String? bestWord;
+
+    for (final String cand in _candidates(w, maxLenDiff)) {
       if (cand == w) continue;
-      final int d = levenshtein(w, cand, maxDist: limit);
-      if (d < bestDist) {
-        best
-          ..clear()
-          ..add(cand);
-        bestDist = d;
-      } else if (d == bestDist) {
-        best.add(cand);
+      final int cost = _weightedLevenshtein(w, cand, limit);
+      if (cost <= limit) {
+        if (cost < bestCost) {
+          secondCost = bestCost;
+          bestCost = cost;
+          bestWord = cand;
+        } else if (cost < secondCost) {
+          secondCost = cost;
+        }
       }
     }
 
-    if (bestDist <= limit && best.length == 1) {
-      return (word: best.first, distance: bestDist, changed: true);
+    if (bestWord != null && (secondCost > limit || (secondCost - bestCost) >= 6)) {
+      return (word: bestWord, distance: (bestCost + 19) ~/ 20, changed: true);
     }
     return (word: word, distance: 0, changed: false);
   }

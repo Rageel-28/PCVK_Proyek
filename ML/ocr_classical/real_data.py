@@ -34,6 +34,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from PIL import Image
 
 import config as C
 
@@ -121,6 +122,7 @@ def load_real_images(
     sources: tuple[str, ...] | None = None,
     splits: tuple[str, ...] = SPLITS,
     require_lines: bool = True,
+    stems: set[str] | None = None,
 ) -> list[RealImage]:
     """Muat seluruh foto asli yang punya anotasi baris.
 
@@ -149,14 +151,17 @@ def load_real_images(
 
                 for info in coco.get("images", []):
                     stem = _stem(info["file_name"])
+                    if stems is not None and stem not in stems:
+                        continue
                     path = local.get(stem)
                     if path is None:
                         continue
 
-                    gray = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
-                    if gray is None:
+                    try:
+                        with Image.open(path) as im_hdr:
+                            w, h = im_hdr.size
+                    except Exception:  # noqa: BLE001
                         continue
-                    h, w = gray.shape
 
                     sx = w / float(info["width"])
                     sy = h / float(info["height"])

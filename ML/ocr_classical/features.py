@@ -80,6 +80,30 @@ def hog(
             blk = blk / (np.linalg.norm(blk) + 1e-6)
             parts.append(blk)
 
+    # Fitur spasial tambahan (20 dimensi): kerapatan tinta 4x4 + geometri kotak tinta.
+    inv_norm = inv / 255.0
+    grid = np.zeros(16, dtype=np.float32)
+    idx = 0
+    for cy in range(4):
+        for cx in range(4):
+            grid[idx] = float(inv_norm[cy * 8 : (cy + 1) * 8, cx * 8 : (cx + 1) * 8].mean())
+            idx += 1
+
+    ys, xs = np.nonzero(inv_norm > 0.25)
+    n_ink = len(xs)
+    ink_frac = float(n_ink) / float(C.CHAR_SIZE * C.CHAR_SIZE)
+    if n_ink > 0:
+        w_frac = float(xs.max() - xs.min() + 1) / float(C.CHAR_SIZE)
+        h_frac = float(ys.max() - ys.min() + 1) / float(C.CHAR_SIZE)
+        y_center = (float(ys.min() + ys.max()) * 0.5) / float(C.CHAR_SIZE - 1)
+    else:
+        w_frac = 0.0
+        h_frac = 0.0
+        y_center = 0.0
+    geom = np.array([ink_frac, w_frac, h_frac, y_center], dtype=np.float32)
+
+    parts.append(grid)
+    parts.append(geom)
     return np.concatenate(parts).astype(np.float32)
 
 

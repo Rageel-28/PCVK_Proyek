@@ -148,6 +148,16 @@ void main() {
         final String result = _fix('3.5OO');
         expect(result, contains('3.500'));
       });
+
+      test('price with Q/D lookalikes and T.TAL/7GTAL keyword fixed cleanly', () {
+        expect(_fix('PIUK 350M  2 3,QO0'), 'PIUK 350M  2 3.000');
+        expect(_fix('PIUK 350M  2 3,QO'), 'PIUK 350M  2 3,00');
+        expect(_fix('T.TAL  Rp 38.000'), 'TOTAL Rp  38.000');
+        expect(_fix('7GTAL  Rp 38.000'), 'TOTAL Rp  38.000');
+        expect(_fix('TCTAL  Rp 38.000'), 'TOTAL Rp  38.000');
+        expect(_fix('L8  2.000  2.000'), 'L8  2.000 2.000');
+        expect(_fix('T8  10.000  10.000'), 'T8  10.000 10.000');
+      });
     });
 
     // -----------------------------------------------------------------------

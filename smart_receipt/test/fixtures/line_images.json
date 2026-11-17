@@ -4,49 +4,49 @@
       "file": "line_0.png",
       "text": "INDOMIE GORENG",
       "python_text": "INDOMIE GORENG",
-      "confidence": 0.8336
+      "confidence": 0.4156
     },
     {
       "file": "line_1.png",
       "text": "AQUA 600ML",
       "python_text": "AQUA 600ML",
-      "confidence": 0.7381
+      "confidence": 0.3361
     },
     {
       "file": "line_2.png",
       "text": "PARACETAMOL",
       "python_text": "PARACETAMOL",
-      "confidence": 0.8955
+      "confidence": 0.456
     },
     {
       "file": "line_3.png",
       "text": "PERTAMAX",
       "python_text": "PERTAMAX",
-      "confidence": 0.8538
+      "confidence": 0.377
     },
     {
       "file": "line_4.png",
       "text": "TKT TRANSJAKARTA",
       "python_text": "TKT TRANSJAKARTA",
-      "confidence": 0.6428
+      "confidence": 0.4602
     },
     {
       "file": "line_5.png",
       "text": "BSKT COKLAT",
       "python_text": "BSKT COKLAT",
-      "confidence": 0.8506
+      "confidence": 0.3929
     },
     {
       "file": "line_6.png",
       "text": "KARTU SIMPATI",
       "python_text": "KARTU SIMPATI",
-      "confidence": 0.9439
+      "confidence": 0.4068
     },
     {
       "file": "line_7.png",
       "text": "MINUMAN ISOTONIK",
       "python_text": "MINUMAN ISOTONIK",
-      "confidence": 0.8785
+      "confidence": 0.399
     }
   ]
 }

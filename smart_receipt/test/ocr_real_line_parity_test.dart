@@ -6,7 +6,6 @@ import 'package:image/image.dart' as img;
 import 'package:smart_receipt/ocr/classical/char_classifier.dart';
 import 'package:smart_receipt/ocr/classical/classical_ocr_engine.dart';
 import 'package:smart_receipt/ocr/classical/gray_image.dart';
-import 'package:smart_receipt/ocr/classical/lexicon_corrector.dart';
 
 /// Paritas Dart vs Python pada potongan baris struk **asli**.
 ///
@@ -61,10 +60,26 @@ void main() {
       final Map<String, dynamic> s = raw as Map<String, dynamic>;
       final int w = s['width'] as int;
       final int h = s['height'] as int;
-      final List<dynamic> pixels = s['pixels'] as List<dynamic>;
-      final GrayImage gray = GrayImage.zeros(w, h);
-      for (int i = 0; i < pixels.length; i++) {
-        gray.data[i] = pixels[i] as int;
+      final GrayImage gray;
+      if (s['png_b64'] is String) {
+        final img.Image? decoded =
+            img.decodePng(base64Decode(s['png_b64'] as String));
+        if (decoded == null) {
+          fail('Gagal decode png_b64 untuk ${s['stem']} #${s['index']}');
+        }
+        gray = GrayImage.zeros(decoded.width, decoded.height);
+        for (int y = 0; y < decoded.height; y++) {
+          final int rowBase = y * decoded.width;
+          for (int x = 0; x < decoded.width; x++) {
+            gray.data[rowBase + x] = decoded.getPixel(x, y).r.toInt();
+          }
+        }
+      } else {
+        final List<dynamic> pixels = s['pixels'] as List<dynamic>;
+        gray = GrayImage.zeros(w, h);
+        for (int i = 0; i < pixels.length; i++) {
+          gray.data[i] = pixels[i] as int;
+        }
       }
 
       final String expected = (s['python_text'] as String).trim();

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -114,7 +115,7 @@ class CharClassifier:
         if allowed is not None:
             mask = np.full(len(self.classes), -np.inf, dtype=np.float32)
             for i, cls in enumerate(self.classes):
-                if cls < len(self.charset) and self.charset[cls] in allowed:
+                if cls < len(self.charset) and self.charset[cls].upper() in allowed:
                     mask[i] = 0.0
             if np.isfinite(mask).any():
                 scores = scores + mask
@@ -194,22 +195,31 @@ class ClassicalOCR:
 
     def binarize(self, image: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
         gray = PP.to_gray(image)
+        gray = PP.normalize_illumination(gray)
 
         # Foto struk sering berlatar gelap; potong dulu area kertasnya.
         if self.use_paper_crop:
             gray, _box = PPR.crop_paper(gray, enabled=True)
 
-        gray, ink = self._binarize_once(gray)
+        raw_gray = gray
+        gray, ink = self._binarize_once(raw_gray)
 
-        factor = self._adaptive_scale(ink)
+        # Deskew cepat mask awal sebelum mengukur tinggi baris agar baris rapat
+        # pada struk miring tidak menyatu dan menipu estimasi skala upscale.
+        scale_ink = ink
+        if self.use_deskew:
+            est_angle = DK.estimate_skew(ink)
+            if 1e-6 <= abs(est_angle) <= 10.0:
+                scale_ink = DK.deskew(ink, est_angle)
+
+        factor = self._adaptive_scale(scale_ink)
         if factor > 1.0:
-            # Pembulatan mengikuti Dart (setengah ke genap) dan interpolasi
-            # memakai modul yang sama dengan port Dart, supaya hasilnya
-            # identik bit-per-bit.
-            nw = max(1, int(round(gray.shape[1] * factor)))
-            nh = max(1, int(round(gray.shape[0] * factor)))
-            gray = RC.resize_bicubic(gray, nw, nh)
-            gray, ink = self._binarize_once(gray)
+            # Pembulatan mengikuti Dart (setengah ke genap); perbesar citra
+            # mentah sebelum median blur agar goresan tipis 1 px tidak terhapus.
+            nw = max(1, int(round(raw_gray.shape[1] * factor)))
+            nh = max(1, int(round(raw_gray.shape[0] * factor)))
+            up = RC.resize_bicubic(raw_gray, nw, nh)
+            gray, ink = self._binarize_once(up)
 
         angle = 0.0
         if self.use_deskew:
@@ -323,17 +333,55 @@ class ClassicalOCR:
                 out[i] = CharPrediction(char, conf, p.bbox, margin)
 
         # 2. Konteks kata.
+        unit_re = re.compile(r"\d+(?:ML|GR|KG|MG|LTR|LT|OZ|MM|CM|PCS|G|L|W|S|X)$")
+        is_tall_line = line_h >= 15
         for group in self._word_groups(out):
             if len(group) < 2:
                 continue
             chars = [out[i].char for i in group]
             allowed = C.charset_for_token(chars)
-            if allowed is None:
-                continue
+            if allowed is not None:
+                for i in group:
+                    cand_allowed = allowed
+                    gh = out[i].bbox[3] - out[i].bbox[1] + 1
+                    if allowed is C.NUMERIC_CHARSET or allowed is C.NUMERIC_PRICE_CHARSET:
+                        cur_ch = out[i].char
+                        if line_h >= 12 and gh >= line_h * 0.65 and cur_ch not in "-/%()+:":
+                            cand_allowed = C.NUMERIC_DIGITS_ONLY
+                    elif allowed is C.ALPHA_CHARSET and is_tall_line and gh >= line_h * 0.56:
+                        cand_allowed = C.ALPHA_NO_DOT_CHARSET
+                    char, conf, margin = self.classifier.predict_restricted(vecs[i], cand_allowed)
+                    out[i] = CharPrediction(char, conf, out[i].bbox, margin)
+            elif len(group) >= 3:
+                n_alpha = sum(1 for c in chars if c.isalpha())
+                n_digit = sum(1 for c in chars if c.isdigit())
+                word_str = "".join(chars)
+                re_alpha: set[int] = set()
 
-            for i in group:
-                char, conf, margin = self.classifier.predict_restricted(vecs[i], allowed)
-                out[i] = CharPrediction(char, conf, out[i].bbox, margin)
+                if is_tall_line and n_digit == 0 and n_alpha >= 1:
+                    for gi, i in enumerate(group):
+                        gh = out[i].bbox[3] - out[i].bbox[1] + 1
+                        if gh >= line_h * 0.56 and chars[gi] in ".,":
+                            re_alpha.add(gi)
+
+                looks_like_unit = bool(unit_re.search(word_str)) or word_str[0].isdigit()
+                if len(group) >= 4 and not looks_like_unit and n_alpha >= 3 and (n_alpha / len(chars)) >= 0.55 and n_digit <= 2:
+                    for gi in range(len(group)):
+                        cur = chars[gi]
+                        gh = out[group[gi]].bbox[3] - out[group[gi]].bbox[1] + 1
+                        if cur in "0158627@&.,:-":
+                            left_a = gi > 0 and (chars[gi - 1].isalpha() or (gi >= 2 and chars[gi - 2].isalpha()))
+                            right_a = gi + 1 < len(group) and (chars[gi + 1].isalpha() or (gi + 2 < len(group) and chars[gi + 2].isalpha()))
+                            is_tall = line_h >= 12 and gh >= line_h * 0.48
+                            if (left_a and right_a and is_tall) or (
+                                cur in "01" and n_digit <= 1 and (left_a or right_a) and (gi == 0 or gi == len(group) - 1)
+                            ):
+                                re_alpha.add(gi)
+
+                for gi in re_alpha:
+                    idx = group[gi]
+                    char, conf, margin = self.classifier.predict_restricted(vecs[idx], C.ALPHA_LETTERS_CHARSET)
+                    out[idx] = CharPrediction(char, conf, out[idx].bbox, margin)
         return out
 
     @staticmethod
@@ -375,6 +423,22 @@ class ClassicalOCR:
             return True
         return False
 
+    @staticmethod
+    def _is_valid_text_line(lp: LinePrediction) -> bool:
+        """Saring baris non-teks (garis pemisah ---/===, noise logo, atau QR code)."""
+        ns = [c for c in lp.text if not c.isspace()]
+        if not ns:
+            return False
+        punct = sum(1 for c in ns if c in "-=._,:;/+()@&*")
+        alnum = sum(1 for c in ns if c.isalnum())
+        if len(ns) >= 3 and punct / len(ns) >= 0.65:
+            return False
+        if len(ns) >= 5 and alnum / len(ns) < 0.45:
+            return False
+        if len(ns) <= 2 and not any(c.isdigit() for c in ns):
+            return False
+        return True
+
     # -- tahap 3: publik --------------------------------------------------
     def run(self, image: np.ndarray, apply_lexicon: bool | None = None) -> OcrResult:
         gray, ink, angle = self.binarize(image)
@@ -383,7 +447,7 @@ class ClassicalOCR:
         lines: list[LinePrediction] = []
         for box in line_boxes:
             lp = self.read_line(gray, ink, box)
-            if lp.text.strip():
+            if lp.text.strip() and self._is_valid_text_line(lp):
                 lines.append(lp)
 
         raw_text = "\n".join(lp.text for lp in lines)

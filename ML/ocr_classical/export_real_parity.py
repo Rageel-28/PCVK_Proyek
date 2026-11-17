@@ -16,6 +16,7 @@ Jalankan:
 
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 
@@ -32,8 +33,8 @@ OUT = (
 
 
 def main() -> None:
-    images = {im.stem: im for im in RD.load_real_images()}
     transcripts = load_transcripts()
+    images = {im.stem: im for im in RD.load_real_images(stems=set(transcripts))}
     ocr = ClassicalOCR(method="sauvola", use_deskew=True, use_lexicon=False)
 
     samples: list[dict] = []
@@ -58,6 +59,11 @@ def main() -> None:
             # dua implementasi pada masukan dan jalur yang identik.
             result = ocr.run(crop)
 
+            ok, buf = cv2.imencode(".png", crop)
+            if not ok:
+                continue
+            png_b64 = base64.b64encode(buf.tobytes()).decode("ascii")
+
             samples.append(
                 {
                     "stem": stem,
@@ -67,7 +73,7 @@ def main() -> None:
                     "python_text": result.text.strip(),
                     "width": int(crop.shape[1]),
                     "height": int(crop.shape[0]),
-                    "pixels": [int(v) for v in crop.ravel()],
+                    "png_b64": png_b64,
                 }
             )
 

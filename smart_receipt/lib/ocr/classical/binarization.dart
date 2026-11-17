@@ -237,6 +237,96 @@ GrayImage binarize(GrayImage gray, BinarizationMethod method) {
   }
 }
 
+/// Ratakan bayangan dan pencahayaan tak merata sebelum deteksi kertas / Sauvola.
+///
+/// Hanya diterapkan pada citra dokumen utuh (`min(h, w) >= 200`) dengan
+/// max-filter separabel + jumlah kotak padded integer (paritas penuh dengan Python).
+GrayImage normalizeIllumination(GrayImage gray) {
+  final int h = gray.height;
+  final int w = gray.width;
+  if (math.min(h, w) < 200) {
+    return gray;
+  }
+  final int rawK = (math.min(h, w) ~/ 25) | 1;
+  final int k = math.min(51, math.max(15, rawK));
+  final int half = k ~/ 2;
+
+  final GrayImage hmax = GrayImage.zeros(w, h);
+  final List<int> dq = List<int>.filled(w + k, 0);
+
+  // 1D sliding maximum horizontal.
+  for (int y = 0; y < h; y++) {
+    final int rowBase = y * w;
+    int head = 0;
+    int tail = 0;
+    for (int i = 0; i < w + 2 * half; i++) {
+      final int sx = (i - half).clamp(0, w - 1);
+      final int val = gray.data[rowBase + sx];
+      while (tail > head) {
+        final int lastI = dq[tail - 1];
+        final int lastX = (lastI - half).clamp(0, w - 1);
+        if (gray.data[rowBase + lastX] <= val) {
+          tail--;
+        } else {
+          break;
+        }
+      }
+      dq[tail++] = i;
+      if (dq[head] <= i - k) {
+        head++;
+      }
+      if (i >= k - 1) {
+        final int topX = (dq[head] - half).clamp(0, w - 1);
+        hmax.data[rowBase + (i - k + 1)] = gray.data[rowBase + topX];
+      }
+    }
+  }
+
+  // 1D sliding maximum vertikal.
+  final GrayImage bg = GrayImage.zeros(w, h);
+  final List<int> vdq = List<int>.filled(h + k, 0);
+  for (int x = 0; x < w; x++) {
+    int head = 0;
+    int tail = 0;
+    for (int i = 0; i < h + 2 * half; i++) {
+      final int sy = (i - half).clamp(0, h - 1);
+      final int val = hmax.data[sy * w + x];
+      while (tail > head) {
+        final int lastI = vdq[tail - 1];
+        final int lastY = (lastI - half).clamp(0, h - 1);
+        if (hmax.data[lastY * w + x] <= val) {
+          tail--;
+        } else {
+          break;
+        }
+      }
+      vdq[tail++] = i;
+      if (vdq[head] <= i - k) {
+        head++;
+      }
+      if (i >= k - 1) {
+        final int topY = (vdq[head] - half).clamp(0, h - 1);
+        bg.data[(i - k + 1) * w + x] = hmax.data[topY * w + x];
+      }
+    }
+  }
+
+  final _PaddedIntegral acc = _PaddedIntegral(bg, half);
+  final int area = k * k;
+  final GrayImage out = GrayImage.zeros(w, h);
+  for (int y = 0; y < h; y++) {
+    final int y0 = y - half;
+    final int y1 = y0 + k;
+    final int rowBase = y * w;
+    for (int x = 0; x < w; x++) {
+      final int bsum = math.max(1, acc.sum(x - half, y0, x - half + k, y1));
+      final int v = (gray.data[rowBase + x] * area * 255) ~/ bsum;
+      out.data[rowBase + x] = v > 255 ? 255 : v;
+    }
+  }
+  return out;
+}
+
 /// Rangkaian awal: median blur -> binarisasi -> buang bintik kecil.
 GrayImage prepareInk(
   GrayImage gray, {

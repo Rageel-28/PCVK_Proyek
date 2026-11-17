@@ -21,6 +21,7 @@ import cv2
 import numpy as np
 
 import config as C
+import resize_cubic as RC
 
 
 # ---------------------------------------------------------------------------
@@ -210,18 +211,27 @@ def _split_wide(
 
         proj = (ink[y0 : y1 + 1, x0 : x1 + 1] > 0).sum(axis=0).astype(np.int32)
         n_parts = max(2, int(round(w / target_w)))
-        n_parts = min(n_parts, 6)
+        n_parts = min(n_parts, 10)
 
         cuts: list[int] = []
         for k in range(1, n_parts):
-            ideal = int(round(w * k / n_parts))
-            margin = max(2, int(target_w * 0.35))
-            lo = max(1, ideal - margin)
+            ideal = RC._py_round_half_even(w * k / n_parts)
+            margin = max(2, RC._py_round_half_even((w / n_parts) * 0.22))
+            prev_cut = cuts[-1] + C.CHAR_MIN_WIDTH if cuts else 1
+            lo = max(prev_cut, ideal - margin)
             hi = min(w - 1, ideal + margin)
             if hi <= lo:
-                cuts.append(ideal)
+                if ideal >= prev_cut and ideal < w:
+                    cuts.append(ideal)
                 continue
-            cuts.append(lo + int(np.argmin(proj[lo : hi + 1])))
+            best_x = lo
+            best_cost = int(proj[lo]) * 10 + abs(lo - ideal) * 3
+            for cx in range(lo + 1, hi + 1):
+                cost = int(proj[cx]) * 10 + abs(cx - ideal) * 3
+                if cost < best_cost:
+                    best_cost = cost
+                    best_x = cx
+            cuts.append(best_x)
 
         bounds = [0] + cuts + [w]
         for a, b in zip(bounds[:-1], bounds[1:]):
@@ -259,27 +269,39 @@ def segment_characters(
     if not strip.any():
         return []
 
-    def _candidates(strip_img: np.ndarray) -> list[list[int]]:
+    def _candidates(strip_img: np.ndarray, line_h: int) -> list[list[int]]:
         comps = _components(strip_img, max(min_ink, 8))
         if not comps:
             return []
         comps = _merge_overlapping(comps, overlap=0.5)
         widths = [c[2] - c[0] + 1 for c in comps]
-        target = max(float(np.median(widths)) if widths else 8.0, 3.0)
+        heights = [c[3] - c[1] + 1 for c in comps]
+        med_w = float(np.median(widths)) if widths else 8.0
+        med_h = float(np.median(heights)) if heights else float(line_h)
+        # Batasi med_w maksimum ke ~0.68x tinggi baris HANYA untuk baris teks
+        # (bukan garis pemisah `---`/`===` yang tipis) agar huruf/angka rapat
+        # yang saling menyentuh di >50% baris tetap terpecah.
+        if line_h >= 14 and med_h >= max(10.0, line_h * 0.55) and (med_w / max(med_h, 1.0)) <= 1.8:
+            med_w = min(med_w, max(line_h * 0.68, 3.0))
+        # Pada cetakan dot-matrix / pudar, banyak huruf terpecah sehingga median lebar
+        # komponen menyusut jauh di bawah lebar huruf asli (~0.48x tinggi baris).
+        # Jangkar dengan tinggi baris mencegah huruf utuh ikut terpotong dua.
+        target = max(med_w, line_h * 0.48, 3.0)
         boxes = _split_wide(comps, strip_img, target)
         return boxes
 
-    boxes = _candidates(strip)
+    line_height = bottom - top + 1
+    boxes = _candidates(strip, line_height)
 
     # Perkiraan jumlah huruf dari lebar tinta dibagi lebar karakter tipikal.
     ink_cols = np.nonzero((strip > 0).sum(axis=0) > 0)[0]
-    line_height = bottom - top + 1
     if len(ink_cols) > 0 and line_height > 0:
         span = int(ink_cols[-1] - ink_cols[0] + 1)
         expected = max(1, span / max(line_height * 0.55, 4.0))
-        if len(boxes) > expected * C.CHAR_OVERSPLIT_RATIO and close_k > 1:
-            closed = close_ink(strip, close_k)
-            alt = _candidates(closed)
+        eff_k = max(close_k, 3) if (close_k > 1 and line_height >= 40) else close_k
+        if len(boxes) > expected * C.CHAR_OVERSPLIT_RATIO and eff_k > 1:
+            closed = close_ink(strip, eff_k)
+            alt = _candidates(closed, line_height)
             if 0 < len(alt) < len(boxes):
                 strip, boxes = closed, alt
 
@@ -324,11 +346,12 @@ def _merge_fragments(
 
     widths = [b[2] - b[0] + 1 for b in boxes]
     median_w = float(np.median(widths))
-    narrow = max(2.0, median_w * 0.45)
-    # Gabungan dua huruf asli lebarnya kira-kira 2x median, sedangkan satu
+    ref_w = max(median_w, line_height * 0.45)
+    narrow = max(2.0, ref_w * 0.45)
+    # Gabungan dua huruf asli lebarnya kira-kira 2x lebar karakter, sedangkan satu
     # glyph yang terpecah tetap selebar satu huruf. Batas 1,25x memisahkan
     # keduanya tanpa menebak-nebak.
-    max_merged_w = median_w * 1.25
+    max_merged_w = ref_w * 1.25
 
     merged: list[tuple[int, int, int, int]] = [boxes[0]]
     for box in boxes[1:]:

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'char_normalizer.dart' show pythonRound;
 import 'classical_config.dart';
 import 'connected_components.dart';
 import 'gray_image.dart';
@@ -340,24 +341,28 @@ List<({int left, int top, int right, int bottom})> _splitWide(
       }
     }
 
-    int parts = math.max(2, (boxW / targetWidth).round());
-    parts = math.min(parts, 6);
+    int parts = math.max(2, pythonRound(boxW / targetWidth));
+    parts = math.min(parts, 10);
 
     final List<int> cuts = <int>[];
     for (int k = 1; k < parts; k++) {
-      final int ideal = (boxW * k / parts).round();
-      final int margin = math.max(2, (targetWidth * 0.35).round());
-      final int lo = math.max(1, ideal - margin);
+      final int ideal = pythonRound(boxW * k / parts);
+      final int margin = math.max(2, pythonRound((boxW / parts) * 0.22));
+      final int prevCut = cuts.isEmpty ? 1 : cuts.last + kCharMinWidth;
+      final int lo = math.max(prevCut, ideal - margin);
       final int hi = math.min(boxW - 1, ideal + margin);
       if (hi <= lo) {
-        cuts.add(ideal);
+        if (ideal >= prevCut && ideal < boxW) {
+          cuts.add(ideal);
+        }
         continue;
       }
       int bestIdx = lo;
-      int bestVal = proj[lo];
+      int bestCost = proj[lo] * 10 + (lo - ideal).abs() * 3;
       for (int i = lo + 1; i <= hi; i++) {
-        if (proj[i] < bestVal) {
-          bestVal = proj[i];
+        final int cost = proj[i] * 10 + (i - ideal).abs() * 3;
+        if (cost < bestCost) {
+          bestCost = cost;
           bestIdx = i;
         }
       }
@@ -419,6 +424,8 @@ List<({int left, int top, int right, int bottom})> segmentCharacters(
     return const <({int left, int top, int right, int bottom})>[];
   }
 
+  final int lineHeight = bottom - top + 1;
+
   List<({int left, int top, int right, int bottom})> candidates(
     GrayImage stripImg,
   ) {
@@ -428,8 +435,18 @@ List<({int left, int top, int right, int bottom})> segmentCharacters(
       return const <({int left, int top, int right, int bottom})>[];
     }
     final List<InkComponent> merged = _mergeOverlapping(comps);
+    final double rawMedW =
+        _median(<int>[for (final InkComponent c in merged) c.width]);
+    final double rawMedH =
+        _median(<int>[for (final InkComponent c in merged) c.height]);
+    final bool isTextLine = lineHeight >= 14 &&
+        rawMedH >= math.max(10.0, lineHeight * 0.55) &&
+        (rawMedW / math.max(rawMedH, 1.0)) <= 1.8;
+    final double medW = isTextLine
+        ? math.min(rawMedW, math.max(lineHeight * 0.68, 3.0))
+        : rawMedW;
     final double target = math.max(
-      _median(<int>[for (final InkComponent c in merged) c.width]),
+      math.max(medW, lineHeight * 0.48),
       3.0,
     );
     return _splitWide(merged, stripImg, target);
@@ -455,13 +472,14 @@ List<({int left, int top, int right, int bottom})> segmentCharacters(
     }
   }
 
-  final int lineHeight = bottom - top + 1;
   if (maxCol >= minCol && lineHeight > 0) {
     final int span = maxCol - minCol + 1;
     final double expected =
         math.max(1, span / math.max(lineHeight * 0.55, 4.0));
-    if (boxes.length > expected * kCharOversplitRatio && closeKernel > 1) {
-      final GrayImage closed = closeInk(strip, closeKernel);
+    final int effK =
+        (closeKernel > 1 && lineHeight >= 40) ? math.max(closeKernel, 3) : closeKernel;
+    if (boxes.length > expected * kCharOversplitRatio && effK > 1) {
+      final GrayImage closed = closeInk(strip, effK);
       final List<({int left, int top, int right, int bottom})> alt =
           candidates(closed);
       if (alt.isNotEmpty && alt.length < boxes.length) {
@@ -507,7 +525,7 @@ List<({int left, int top, int right, int bottom})> segmentCharacters(
   ) =>
       a.left.compareTo(b.left));
 
-  return _mergeFragments(result);
+  return _mergeFragments(result, lineHeight);
 }
 
 /// Gabungkan pecahan glyph akibat cetakan thermal yang pucat.
@@ -527,13 +545,15 @@ List<({int left, int top, int right, int bottom})> segmentCharacters(
 ///    (<= 1.25x median). Gabungan dua huruf asli lebarnya ~2x median.
 List<({int left, int top, int right, int bottom})> _mergeFragments(
   List<({int left, int top, int right, int bottom})> boxes,
+  int lineHeight,
 ) {
   if (boxes.length < 2) return boxes;
 
   final double medianW =
       _median(<int>[for (final ({int left, int top, int right, int bottom}) b in boxes) b.right - b.left + 1]);
-  final double narrow = math.max(2.0, medianW * kCharFragmentNarrowRatio);
-  final double maxMergedW = medianW * kCharFragmentMaxWidthRatio;
+  final double refW = math.max(medianW, lineHeight * 0.45);
+  final double narrow = math.max(2.0, refW * kCharFragmentNarrowRatio);
+  final double maxMergedW = refW * kCharFragmentMaxWidthRatio;
 
   final List<({int left, int top, int right, int bottom})> merged =
       <({int left, int top, int right, int bottom})>[boxes.first];

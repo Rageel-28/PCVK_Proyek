@@ -165,7 +165,7 @@ class ReceiptParser {
 
   /// Words that mark a line as a total/summary rather than a purchased item.
   static final RegExp _totalWords = RegExp(
-    r'\b(grand\s*total|total\s*bayar|total|jumlah|sub\s*total|subtotal|'
+    r'\b(grand\s*total|total\s*bayar|[t7][o0g.]t[a4][l1i]|jumlah|sub\s*total|subtotal|'
     r'tagihan|amount\s*due)\b',
     caseSensitive: false,
   );
@@ -183,14 +183,20 @@ class ReceiptParser {
   );
 
   static final RegExp _discountWords = RegExp(
-    r'\b(diskon|discount|potongan|voucher|hemat)\b',
+    r'\b(diskon|discount|disc|potongan|voucher|hemat)\b',
     caseSensitive: false,
   );
 
   /// Savings summaries that restate a discount already counted above, e.g.
   /// `ANDA HEMAT : 1,300`. Counting them would double the discount.
   static final RegExp _savingsSummary = RegExp(
-    r'(anda|total)\s*hemat|harga\s*jual',
+    r'(anda|total)\s*h[ea][mv][a4]?t|andahe[mv][a4]?t|harga\s*[ji1l][uv][a4][l1i]',
+    caseSensitive: false,
+  );
+
+  /// Lines that indicate pure non-monetary point/coupon counts.
+  static final RegExp _pointOrCouponWords = RegExp(
+    r'\b(kupon|poin|point)\b',
     caseSensitive: false,
   );
 
@@ -210,10 +216,11 @@ class ReceiptParser {
   /// Lines that carry receipt metadata rather than a purchased product.
   static final RegExp _noiseWords = RegExp(
     r'\b(kembali|kembalian|change|tunai|cash|debit|kredit|qris|gopay|go-?pay|'
-    r'ovo|dana|shopeepay|linkaja|ppn|pajak|tax|diskon|discount|potongan|hemat|'
-    r'voucher|poin|point|saldo|sisa|bayar|pembayaran|total|subtotal|'
+    r'ovo|dana|shopeepay|linkaja|ppn|pajak|tax|diskon|discount|disc|potongan|hemat|'
+    r'voucher|poin|point|saldo|sisa|bayar|pembayaran|[t7][o0g.]t[a4][l1i]|subtotal|'
     r'sub\s*total|jumlah|tagihan|grand\s*total|terima\s*kasih|terimakasih|'
-    r'npwp|harga\s*jual|anda\s*hemat|'
+    r'npwp|harga\s*[ji1l][uv][a4][l1i]|anda\s*h[ea][mv][a4]?t|andahe[mv][a4]?t|dpp|alfacare|kritik|saran|member|ponta|'
+    r'selamat|bertambah|klikindomaret|ongkir|cust|care|alfagift|expired|'
     r'kasir|npk|struk|nota|invoice|kwitansi|tanggal|jam|waktu|telp|tel|'
     r'fax|phone|jl\.?|jalan|persero|layanan|konsumen|call|sms|email|www)\b',
     caseSensitive: false,
@@ -309,6 +316,37 @@ class ReceiptParser {
     return t == 'x' || t == '*' || t == '@';
   }
 
+  static final RegExp _gluedQtyToken =
+      RegExp(r'^(\d{1,2}|[1lIL|])[xX*]$');
+  static final RegExp _leadingOcrQtyToken =
+      RegExp(r'^[LlTtIi|1][xX8*]$');
+  static final RegExp _garbledThousandsToken =
+      RegExp(r'^[A-Za-z0-9][.,][0OQDGoqd]{3}[,;:]?$');
+
+  /// Extracts a quantity from glued tokens such as `1x`, `2x`, or OCR-misread
+  /// `IX` / `lx` (or leading `LX`/`L8`/`T8` when [allowLeadingL] is true),
+  /// returning `null` if [token] is not a glued qty multiplier.
+  static int? _parseGluedMultiplier(
+    String token, {
+    bool allowLeadingL = false,
+  }) {
+    final String t = token.trim();
+    if (_gluedQtyToken.hasMatch(t)) {
+      final String prefix = t.substring(0, t.length - 1);
+      if ('1lI|'.contains(prefix) || (allowLeadingL && prefix == 'L')) {
+        return 1;
+      }
+      if (prefix == 'L') {
+        return null;
+      }
+      return int.tryParse(prefix);
+    }
+    if (allowLeadingL && _leadingOcrQtyToken.hasMatch(t)) {
+      return 1;
+    }
+    return null;
+  }
+
   // ---------------------------------------------------------------------------
   // Entry point
   // ---------------------------------------------------------------------------
@@ -318,16 +356,17 @@ class ReceiptParser {
     // trustworthy on its own: geometry can be wrong if ML Kit returns useless
     // boxes, and text order is wrong for any real receipt. The score rewards a
     // printed total that matches the items, then item count.
+    final List<OcrLine> cleanLines = _stripBorderMarginNoise(raw.lines);
     final List<ParsedReceipt> candidates = <ParsedReceipt>[];
 
-    final List<_Row>? geometry = _rowsFromGeometry(raw.lines);
+    final List<_Row>? geometry = _rowsFromGeometry(cleanLines);
     if (geometry != null) {
       candidates.add(
         _parseRows(_mergeStackedCells(geometry), raw, 'geometri'),
       );
     }
 
-    final List<_Row>? nearest = _rowsFromNearestName(raw.lines);
+    final List<_Row>? nearest = _rowsFromNearestName(cleanLines);
     if (nearest != null) {
       candidates.add(
         _parseRows(_mergeStackedCells(nearest), raw, 'kolom'),
@@ -335,7 +374,7 @@ class ReceiptParser {
     }
 
     candidates.add(
-      _parseRows(_mergeStackedCells(_rowsFromText(raw.lines)), raw, 'teks'),
+      _parseRows(_mergeStackedCells(_rowsFromText(cleanLines)), raw, 'teks'),
     );
 
     candidates.sort((ParsedReceipt a, ParsedReceipt b) {
@@ -378,8 +417,8 @@ class ReceiptParser {
     final int discounts = _extractDiscounts(rows);
 
     final List<_ItemDraft> drafts = <_ItemDraft>[];
-    for (final _Row row in rows) {
-      final _ItemDraft? draft = _readItem(row);
+    for (int i = 0; i < rows.length; i++) {
+      final _ItemDraft? draft = _readItem(rows[i], isLowerHalf: i >= rows.length ~/ 2);
       if (draft != null) {
         drafts.add(draft);
       }
@@ -509,6 +548,68 @@ class ReceiptParser {
     ];
   }
 
+  /// Drops repeating vertical border artifacts (e.g., thin dark edges along the
+  /// left/right margin misread as `L`/`I`/`O`/`.` across multiple rows).
+  List<OcrLine> _stripBorderMarginNoise(List<OcrLine> lines) {
+    if (lines.length < 8) return lines;
+
+    double maxRight = 0;
+    final List<double> heights = <double>[];
+    for (final OcrLine l in lines) {
+      if (l.right > maxRight) maxRight = l.right;
+      final double h = (l.bottom - l.top).abs();
+      if (h > 0) heights.add(h);
+    }
+    if (maxRight < 100 || heights.isEmpty) return lines;
+    heights.sort();
+    final double medianH = heights[heights.length ~/ 2];
+    final double rowTol = math.max(medianH * 0.6, 1.0);
+    final RegExp marginGlyphRe = RegExp(r'^[lLIi|\-_.,:OD]+$');
+
+    bool isCandidate(OcrLine l) {
+      final String t = l.text.trim();
+      if (t.isEmpty || t.length > 2) return false;
+      if (!marginGlyphRe.hasMatch(t)) return false;
+      return (l.right - l.left).abs() <= maxRight * 0.035;
+    }
+
+    final List<int> leftIdx = <int>[];
+    final List<int> rightIdx = <int>[];
+    for (int i = 0; i < lines.length; i++) {
+      final OcrLine l = lines[i];
+      if (!isCandidate(l)) continue;
+      final bool nearLeft = l.left <= maxRight * 0.035;
+      final bool nearRight = l.right >= maxRight * 0.965;
+      if (!nearLeft && !nearRight) continue;
+
+      bool hasPeerRight = false;
+      bool hasPeerLeft = false;
+      for (int j = 0; j < lines.length; j++) {
+        if (i == j) continue;
+        final OcrLine o = lines[j];
+        if ((o.centerY - l.centerY).abs() > rowTol) continue;
+        if (isCandidate(o) &&
+            (o.left <= maxRight * 0.035 || o.right >= maxRight * 0.965)) {
+          continue;
+        }
+        if (o.left > l.right) hasPeerRight = true;
+        if (o.right < l.left) hasPeerLeft = true;
+      }
+      if (nearLeft && hasPeerRight) leftIdx.add(i);
+      if (nearRight && hasPeerLeft) rightIdx.add(i);
+    }
+
+    final Set<int> drop = <int>{};
+    if (leftIdx.length >= 3) drop.addAll(leftIdx);
+    if (rightIdx.length >= 3) drop.addAll(rightIdx);
+    if (drop.isEmpty) return lines;
+
+    return <OcrLine>[
+      for (int i = 0; i < lines.length; i++)
+        if (!drop.contains(i)) lines[i],
+    ];
+  }
+
   /// Pairs each numeric cell with the text line it belongs to using vertical
   /// proximity, without assuming the two columns have the same number of lines.
   ///
@@ -550,12 +651,57 @@ class ReceiptParser {
       return null;
     }
 
+    // Word-level engines (e.g. ClassicalOcrEngine) emit one OcrLine per word,
+    // so non-numeric words on the same horizontal row must be merged into a
+    // single row anchor before numeric cells are attached.
+    final List<double> heights = <double>[
+      for (final OcrLine l in lines)
+        if ((l.bottom - l.top).abs() > 0) (l.bottom - l.top).abs(),
+    ]..sort();
+    final double medianHeight =
+        heights.isEmpty ? 16.0 : heights[heights.length ~/ 2];
+    final double rowTol = math.max(medianHeight * 0.55, 1.0);
+
+    final List<OcrLine> sortedAnchors = List<OcrLine>.of(anchors)
+      ..sort((OcrLine a, OcrLine b) {
+        final int byY = a.centerY.compareTo(b.centerY);
+        return byY != 0 ? byY : a.left.compareTo(b.left);
+      });
+    final List<List<OcrLine>> anchorClusters = <List<OcrLine>>[];
+    for (final OcrLine a in sortedAnchors) {
+      if (anchorClusters.isNotEmpty) {
+        final List<OcrLine> cur = anchorClusters.last;
+        final double meanY = cur
+                .map((OcrLine l) => l.centerY)
+                .reduce((double x, double y) => x + y) /
+            cur.length;
+        if ((a.centerY - meanY).abs() <= rowTol) {
+          cur.add(a);
+          continue;
+        }
+      }
+      anchorClusters.add(<OcrLine>[a]);
+    }
+    final List<OcrLine> mergedAnchors = <OcrLine>[
+      for (final List<OcrLine> grp in anchorClusters)
+        (() {
+          grp.sort((OcrLine a, OcrLine b) => a.left.compareTo(b.left));
+          return OcrLine(
+            text: grp.map((OcrLine g) => g.text).join(' '),
+            left: grp.map((OcrLine g) => g.left).reduce(math.min),
+            top: grp.map((OcrLine g) => g.top).reduce(math.min),
+            right: grp.map((OcrLine g) => g.right).reduce(math.max),
+            bottom: grp.map((OcrLine g) => g.bottom).reduce(math.max),
+          );
+        })(),
+    ];
+
     final Map<OcrLine, List<OcrLine>> attached =
         <OcrLine, List<OcrLine>>{};
     for (final OcrLine number in numbers) {
       OcrLine? best;
       double bestDistance = double.infinity;
-      for (final OcrLine anchor in anchors) {
+      for (final OcrLine anchor in mergedAnchors) {
         if (number.left <= anchor.left + 1) {
           continue;
         }
@@ -571,7 +717,7 @@ class ReceiptParser {
     }
 
     return <_Row>[
-      for (final OcrLine anchor in anchors)
+      for (final OcrLine anchor in mergedAnchors)
         _Row(<_Cell>[
           _Cell(text: anchor.text, left: anchor.left, right: anchor.right),
           for (final OcrLine number in (attached[anchor] ?? <OcrLine>[])
@@ -614,13 +760,16 @@ class ReceiptParser {
 
     for (int i = 0; i < n; i++) {
       final _RowParts parts = _splitRow(rows[i]);
-      // `2 x 3.500` is a numbers-only row even though it contains the letter
-      // `x`; strip the multiplier glyphs before looking for real letters.
+      // `2 x 3.500` or `IX 2.000 2.000` (`1x`) is a numbers-only row even
+      // though it contains multiplier letters.
       isNumbers[i] = parts.numbers.isNotEmpty &&
-          !_hasLetters(rows[i].text.replaceAll(RegExp(r'[xX*@]'), ''));
+          ((parts.name.isEmpty &&
+                  (parts.hasMultiplier || parts.hasGarbledCopy)) ||
+              !_hasLetters(rows[i].text.replaceAll(RegExp(r'[xX*@]'), '')));
       isName[i] = parts.numbers.isEmpty &&
           _hasLetters(rows[i].text) &&
           !_noiseWords.hasMatch(rows[i].text) &&
+          !_isFuzzyNoiseOrSummary(rows[i].text, isLowerHalf: i >= n ~/ 2) &&
           _looksLikeProductName(rows[i].text);
     }
 
@@ -673,7 +822,11 @@ class ReceiptParser {
           // numbers, so numbers printed above the name move after it.
           final StringBuffer text = StringBuffer(rows[i].text);
           for (final int j in claimed) {
-            text.write(' ${rows[j].text}');
+            final String numRow = rows[j].text.trim().replaceFirst(
+              RegExp(r'^[LlTt][xX8*](?=\s+\S)'),
+              '1x',
+            );
+            text.write(' $numRow');
           }
           out.add(_Row(<_Cell>[
             _Cell(text: text.toString().trim(), left: 0, right: 0),
@@ -699,16 +852,37 @@ class ReceiptParser {
   List<String> _joinSplitAmounts(List<String> tokens) {
     final List<String> out = <String>[];
     final RegExp threeDigits = RegExp(r'^\d{3}[.,;:)\]]*$');
+    final RegExp threeZeroLookalikes = RegExp(r'^[0-9OQDGoqd]{3}[.,;:)\]]*$');
     final RegExp startsWithDotDigits = RegExp(r'^[.]\d{3}');
 
     for (int i = 0; i < tokens.length; i++) {
       final String token = tokens[i];
+      // `(` + `1` + `)` -> `(1)` so parenthesised discounts parse cleanly.
+      if (token == '(' &&
+          i + 2 < tokens.length &&
+          tokens[i + 2] == ')' &&
+          RegExp(r'^[\d.,]+$').hasMatch(tokens[i + 1])) {
+        out.add('(${tokens[i + 1]})');
+        i += 2;
+        continue;
+      }
+
       final bool endsWithSeparator = RegExp(r'[.,]$').hasMatch(token);
       if (endsWithSeparator && i + 1 < tokens.length) {
         final String next = tokens[i + 1];
         // `18,` + `000`  -> `18,000`;  `(1,` + `300)` -> `(1,300)`
         if (threeDigits.hasMatch(next)) {
           out.add('$token$next');
+          i++;
+          continue;
+        }
+        // `18,` + `OOO` -> `18,000` when trailing 000 was misread as O/Q/D.
+        if (RegExp(r'^\(?-?\d{1,3}[.,]$').hasMatch(token) &&
+            threeZeroLookalikes.hasMatch(next)) {
+          final String fixedNext = next
+              .replaceAll(RegExp(r'[OQDoqd]'), '0')
+              .replaceAll('G', '6');
+          out.add('$token$fixedNext');
           i++;
           continue;
         }
@@ -753,26 +927,63 @@ class ReceiptParser {
           .toList(),
     );
 
+    // Drop a stray 1-char trailing border/tax flag after a printed amount
+    // (e.g. `9.600 L` or `12.200 I`).
+    if (tokens.length >= 2 &&
+        amountValue(tokens.last) == null &&
+        tokens.last.length == 1 &&
+        RegExp(r'^[A-Za-z|\-_.,)]$').hasMatch(tokens.last)) {
+      final int? prevAmt = amountValue(tokens[tokens.length - 2]);
+      if (prevAmt != null && prevAmt >= 100) {
+        tokens.removeLast();
+      }
+    }
+
     // Scan from the right for the trailing numeric block.
     bool hasMultiplier = false;
+    int? gluedQty;
     int cut = tokens.length;
+    int? garbledTrailingCopy;
+    if (tokens.length >= 2 &&
+        amountValue(tokens.last) == null &&
+        _garbledThousandsToken.hasMatch(tokens.last)) {
+      final int? prevAmt = amountValue(tokens[tokens.length - 2]);
+      if (prevAmt != null && prevAmt >= 500) {
+        garbledTrailingCopy = prevAmt;
+        cut = tokens.length - 1;
+      }
+    }
+    final int numericEnd = cut;
     while (cut > 0) {
       final String token = tokens[cut - 1];
       if (amountValue(token) != null) {
         cut--;
         continue;
       }
-      if (_isMultiplier(token) && cut < tokens.length) {
+      if (_isMultiplier(token) && cut < numericEnd) {
         hasMultiplier = true;
         cut--;
         continue;
+      }
+      if (cut < numericEnd) {
+        final int? nextAmt = amountValue(tokens[cut]);
+        final int? q = _parseGluedMultiplier(
+          token,
+          allowLeadingL: cut == 1 && nextAmt != null && nextAmt >= 500,
+        );
+        if (q != null && q > 0) {
+          hasMultiplier = true;
+          gluedQty = q;
+          cut--;
+          continue;
+        }
       }
       break;
     }
 
     // Positions of the amount tokens inside the numeric block.
     final List<int> amountPositions = <int>[];
-    for (int i = cut; i < tokens.length; i++) {
+    for (int i = cut; i < numericEnd; i++) {
       if (amountValue(tokens[i]) != null) {
         amountPositions.add(i);
       }
@@ -780,7 +991,9 @@ class ReceiptParser {
 
     // A lone small integer is far more likely to be part of the product name
     // ("ROKOK MILD 16", "TELUR 1 KG") than a price.
-    if (amountPositions.length == 1 && !hasMultiplier) {
+    if (amountPositions.length == 1 &&
+        !hasMultiplier &&
+        garbledTrailingCopy == null) {
       final String token = tokens[amountPositions.first];
       final int value = amountValue(token)!;
       // Parenthesised/minus values are discounts, never part of a name.
@@ -789,6 +1002,30 @@ class ReceiptParser {
           !token.contains(RegExp(r'[.,()\-]'))) {
         amountPositions.clear();
         cut = tokens.length;
+        garbledTrailingCopy = null;
+      }
+    }
+
+    // Recover corrupted middle unit price between `qty` and divisible `subtotal`
+    // (e.g. `PIUK 350N 2 3,MO 7.800` -> qty=2, unit=3900, total=7800).
+    List<int>? recoveredMiddle;
+    if (amountPositions.length == 1 &&
+        !hasMultiplier &&
+        garbledTrailingCopy == null &&
+        cut >= 2) {
+      final int tot = amountValue(tokens[amountPositions.first])!;
+      final String garbledMid = tokens[cut - 1];
+      final int? q = int.tryParse(tokens[cut - 2]);
+      if (q != null &&
+          q >= 1 &&
+          q <= 99 &&
+          RegExp(r'^\d{1,3}[.,][A-Za-z0-9]{2,3}[.,;:)\]]*$')
+              .hasMatch(garbledMid) &&
+          tot >= 500 &&
+          tot % q == 0 &&
+          (tot ~/ q) >= 100) {
+        recoveredMiddle = <int>[q, tot ~/ q, tot];
+        cut -= 2;
       }
     }
 
@@ -813,10 +1050,16 @@ class ReceiptParser {
       }
     }
 
-    final List<int> numbers = <int>[
-      for (int i = cut; i < tokens.length; i++)
-        if (amountValue(tokens[i]) case final int v) v,
-    ];
+    final List<int> numbers = recoveredMiddle ??
+        <int>[
+          ?gluedQty,
+          for (int i = cut; i < numericEnd; i++)
+            if (amountValue(tokens[i]) case final int v) v,
+          ?garbledTrailingCopy,
+        ];
+    if (numbers.length > 3) {
+      numbers.removeRange(0, numbers.length - 3);
+    }
 
     final List<String> nameTokens = tokens
         .sublist(0, cut)
@@ -831,6 +1074,7 @@ class ReceiptParser {
       name: _cleanName(nameTokens.join(' ')),
       numbers: numbers,
       hasMultiplier: hasMultiplier,
+      hasGarbledCopy: garbledTrailingCopy != null,
     );
   }
 
@@ -838,12 +1082,14 @@ class ReceiptParser {
   // Stage 3 — interpret a row as an item
   // ---------------------------------------------------------------------------
 
-  _ItemDraft? _readItem(_Row row) {
+  _ItemDraft? _readItem(_Row row, {bool isLowerHalf = false}) {
     final _RowParts parts = _splitRow(row);
     if (parts.numbers.isEmpty || parts.name.isEmpty) {
       return null;
     }
-    if (_noiseWords.hasMatch(parts.name) || _totalWords.hasMatch(parts.name)) {
+    if (_noiseWords.hasMatch(parts.name) ||
+        _totalWords.hasMatch(parts.name) ||
+        _isFuzzyNoiseOrSummary(parts.name, isLowerHalf: isLowerHalf)) {
       return null;
     }
     if (!_looksLikeProductName(parts.name)) {
@@ -856,6 +1102,76 @@ class ReceiptParser {
       return null;
     }
     return _ItemDraft(parts.name, candidates);
+  }
+
+  static int _editDist(String a, String b) {
+    if (a == b) return 0;
+    if ((a.length - b.length).abs() > 2) return 99;
+    List<int> prev = List<int>.generate(b.length + 1, (int i) => i);
+    List<int> cur = List<int>.filled(b.length + 1, 0);
+    for (int i = 1; i <= a.length; i++) {
+      cur[0] = i;
+      for (int j = 1; j <= b.length; j++) {
+        final int cost = a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1;
+        cur[j] = math.min(
+          math.min(prev[j] + 1, cur[j - 1] + 1),
+          prev[j - 1] + cost,
+        );
+      }
+      final List<int> swap = prev;
+      prev = cur;
+      cur = swap;
+    }
+    return prev[b.length];
+  }
+
+  /// Rejects OCR-corrupted footer/summary labels (`T.TAL LTO`, `TGMAI`,
+  /// `KEMBAIIAD`) so they are not recorded as purchased items.
+  static bool _isFuzzyNoiseOrSummary(String name, {required bool isLowerHalf}) {
+    const List<String> shortLabels = <String>[
+      'total',
+      'tunai',
+      'kembali',
+      'diskon',
+      'belanja',
+    ];
+    const List<String> longLabels = <String>[
+      'kembalian',
+      'subtotal',
+      'discount',
+      'andahemat',
+    ];
+    for (final String rawTok in name.toLowerCase().split(RegExp(r'\s+'))) {
+      final String norm = rawTok
+          .replaceAll('.', 'o')
+          .replaceAll('0', 'o')
+          .replaceAll('1', 'i')
+          .replaceAll('3', 'e')
+          .replaceAll('4', 'a')
+          .replaceAll('5', 's')
+          .replaceAll('6', 'g')
+          .replaceAll('7', 't')
+          .replaceAll('8', 'b')
+          .replaceAll(RegExp(r'[^a-z]'), '');
+      if (norm.length < 4) continue;
+      for (final String target in shortLabels) {
+        if (_editDist(norm, target) <= 1) {
+          return true;
+        }
+      }
+      for (final String target in longLabels) {
+        final int maxDist = isLowerHalf ? 2 : 1;
+        if (_editDist(norm, target) <= maxDist) {
+          return true;
+        }
+      }
+      if (isLowerHalf &&
+          (RegExp(r'^t[gu][mn][a4][il]$').hasMatch(norm) ||
+              RegExp(r'^k[aeo][mn]x?[bp][a4][l1i]{1,2}$').hasMatch(norm))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Every plausible `(qty, unit, lineTotal)` reading of the trailing numbers.
@@ -895,6 +1211,14 @@ class ReceiptParser {
       if (a > 0 && a <= 999 && a * c == b) {
         out.add(_ItemCandidate(qty: a, unit: c, lineTotal: b));
       }
+      // When unit price equals line total (`1x` misread as `18` -> `[18, 10000, 10000]`),
+      // recover `qty = 1` (or `a ~/ 10`) before keeping the unmatched `a`.
+      if (b > 0 && b == c && a > 1) {
+        if (a >= 10 && a <= 99 && (a ~/ 10) * b == c) {
+          out.add(_ItemCandidate(qty: a ~/ 10, unit: b, lineTotal: c));
+        }
+        out.add(_ItemCandidate(qty: 1, unit: b, lineTotal: c));
+      }
       // As printed, even if it does not multiply out (line-level discount).
       if (a > 0 && a <= 999 && c > 0) {
         out.add(_ItemCandidate(qty: a, unit: b, lineTotal: c));
@@ -924,6 +1248,9 @@ class ReceiptParser {
     }
 
     // Single amount: one unit at that price.
+    if (nums.first <= 0) {
+      return const <_ItemCandidate>[];
+    }
     return <_ItemCandidate>[
       _ItemCandidate(qty: 1, unit: nums.first, lineTotal: nums.first),
     ];
@@ -933,7 +1260,7 @@ class ReceiptParser {
     final List<_ItemCandidate> out = <_ItemCandidate>[];
     final Set<String> seen = <String>{};
     for (final _ItemCandidate c in candidates) {
-      if (c.qty <= 0 || c.unit < 0 || c.lineTotal < 0) {
+      if (c.qty <= 0 || c.unit <= 0 || c.lineTotal <= 0) {
         continue;
       }
       final String key = '${c.qty}:${c.unit}:${c.lineTotal}';
@@ -995,12 +1322,28 @@ class ReceiptParser {
       final String text = row.text;
       if (!_totalWords.hasMatch(text) ||
           _subtotalWords.hasMatch(text) ||
-          _itemCountWords.hasMatch(text) ||
+          _pointOrCouponWords.hasMatch(text) ||
           _changeWords.hasMatch(text)) {
         continue;
       }
       if (_paymentWords.hasMatch(text)) {
         continue;
+      }
+      // Alfamart prints `TOTAL ITEM  2  12.200` on the same row. Reject pure
+      // count rows (`TOTAL ITEM : 2`), but keep `TOTAL ITEM` when it ends with
+      // a separate monetary amount (>= 500 or formatted thousands).
+      final bool hasItemCountWord = _itemCountWords.hasMatch(text);
+      if (hasItemCountWord) {
+        final _RowParts parts = _splitRow(row);
+        final bool hasMoneyWithCount = parts.numbers.length >= 2 &&
+            parts.numbers.last >= 500;
+        final bool hasFormattedThousands =
+            RegExp(r'\d[.,]\d{3}\b').hasMatch(text) &&
+                parts.numbers.isNotEmpty &&
+                parts.numbers.last >= 500;
+        if (!hasMoneyWithCount && !hasFormattedThousands) {
+          continue;
+        }
       }
       final int rank = _totalRank(text);
       final int? value = _valueForLabel(rows, i);
@@ -1033,6 +1376,9 @@ class ReceiptParser {
         t.contains('total pembelian') ||
         t.contains('total harga')) {
       return 3;
+    }
+    if (_itemCountWords.hasMatch(t)) {
+      return 1;
     }
     if (t.contains('total')) {
       return 2;
@@ -1138,6 +1484,15 @@ class ReceiptParser {
         return alias.value;
       }
     }
+    if (RegExp(r'a[l1i]fa[,.\s]*[mn]?[a4]rt').hasMatch(haystack)) {
+      return 'Alfamart';
+    }
+    if (RegExp(r'a[l1i]fa[mn][i1l]d[i1l]').hasMatch(haystack)) {
+      return 'Alfamidi';
+    }
+    if (RegExp(r'[l1i]nd[o0][mn][a4]r').hasMatch(haystack)) {
+      return 'Indomaret';
+    }
 
     for (final _Row row in rows.take(6)) {
       final String t = row.text.trim();
@@ -1202,7 +1557,19 @@ class ReceiptParser {
     if (letters < 2) {
       return false;
     }
-    return letters / t.length >= 0.3;
+    if (letters / t.length < 0.3) {
+      return false;
+    }
+    // Reject digit-only-prefixed OCR remnants such as `18 5.OAD` where no
+    // word has letters without an embedded price dot/comma.
+    final List<String> toks =
+        t.split(RegExp(r'\s+')).where((String s) => s.isNotEmpty).toList();
+    final bool hasRealWord = toks.any(
+      (String tok) =>
+          RegExp(r'^[A-Za-z]{2,}').hasMatch(tok) ||
+          RegExp(r'^\d+[/-]?[A-Za-z]{2,}$').hasMatch(tok),
+    );
+    return hasRealWord;
   }
 
   String _cleanName(String s) {
@@ -1335,9 +1702,11 @@ class _RowParts {
     required this.name,
     required this.numbers,
     required this.hasMultiplier,
+    this.hasGarbledCopy = false,
   });
 
   final String name;
   final List<int> numbers;
   final bool hasMultiplier;
+  final bool hasGarbledCopy;
 }

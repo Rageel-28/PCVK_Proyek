@@ -28,6 +28,7 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 import config as C
+import resize_cubic as RC
 
 
 # ---------------------------------------------------------------------------
@@ -276,8 +277,9 @@ def crop_and_normalize(
 def normalize_char(gray: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
     """Versi deterministik untuk inferensi (tanpa padding/geser acak).
 
-    Harus identik dengan crop_and_normalize tanpa komponen acak, supaya
-    distribusi fitur saat latih dan saat uji sama.
+    Harus identik dengan `normalizeChar` di Dart (regangan kontras +
+    bilinear yang sama supaya prediksi tidak bergeser karena perbedaan
+    resampling pada tepi huruf tipis).
     """
     l, t, r, b = bbox
     h, w = gray.shape
@@ -286,13 +288,20 @@ def normalize_char(gray: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndar
     crop = gray[t : b + 1, l : r + 1]
     if crop.size == 0:
         return np.full((C.CHAR_SIZE, C.CHAR_SIZE), 255, np.uint8)
+    lo = int(crop.min())
+    hi = int(crop.max())
+    if hi - lo >= 30:
+        crop = (((crop.astype(np.int32) - lo) * 255) // (hi - lo)).clip(0, 255).astype(np.uint8)
     ch, cw = crop.shape
     scale = (C.CHAR_SIZE - 4) / max(ch, cw)
-    nh, nw = max(1, int(round(ch * scale))), max(1, int(round(cw * scale)))
-    pil = Image.fromarray(crop).resize((nw, nh), Image.BILINEAR)
-    canvas = Image.new("L", (C.CHAR_SIZE, C.CHAR_SIZE), 255)
-    canvas.paste(pil, ((C.CHAR_SIZE - nw) // 2, (C.CHAR_SIZE - nh) // 2))
-    return np.asarray(canvas)
+    nh = max(1, min(C.CHAR_SIZE, RC._py_round_half_even(ch * scale)))
+    nw = max(1, min(C.CHAR_SIZE, RC._py_round_half_even(cw * scale)))
+    scaled = RC.resize_bilinear(crop, nw, nh)
+    canvas = np.full((C.CHAR_SIZE, C.CHAR_SIZE), 255, np.uint8)
+    oy = (C.CHAR_SIZE - nh) // 2
+    ox = (C.CHAR_SIZE - nw) // 2
+    canvas[oy : oy + nh, ox : ox + nw] = scaled
+    return canvas
 
 
 # ---------------------------------------------------------------------------
@@ -337,8 +346,13 @@ def build(
     skipped = 0
 
     for li, text in enumerate(texts):
-        for _ in range(samples_per_line):
-            text_var = text.upper()
+        for si in range(samples_per_line):
+            # Sebagian dirender huruf kapital penuh, sebagian Title/lowercase agar
+            # huruf kecil khas struk modern ikut terwakili di kelasnya masing-masing.
+            if si % 2 == 1 and rng.random() < 0.65:
+                text_var = text.title() if rng.random() < 0.65 else text.lower()
+            else:
+                text_var = text.upper()
             _, _, font = rng.choice(fonts)
             img, boxes = render_line(text_var, font)
             if not boxes:
@@ -347,7 +361,8 @@ def build(
             degraded = degrade(img, rng, allow_rotate=False)
             gray = np.asarray(degraded)
             for ch, bb in boxes:
-                if ch not in C.CHAR_TO_IDX:
+                canon = C.canonical_char(ch)
+                if canon not in C.CHAR_TO_IDX:
                     skipped += 1
                     continue
                 patch = crop_and_normalize(gray, bb, rng)
@@ -355,7 +370,7 @@ def build(
                     skipped += 1
                     continue
                 X.append(patch)
-                y.append(C.CHAR_TO_IDX[ch])
+                y.append(C.CHAR_TO_IDX[canon])
 
         if (li + 1) % 200 == 0:
             print(f"    {li + 1}/{len(texts)} baris, {len(X)} sampel karakter")

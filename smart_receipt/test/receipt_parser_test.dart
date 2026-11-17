@@ -509,4 +509,271 @@ void main() {
       expect(p.date, isNull);
     });
   });
+
+  group('ReceiptParser real-OCR edge cases', () {
+    final ReceiptParser parser = ReceiptParser();
+
+    test('stitches 2-line items when 1x is read as IX and recovers Alfa,art', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'Alfa,art Jogja',
+        'Cimory',
+        'IX 2.000 2.000',
+        'Frestea madu',
+        'IX 8.000 8.000',
+        'Total Rp 10.000',
+      ]));
+      expect(p.store, 'Alfamart');
+      expect(p.total, 10000);
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'Cimory',
+        'Frestea madu',
+      ]);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(),
+          <int>[2000, 8000]);
+    });
+
+    test('rejects DISC and OCR-corrupted footer labels (T.TAL LTO, TGMAI, KEMBAIIAD)', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'ALFAMART',
+        'KP BRMDLNG (S) 1 500 500',
+        'PIUK 350M 2 3.000 6.000',
+        'DISC -1.000',
+        'T.TAL LTO 6.500',
+        'TOTAL 5.500',
+        'TGMAI 10.000',
+        'KEMBAIIAD 4.500',
+      ]));
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'KP BRMDLNG (S)',
+        'PIUK 350M',
+      ]);
+      expect(p.total, 5500);
+      expect(p.discountTotal, 1000);
+    });
+
+    test('recovers qty=1 when 1x is read as 18 on equal prices and drops 18 5.OAD remnant', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'ALFAMART',
+        '18 5.OAD 5.000',
+        'KANZLER 18 10.000 10.000',
+        'LE MINERANE IX 4.000 4.000',
+        '7GTAL Rp 14.000',
+      ]));
+      expect(p.total, 14000);
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'KANZLER',
+        'LE MINERANE',
+      ]);
+      expect(p.items.map((ParsedItem i) => i.qty).toList(), <int>[1, 1]);
+    });
+
+    test('stitches 2-line item for leading LX while preserving trailing LX size label', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'ALFAMART',
+        'CIMORY',
+        'LX 2.000 2.000',
+        'PACK LX 10.000',
+        'TOTAL 12.000',
+      ]));
+      expect(p.total, 12000);
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'CIMORY',
+        'PACK LX',
+      ]);
+      expect(p.items.map((ParsedItem i) => i.qty).toList(), <int>[1, 1]);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(),
+          <int>[2000, 10000]);
+    });
+
+    test('stitches stacked L8/T8 multipliers and recovers trailing G.ODO/E.OOO copies', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'ALFAMART',
+        'CIMORY',
+        'L8 2.000 2.000',
+        'CIMORY HAZELNUT',
+        '18 9.000 G.ODO',
+        'XCE CREAB AICE',
+        'T8 10.000 10.000',
+        'KANZLER',
+        '18 8.000 E.OOO',
+        'TOTAL RP38.000',
+      ]));
+      expect(p.store, 'Alfamart');
+      expect(p.total, 38000);
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'CIMORY',
+        'CIMORY HAZELNUT',
+        'XCE CREAB AICE',
+        'KANZLER',
+      ]);
+      expect(p.items.map((ParsedItem i) => i.qty).toList(), <int>[1, 1, 1, 1]);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(),
+          <int>[2000, 9000, 10000, 8000]);
+    });
+
+    test('recovers middle unit price on 2 3,MO 7.800 (Alfamart Soetomo word boxes)', () {
+      final List<OcrLine> lines = <OcrLine>[
+        const OcrLine(text: 'ALFAMART', left: 196, top: 217, right: 400, bottom: 268),
+        const OcrLine(text: 'KP', left: 19, top: 798, right: 62, bottom: 845),
+        const OcrLine(text: 'BRMDLNG', left: 84, top: 797, right: 251, bottom: 845),
+        const OcrLine(text: '(S)', left: 276, top: 797, right: 334, bottom: 848),
+        const OcrLine(text: '1', left: 465, top: 798, right: 478, bottom: 847),
+        const OcrLine(text: '200', left: 591, top: 798, right: 654, bottom: 847),
+        const OcrLine(text: '200', left: 803, top: 804, right: 867, bottom: 851),
+        const OcrLine(text: 'PIUK', left: 18, top: 867, right: 124, bottom: 917),
+        const OcrLine(text: '350N', left: 148, top: 867, right: 250, bottom: 915),
+        const OcrLine(text: '2', left: 464, top: 867, right: 484, bottom: 915),
+        const OcrLine(text: '3,MO', left: 548, top: 868, right: 653, bottom: 917),
+        const OcrLine(text: '7.800', left: 760, top: 873, right: 866, bottom: 920),
+        const OcrLine(text: 'DISC.', left: 16, top: 940, right: 117, bottom: 987),
+        const OcrLine(text: '-200', left: 252, top: 937, right: 335, bottom: 985),
+        const OcrLine(text: 'TOTAL', left: 13, top: 1223, right: 113, bottom: 1272),
+        const OcrLine(text: 'BELANJA', left: 143, top: 1221, right: 291, bottom: 1271),
+        const OcrLine(text: '7.800', left: 756, top: 1221, right: 862, bottom: 1272),
+        const OcrLine(text: 'TUNAI', left: 12, top: 1294, right: 113, bottom: 1341),
+        const OcrLine(text: '7.800', left: 756, top: 1291, right: 861, bottom: 1341),
+      ];
+      final ParsedReceipt p = parser.parse(OcrRawResult(lines: lines, fullText: ''));
+      expect(p.store, 'Alfamart');
+      expect(p.total, 7800);
+      expect(p.discountTotal, 200);
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'KP BRMDLNG (S)',
+        'PIUK 350N',
+      ]);
+      expect(p.items.map((ParsedItem i) => i.qty).toList(), <int>[1, 2]);
+      expect(p.items.map((ParsedItem i) => i.price).toList(), <int>[200, 3900]);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(), <int>[200, 7800]);
+    });
+
+    test('clusters word-level anchors & parses 18, OOO and KENXBALL/ANDAHEVT on Indomaret', () {
+      final List<OcrLine> lines = <OcrLine>[
+        const OcrLine(text: 'S/ROTL', left: 121, top: 331, right: 224, bottom: 355),
+        const OcrLine(text: 'KRIV', left: 273, top: 332, right: 350, bottom: 355),
+        const OcrLine(text: 'KEIU', left: 388, top: 331, right: 458, bottom: 355),
+        const OcrLine(text: '723', left: 495, top: 331, right: 553, bottom: 355),
+        const OcrLine(text: '4', left: 686, top: 332, right: 703, bottom: 355),
+        const OcrLine(text: '4500', left: 758, top: 331, right: 837, bottom: 355),
+        const OcrLine(text: '18,', left: 894, top: 331, right: 941, bottom: 355),
+        const OcrLine(text: 'OOO', left: 956, top: 331, right: 1017, bottom: 355),
+        const OcrLine(text: 'CLVORY', left: 118, top: 373, right: 242, bottom: 397),
+        const OcrLine(text: 'VLX', left: 268, top: 373, right: 324, bottom: 396),
+        const OcrLine(text: 'BERRY', left: 350, top: 373, right: 445, bottom: 396),
+        const OcrLine(text: '225', left: 470, top: 373, right: 523, bottom: 397),
+        const OcrLine(text: '1', left: 688, top: 373, right: 702, bottom: 395),
+        const OcrLine(text: '8500', left: 763, top: 373, right: 837, bottom: 397),
+        const OcrLine(text: '8.500', left: 926, top: 373, right: 1018, bottom: 397),
+        const OcrLine(text: 'CAFELA', left: 118, top: 417, right: 233, bottom: 440),
+        const OcrLine(text: 'EXPRESS', left: 259, top: 417, right: 394, bottom: 440),
+        const OcrLine(text: 'ZOOVL', left: 420, top: 417, right: 524, bottom: 440),
+        const OcrLine(text: '1', left: 688, top: 415, right: 702, bottom: 438),
+        const OcrLine(text: '3500', left: 763, top: 415, right: 837, bottom: 439),
+        const OcrLine(text: '3.500', left: 926, top: 415, right: 1018, bottom: 440),
+        const OcrLine(text: 'FF', left: 119, top: 459, right: 148, bottom: 481),
+        const OcrLine(text: 'LOVV', left: 181, top: 459, right: 247, bottom: 481),
+        const OcrLine(text: 'FAT', left: 280, top: 459, right: 328, bottom: 481),
+        const OcrLine(text: 'VAN', left: 357, top: 459, right: 417, bottom: 481),
+        const OcrLine(text: '225', left: 451, top: 459, right: 502, bottom: 481),
+        const OcrLine(text: '1', left: 688, top: 460, right: 702, bottom: 483),
+        const OcrLine(text: '5200', left: 763, top: 460, right: 837, bottom: 483),
+        const OcrLine(text: '5.200', left: 926, top: 460, right: 1018, bottom: 483),
+        const OcrLine(text: 'PLASTLKSDG', left: 119, top: 500, right: 310, bottom: 523),
+        const OcrLine(text: '1', left: 688, top: 500, right: 702, bottom: 523),
+        const OcrLine(text: '1', left: 818, top: 500, right: 832, bottom: 523),
+        const OcrLine(text: '1', left: 1003, top: 500, right: 1017, bottom: 523),
+        const OcrLine(text: 'DISKON', left: 688, top: 550, right: 797, bottom: 574),
+        const OcrLine(text: ':', left: 833, top: 557, right: 836, bottom: 573),
+        const OcrLine(text: '(', left: 962, top: 550, right: 968, bottom: 574),
+        const OcrLine(text: '1', left: 983, top: 550, right: 996, bottom: 574),
+        const OcrLine(text: ')', left: 1009, top: 550, right: 1016, bottom: 574),
+        const OcrLine(text: 'HARGA', left: 538, top: 625, right: 657, bottom: 648),
+        const OcrLine(text: 'IUAL', left: 698, top: 626, right: 779, bottom: 648),
+        const OcrLine(text: ':', left: 835, top: 632, right: 838, bottom: 647),
+        const OcrLine(text: '35.200', left: 888, top: 625, right: 1018, bottom: 648),
+        const OcrLine(text: 'DISKON', left: 394, top: 665, right: 520, bottom: 686),
+        const OcrLine(text: 'FRISIAN', left: 542, top: 665, right: 675, bottom: 686),
+        const OcrLine(text: 'FLAM', left: 697, top: 665, right: 778, bottom: 686),
+        const OcrLine(text: ':', left: 835, top: 669, right: 838, bottom: 684),
+        const OcrLine(text: '1.300', left: 882, top: 665, right: 1017, bottom: 689),
+        const OcrLine(text: 'TOTAL', left: 678, top: 736, right: 778, bottom: 759),
+        const OcrLine(text: ':', left: 835, top: 740, right: 838, bottom: 756),
+        const OcrLine(text: '33.900', left: 898, top: 736, right: 1018, bottom: 759),
+        const OcrLine(text: 'TUNAI', left: 678, top: 778, right: 780, bottom: 801),
+        const OcrLine(text: '40.000', left: 895, top: 778, right: 1017, bottom: 801),
+        const OcrLine(text: 'KENXBALL', left: 638, top: 821, right: 780, bottom: 844),
+        const OcrLine(text: '6.180', left: 918, top: 821, right: 1018, bottom: 844),
+        const OcrLine(text: 'ANDAHEVT', left: 558, top: 865, right: 784, bottom: 889),
+        const OcrLine(text: '1.380', left: 920, top: 864, right: 1018, bottom: 889),
+        const OcrLine(text: 'LNDOVARET--==--', left: 651, top: 942, right: 991, bottom: 965),
+      ];
+      final ParsedReceipt p = parser.parse(OcrRawResult(lines: lines, fullText: ''));
+      expect(p.total, 33900);
+      expect(p.discountTotal, 1301);
+      expect(p.items.length, 5);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(),
+          <int>[18000, 8500, 3500, 5200, 1]);
+      expect(p.warnings, isEmpty);
+    });
+
+    test('strips vertical border L/I margins and parses Alfamart Permata Gardenia', () {
+      final List<OcrLine> lines = <OcrLine>[
+        const OcrLine(text: 'I', left: 52, top: 317, right: 64, bottom: 451),
+        const OcrLine(text: 'ALFAMART', left: 514, top: 317, right: 975, bottom: 451),
+        const OcrLine(text: 'PERMATA', left: 1047, top: 317, right: 1459, bottom: 451),
+        const OcrLine(text: 'GARDENLA', left: 1526, top: 317, right: 1998, bottom: 451),
+        const OcrLine(text: 'L', left: 44, top: 2097, right: 57, bottom: 2227),
+        const OcrLine(text: 'ALFA', left: 108, top: 2099, right: 341, bottom: 2226),
+        const OcrLine(text: 'K.HJ', left: 405, top: 2097, right: 626, bottom: 2227),
+        const OcrLine(text: '2506', left: 695, top: 2097, right: 926, bottom: 2227),
+        const OcrLine(text: '1', left: 1350, top: 2097, right: 1380, bottom: 2227),
+        const OcrLine(text: '9.600', left: 1583, top: 2097, right: 1874, bottom: 2227),
+        const OcrLine(text: '9.600', left: 2180, top: 2097, right: 2468, bottom: 2227),
+        const OcrLine(text: 'L', left: 2621, top: 2097, right: 2626, bottom: 2227),
+        const OcrLine(text: 'L', left: 47, top: 2291, right: 58, bottom: 2422),
+        const OcrLine(text: 'INDOMIE', left: 130, top: 2291, right: 513, bottom: 2419),
+        const OcrLine(text: 'KOYA75G', left: 574, top: 2291, right: 985, bottom: 2422),
+        const OcrLine(text: '1', left: 1349, top: 2291, right: 1379, bottom: 2422),
+        const OcrLine(text: '2.600', left: 1583, top: 2291, right: 1873, bottom: 2422),
+        const OcrLine(text: '2.600', left: 2180, top: 2291, right: 2467, bottom: 2422),
+        const OcrLine(text: 'L', left: 2616, top: 2291, right: 2625, bottom: 2422),
+        const OcrLine(text: 'I', left: 51, top: 2682, right: 64, bottom: 2810),
+        const OcrLine(text: 'TOTAL', left: 113, top: 2682, right: 377, bottom: 2808),
+        const OcrLine(text: 'ITEM', left: 479, top: 2682, right: 691, bottom: 2810),
+        const OcrLine(text: '2', left: 988, top: 2683, right: 1041, bottom: 2810),
+        const OcrLine(text: '12.200', left: 2120, top: 2682, right: 2465, bottom: 2810),
+        const OcrLine(text: 'L', left: 2615, top: 2682, right: 2624, bottom: 2808),
+        const OcrLine(text: 'L', left: 48, top: 2875, right: 60, bottom: 3001),
+        const OcrLine(text: 'SHOPEEPAY', left: 113, top: 2875, right: 629, bottom: 3001),
+        const OcrLine(text: '12.200', left: 2121, top: 2875, right: 2464, bottom: 3001),
+        const OcrLine(text: 'L', left: 2614, top: 2875, right: 2623, bottom: 3001),
+        const OcrLine(text: 'LL', left: 4, top: 4231, right: 39, bottom: 4363),
+        const OcrLine(text: 'POLN', left: 575, top: 4231, right: 808, bottom: 4363),
+        const OcrLine(text: 'MEMBER', left: 874, top: 4231, right: 1223, bottom: 4362),
+        const OcrLine(text: 'ANDA', left: 1289, top: 4231, right: 1518, bottom: 4363),
+        const OcrLine(text: '15075', left: 1591, top: 4231, right: 1875, bottom: 4363),
+      ];
+      final ParsedReceipt p = parser.parse(OcrRawResult(lines: lines, fullText: ''));
+      expect(p.store, 'Alfamart');
+      expect(p.paymentMethod, 'ShopeePay');
+      expect(p.total, 12200);
+      expect(p.items.map((ParsedItem i) => i.name).toList(), <String>[
+        'ALFA K.HJ 2506',
+        'INDOMIE KOYA75G',
+      ]);
+      expect(p.items.map((ParsedItem i) => i.subtotal).toList(), <int>[9600, 2600]);
+      expect(p.warnings, isEmpty);
+    });
+
+    test('rejects 0-Rupiah noise rows on crumpled receipts', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'ALFAMIDI',
+        'SOFTIES 1 15.900 15.900',
+        '- UULOV UI R - M 1 4 1 N OINN 0',
+        'IT- 0:.5M 0',
+        'KEMBALIAN 0',
+      ]));
+      expect(p.items.length, 1);
+      expect(p.items.single.subtotal, 15900);
+    });
+  });
 }
