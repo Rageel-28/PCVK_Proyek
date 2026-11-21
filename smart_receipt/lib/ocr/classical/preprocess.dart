@@ -760,6 +760,130 @@ BinaryImage _resizeNearest(BinaryImage src, int dstW, int dstH) {
   return out;
 }
 
+/// Masker piksel yang termasuk komponen artefak: `255` = artefak.
+///
+/// Foto struk sering membawa latar gelap atau bayangan di tepi bingkai. Sauvola
+/// menandai daerah itu sebagai tinta, dan karena komponennya menyambung dari
+/// atas ke bawah, **setiap** baris citra tetap punya tinta. Proyeksi horizontal
+/// lalu tidak pernah turun ke nol, semua baris menyatu menjadi satu pita
+/// raksasa, dan pita itu dibuang sebagai "graphic" — struk yang jelas terbaca
+/// menghasilkan nol baris.
+///
+/// Komponen yang lebih lebar dari [P.artifactMaxWidthFrac] **dan** lebih tinggi
+/// dari [P.artifactMaxHeightFrac] tidak mungkin satu karakter atau satu baris
+/// teks, jadi ditandai. Strip tipis yang menjulang lebih dari
+/// [P.artifactFullHeightFrac] tinggi citra juga ditandai.
+BinaryImage artifactMask(BinaryImage binary) {
+  final int w = binary.width;
+  final int h = binary.height;
+  final BinaryImage mask = BinaryImage.zeros(w, h);
+  if (w == 0 || h == 0) return mask;
+
+  final Int32List labels = Int32List(w * h);
+  final Int32List stack = Int32List(w * h);
+  final Uint8List data = binary.data;
+  int nextLabel = 0;
+  // Statistik per label: bbox. Indeks 0 adalah placeholder.
+  final List<int> lefts = <int>[0];
+  final List<int> tops = <int>[0];
+  final List<int> rights = <int>[0];
+  final List<int> bottoms = <int>[0];
+
+  for (int start = 0; start < data.length; start++) {
+    if (data[start] == 0 || labels[start] != 0) continue;
+    nextLabel++;
+    int left = w, top = h, right = 0, bottom = 0;
+    int sp = 0;
+    stack[sp++] = start;
+    labels[start] = nextLabel;
+    while (sp > 0) {
+      final int index = stack[--sp];
+      final int x = index % w;
+      final int y = index ~/ w;
+      if (x < left) left = x;
+      if (x + 1 > right) right = x + 1;
+      if (y < top) top = y;
+      if (y + 1 > bottom) bottom = y + 1;
+      for (int dy = -1; dy <= 1; dy++) {
+        final int yy = y + dy;
+        if (yy < 0 || yy >= h) continue;
+        for (int dx = -1; dx <= 1; dx++) {
+          final int xx = x + dx;
+          if (xx < 0 || xx >= w) continue;
+          final int next = yy * w + xx;
+          if (data[next] != 0 && labels[next] == 0) {
+            labels[next] = nextLabel;
+            stack[sp++] = next;
+          }
+        }
+      }
+    }
+    lefts.add(left);
+    tops.add(top);
+    rights.add(right);
+    bottoms.add(bottom);
+  }
+
+  final List<bool> drop = List<bool>.filled(nextLabel + 1, false);
+  for (int label = 1; label <= nextLabel; label++) {
+    final int cw = rights[label] - lefts[label];
+    final int ch = bottoms[label] - tops[label];
+    final bool hugeBlob =
+        cw > P.artifactMaxWidthFrac * w && ch > P.artifactMaxHeightFrac * h;
+    final bool tallStrip =
+        ch > P.artifactFullHeightFrac * h && cw < P.artifactThinWidthFrac * w;
+    if (hugeBlob || tallStrip) drop[label] = true;
+  }
+
+  for (int i = 0; i < labels.length; i++) {
+    final int label = labels[i];
+    if (label != 0 && drop[label]) mask.data[i] = 255;
+  }
+  return mask;
+}
+
+/// Buang komponen tinta yang terlalu besar untuk bisa berupa karakter.
+///
+/// Lihat [artifactMask] untuk alasannya.
+BinaryImage stripArtifactComponents(BinaryImage binary) {
+  final BinaryImage mask = artifactMask(binary);
+  final BinaryImage out = BinaryImage.zeros(binary.width, binary.height);
+  for (int i = 0; i < binary.length; i++) {
+    if (binary.data[i] != 0 && mask.data[i] == 0) out.data[i] = 255;
+  }
+  return out;
+}
+
+/// [artifactMask] yang aman dipakai pada citra besar.
+///
+/// Pelabelan komponen pada citra hasil upscale (bisa >9 juta piksel) butuh
+/// memori besar. Artefak selalu jauh lebih besar daripada karakter, jadi
+/// pencarian dilakukan pada versi diperkecil dan maskernya dibesarkan lagi.
+BinaryImage artifactMaskAtScale(BinaryImage binary) {
+  final int w = binary.width;
+  final int h = binary.height;
+  final int longest = math.max(w, h);
+  final int factor = (longest / 800).ceil();
+  if (factor <= 1) return artifactMask(binary);
+  final BinaryImage small = _resizeNearest(
+    binary,
+    (w / factor).ceil(),
+    (h / factor).ceil(),
+  );
+  final BinaryImage mask = artifactMask(small);
+  if (!mask.hasInk) return BinaryImage.zeros(0, 0);
+  return _resizeNearest(mask, w, h);
+}
+
+/// Hapus artefak dari [binary] di tempat (in-place).
+void _stripArtifacts(BinaryImage binary) {
+  final BinaryImage mask = artifactMaskAtScale(binary);
+  if (!mask.hasInk) return;
+  for (int i = 0; i < binary.length; i++) {
+    if (mask.data[i] != 0) binary.data[i] = 0;
+  }
+}
+
 /// Jalur praproses lengkap: [potong kertas] → deskew → binarisasi → upscale.
 ///
 /// Urutan penting: kemiringan dikoreksi **sebelum** upscale. Bila struk berada
@@ -801,6 +925,11 @@ Prepared prepare(GrayImage gray, {double targetLineHeight = P.targetLineHeight})
   // 3. Binarisasi final.
   BinaryImage binary = binarize(base);
 
+  // 3b. Buang artefak latar/tepi. Harus sebelum estimasi tinggi baris: artefak
+  //     setinggi citra membuat tinggi baris terukur terlalu besar (upscale
+  //     jadi 1.0) sekaligus menyatukan semua baris.
+  _stripArtifacts(binary);
+
   final double height = estimateLineHeight(binary);
   double scale = 1.0;
   if (height > 0) {
@@ -812,6 +941,8 @@ Prepared prepare(GrayImage gray, {double targetLineHeight = P.targetLineHeight})
     final int sizeH = (base.height * scale).round();
     final GrayImage up = resizeBicubic(base, sizeW, sizeH);
     binary = binarize(up);
+    // Binarisasi ulang memperkenalkan lagi latar gelap sebagai tinta.
+    _stripArtifacts(binary);
     if (paper != null) paper = _resizeNearest(paper, sizeW, sizeH);
   }
 

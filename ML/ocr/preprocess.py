@@ -311,6 +311,76 @@ def _rotate_mask(mask: np.ndarray, angle: float) -> np.ndarray:
     )
 
 
+def artifact_mask(binary: np.ndarray) -> np.ndarray:
+    """Masker piksel yang termasuk komponen artefak (``255`` = artefak).
+
+    Foto struk sering membawa latar gelap atau bayangan di tepi bingkai.
+    Sauvola menandai daerah itu sebagai tinta, dan karena komponennya
+    menyambung dari atas ke bawah, **setiap** baris citra tetap punya tinta.
+    Proyeksi horizontal lalu tidak pernah turun ke nol, semua baris menyatu
+    menjadi satu pita raksasa, dan pita itu dibuang sebagai "graphic" — struk
+    yang jelas terbaca menghasilkan nol baris.
+
+    Komponen yang lebih lebar dari ``ARTIFACT_MAX_WIDTH_FRAC`` **dan** lebih
+    tinggi dari ``ARTIFACT_MAX_HEIGHT_FRAC`` tidak mungkin satu karakter atau
+    satu baris teks, jadi ditandai. Strip tipis yang menjulang lebih dari
+    ``ARTIFACT_FULL_HEIGHT_FRAC`` tinggi citra juga ditandai.
+    """
+    h, w = binary.shape
+    mask = np.zeros((h, w), np.uint8)
+    if w == 0 or h == 0:
+        return mask
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(
+        (binary > 0).astype(np.uint8), connectivity=8
+    )
+    drop = np.zeros(n, bool)
+    for label in range(1, n):
+        cw = int(stats[label, cv2.CC_STAT_WIDTH])
+        ch = int(stats[label, cv2.CC_STAT_HEIGHT])
+        huge = (
+            cw > C.ARTIFACT_MAX_WIDTH_FRAC * w
+            and ch > C.ARTIFACT_MAX_HEIGHT_FRAC * h
+        )
+        tall = (
+            ch > C.ARTIFACT_FULL_HEIGHT_FRAC * h
+            and cw < C.ARTIFACT_THIN_WIDTH_FRAC * w
+        )
+        if huge or tall:
+            drop[label] = True
+    mask[drop[labels]] = 255
+    return mask
+
+
+def artifact_mask_at_scale(binary: np.ndarray) -> np.ndarray:
+    """``artifact_mask`` yang hemat memori untuk citra besar.
+
+    Pelabelan komponen pada citra hasil upscale (bisa >9 juta piksel) butuh
+    memori besar. Artefak selalu jauh lebih besar daripada karakter, jadi
+    pencarian dilakukan pada versi diperkecil lalu maskernya dibesarkan lagi.
+    """
+    h, w = binary.shape
+    factor = int(np.ceil(max(w, h) / 800.0))
+    if factor <= 1:
+        return artifact_mask(binary)
+    small = cv2.resize(
+        binary,
+        (int(np.ceil(w / factor)), int(np.ceil(h / factor))),
+        interpolation=cv2.INTER_NEAREST,
+    )
+    mask = artifact_mask(small)
+    if not mask.any():
+        return np.zeros((0, 0), np.uint8)
+    return cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+
+
+def _strip_artifacts(binary: np.ndarray) -> None:
+    """Hapus artefak dari ``binary`` di tempat."""
+    mask = artifact_mask_at_scale(binary)
+    if mask.size == 0:
+        return
+    binary[mask != 0] = 0
+
+
 def prepare(gray: np.ndarray, target_line_height: float | None = None) -> Prepared:
     """Jalur praproses lengkap: [potong kertas] → deskew → binarisasi → upscale.
 
@@ -360,6 +430,11 @@ def prepare(gray: np.ndarray, target_line_height: float | None = None) -> Prepar
     # 3. Binarisasi final.
     binary = binarize(base)
 
+    # 3b. Buang artefak latar/tepi. Harus sebelum estimasi tinggi baris:
+    #     artefak setinggi citra membuat tinggi baris terukur terlalu besar
+    #     (upscale jadi 1.0) sekaligus menyatukan semua baris.
+    _strip_artifacts(binary)
+
     height = estimate_line_height(binary)
     scale = 1.0
     if height > 0:
@@ -372,6 +447,8 @@ def prepare(gray: np.ndarray, target_line_height: float | None = None) -> Prepar
         )
         up = cv2.resize(base, size, interpolation=cv2.INTER_CUBIC)
         binary = binarize(up)
+        # Binarisasi ulang memperkenalkan lagi latar gelap sebagai tinta.
+        _strip_artifacts(binary)
         if paper is not None:
             paper = cv2.resize(paper, size, interpolation=cv2.INTER_NEAREST)
 

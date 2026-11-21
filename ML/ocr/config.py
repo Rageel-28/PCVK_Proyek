@@ -156,6 +156,14 @@ PAPER_MASK_CLOSE = 21             # kernel close: tutup lubang teks
 PAPER_MASK_MIN_AREA_FRAC = 0.15   # kertas < 15% bingkai -> anggap tidak ada
 PAPER_MASK_ERODE_FRAC = 0.02      # erode mask: buang garis transisi di tepi
 
+# Artefak latar/tepi. Komponen tinta yang lebih lebar DAN lebih tinggi dari
+# separuh citra tidak mungkin satu karakter atau satu baris teks.
+ARTIFACT_MAX_WIDTH_FRAC = 0.50
+ARTIFACT_MAX_HEIGHT_FRAC = 0.50
+# Strip tipis yang menjulang hampir setinggi citra juga artefak.
+ARTIFACT_FULL_HEIGHT_FRAC = 0.80
+ARTIFACT_THIN_WIDTH_FRAC = 0.10
+
 # ---------------------------------------------------------------------------
 # Segmentasi baris / kata / glyph
 # ---------------------------------------------------------------------------

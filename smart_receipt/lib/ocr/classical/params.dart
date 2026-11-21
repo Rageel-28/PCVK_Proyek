@@ -62,6 +62,14 @@ class P {
   static const double paperMaskMinAreaFrac = 0.15;
   static const double paperMaskErodeFrac = 0.02;
 
+  // Artefak latar/tepi. Komponen tinta yang lebih lebar DAN lebih tinggi dari
+  // separuh citra tidak mungkin satu karakter atau satu baris teks.
+  static const double artifactMaxWidthFrac = 0.50;
+  static const double artifactMaxHeightFrac = 0.50;
+  // Strip tipis yang menjulang hampir setinggi citra juga artefak.
+  static const double artifactFullHeightFrac = 0.80;
+  static const double artifactThinWidthFrac = 0.10;
+
   // Segmentasi.
   static const double lineSplitRatio = 1.45;
   static const double wordGapToWidth = 0.6;

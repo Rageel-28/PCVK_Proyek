@@ -122,3 +122,49 @@ def test_prepare_reports_a_scale_factor() -> None:
     assert out.scale >= 1.0
     assert out.binary.dtype == np.uint8
     assert out.gray.shape == _synthetic_receipt().shape
+
+
+def _synthetic_page_with_edge_strip() -> np.ndarray:
+    """Biner 400x600: strip penuh setinggi citra di tepi kiri plus teks."""
+    page = np.zeros((600, 400), dtype=np.uint8)
+    page[:, 0:30] = 255
+    for i in range(5):
+        y = 60 + i * 80
+        page[y : y + 24, 60:260] = 255
+    return page
+
+
+def test_artifact_mask_drops_full_height_strip_but_keeps_text() -> None:
+    from ocr.preprocess import artifact_mask
+
+    page = _synthetic_page_with_edge_strip()
+    mask = artifact_mask(page)
+
+    # Strip artefak ditandai seluruhnya.
+    assert np.all(mask[:, 5] == 255)
+    # Batang teks tidak ditandai.
+    assert np.all(mask[60:84, 60:260] == 0)
+
+
+def test_strip_artifacts_removes_edge_strip_in_place() -> None:
+    from ocr.preprocess import _strip_artifacts
+
+    page = _synthetic_page_with_edge_strip()
+    _strip_artifacts(page)
+
+    assert np.count_nonzero(page[:, 5]) == 0
+    assert np.count_nonzero(page[60:84, 60:260]) == 24 * 200
+
+
+def test_artifact_mask_at_scale_matches_full_resolution_mask() -> None:
+    from ocr.preprocess import artifact_mask_at_scale
+
+    # Citra besar: pencarian dilakukan pada versi diperkecil.
+    page = np.zeros((2400, 3200), dtype=np.uint8)
+    page[:, 0:240] = 255
+    page[200:260, 400:2000] = 255
+    mask = artifact_mask_at_scale(page)
+
+    assert mask.shape == page.shape
+    assert np.all(mask[:, 20] == 255)
+    assert np.all(mask[200:260, 400:2000] == 0)
