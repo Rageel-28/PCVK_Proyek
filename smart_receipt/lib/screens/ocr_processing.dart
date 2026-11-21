@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_widgets.dart';
 import 'category_classification.dart';
+import '../ocr/classical/classical_ocr_engine.dart';
 import '../ocr/image_quality.dart';
 import '../ocr/ocr_raw_text.dart';
 import '../ocr/ocr_service.dart';
@@ -28,7 +29,9 @@ class OcrProcessingScreen extends StatefulWidget {
 }
 
 class _OcrProcessingScreenState extends State<OcrProcessingScreen> {
-  final OcrService _service = OcrService();
+  /// Mesin OCR klasik dimuat sekali (model cukup besar) lalu dipakai ulang.
+  OcrService? _service;
+  bool _engineLoading = false;
 
   OcrStage _stage = OcrStage.preprocessing;
   OcrFailure? _failure;
@@ -42,7 +45,7 @@ class _OcrProcessingScreenState extends State<OcrProcessingScreen> {
 
   @override
   void dispose() {
-    _service.dispose();
+    _service?.dispose();
     super.dispose();
   }
 
@@ -53,7 +56,16 @@ class _OcrProcessingScreenState extends State<OcrProcessingScreen> {
       _stage = OcrStage.preprocessing;
     });
     try {
-      final OcrScanResult result = await _service.process(
+      OcrService? service = _service;
+      if (service == null) {
+        if (_engineLoading) return;
+        _engineLoading = true;
+        final ClassicalOcrEngine engine = await ClassicalOcrEngine.load();
+        _engineLoading = false;
+        service = OcrService(engine: engine);
+        _service = service;
+      }
+      final OcrScanResult result = await service.process(
         widget.imagePath,
         onStage: (OcrStage stage) {
           if (mounted) {

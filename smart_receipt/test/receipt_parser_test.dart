@@ -569,4 +569,40 @@ void main() {
       expect(p.date, isNull);
     });
   });
+
+  group('ReceiptParser rejects noise', () {
+    final ReceiptParser parser = ReceiptParser();
+
+    test('a negative amount never becomes an item', () {
+      // Regresi dari struk Alfamart asli: `Disc. -3,700` terbaca
+      // `01.SC. -39700` dan sempat menjadi item `SC` berharga minus, yang
+      // membuat subtotal dan total struk kacau.
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'ALFAMART SIDOMORO GRESIK',
+        'SUTRA KRIM OK 3 1 13,400 13,400',
+        'MY ROTI SUSU58G 1 5,000 5,000',
+        '01.SC. -39700',
+        'Total Item 4 41,500',
+        'Total Belanja 37,800',
+      ]));
+
+      expect(p.items.map((ParsedItem i) => i.name).toList(),
+          <String>['SUTRA KRIM OK 3', 'MY ROTI SUSU58G']);
+      expect(p.items.every((ParsedItem i) => i.price > 0), isTrue);
+    });
+
+    test('DISC is recognised as a discount, not a product', () {
+      final ParsedReceipt p = parser.parse(_raw(<String>[
+        'TOKO MAJU',
+        'ROTI TAWAR 1 15,000 15,000',
+        'DISC. -3,700',
+        'TOTAL 11,300',
+      ]));
+
+      expect(p.items.map((ParsedItem i) => i.name).toList(),
+          <String>['ROTI TAWAR']);
+      expect(p.discountTotal, 3700);
+      expect(p.total, 11300);
+    });
+  });
 }

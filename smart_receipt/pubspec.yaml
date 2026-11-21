@@ -96,8 +96,7 @@ flutter:
     - assets/naive_bayes.json
     - assets/text_normalization_id.json
     - assets/eval_dataset_dummy.json
-    - assets/ocr_char_svm.json
-    - assets/ocr_lexicon.json
+    - assets/ocr/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

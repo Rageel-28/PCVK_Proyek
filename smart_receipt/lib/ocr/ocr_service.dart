@@ -4,7 +4,6 @@ import 'dart:math' as math;
 
 import 'package:path_provider/path_provider.dart';
 
-import 'classical/classical_ocr_engine.dart';
 import 'image_quality.dart';
 import 'ocr_engine.dart';
 import 'ocr_raw_text.dart';
@@ -47,19 +46,31 @@ class OcrFailure implements Exception {
 enum OcrStage { preprocessing, recognizing, parsing, done }
 
 /// Orkestrasi pipeline lengkap:
-/// capture -> pra-proses (rotasi/blur/kurang cahaya) -> OCR klasik -> parse.
+/// capture -> pra-proses (rotasi/blur/kurang cahaya) -> OCR -> parse.
 ///
-/// Tahap OCR dijalankan oleh [ClassicalOcrEngine]: pengolahan citra klasik
-/// dan machine learning klasik (HOG + Linear SVM) yang dibangun sendiri,
-/// tanpa library OCR siap pakai dan tanpa deep learning.
+/// Mesin OCR dipasang lewat parameter [engine]. Pipeline OCR lama (klasik)
+/// sudah dihapus; mesin baru akan dipasang di sini saat selesai dibangun.
+/// Tanpa engine, [process] melempar [OcrFailure].
 class OcrService {
-  OcrService({OcrEngine? engine, ImagePreprocessor? preprocessor})
-      : _engine = engine ?? ClassicalOcrEngine(),
-        _preprocessor = preprocessor ?? ImagePreprocessor();
+  OcrService({this._engine, ImagePreprocessor? preprocessor})
+      : _preprocessor = preprocessor ?? ImagePreprocessor();
 
-  final OcrEngine _engine;
+  final OcrEngine? _engine;
   final ImagePreprocessor _preprocessor;
   final ReceiptParser _parser = ReceiptParser();
+
+  /// Mesin OCR wajib ada sebelum scan dijalankan.
+  OcrEngine _requireEngine() {
+    final OcrEngine? engine = _engine;
+    if (engine == null) {
+      throw OcrFailure(
+        'Mesin OCR belum tersedia.',
+        hint: 'Pipeline OCR baru sedang dibangun; coba lagi setelah '
+            'mesinnya dipasang.',
+      );
+    }
+    return engine;
+  }
 
   Future<OcrScanResult> process(
     String sourcePath, {
@@ -71,11 +82,16 @@ class OcrService {
 
     onStage?.call(OcrStage.preprocessing);
     final ImageQualityReport quality;
+    final bool rawImage = _requireEngine().needsRawImage;
     try {
-      quality = await _preprocessor.prepare(
-        sourcePath: sourcePath,
-        outputPath: preparedPath,
-      );
+      quality = rawImage
+          // Mesin yang memproses citra sendiri tetap butuh laporan kualitas
+          // untuk UI, tetapi tidak boleh menerima gambar yang sudah diubah.
+          ? await _preprocessor.analyze(sourcePath: sourcePath)
+          : await _preprocessor.prepare(
+              sourcePath: sourcePath,
+              outputPath: preparedPath,
+            );
     } catch (e) {
       throw OcrFailure(
         'Gambar tidak dapat diproses.',
@@ -87,7 +103,8 @@ class OcrService {
     OcrRawResult raw;
     ParsedReceipt parsed;
     try {
-      final OcrRawResult rawFromEngine = await _engine.recognize(quality.preparedPath);
+      final OcrEngine engine = _requireEngine();
+      final OcrRawResult rawFromEngine = await engine.recognize(quality.preparedPath);
       raw = correctOcrText(rawFromEngine);
       parsed = _parser.parse(raw);
     } on OcrEngineException catch (e) {
@@ -98,7 +115,12 @@ class OcrService {
     // scale than an in-app capture, which can cost the recognizer most of the
     // digits. When the first pass looks weak, try up to two alternatives and
     // keep whichever reading the parser trusts more.
-    if (_isWeak(parsed)) {
+    //
+    // Mesin yang meminta citra asli sudah menangani kemiringan, pencahayaan
+    // tidak rata, dan ukuran sendiri. Percobaan ulang di sini hanya
+    // menambahkan JPEG ulang dan binarisasi kedua, lalu sering memilih hasil
+    // yang lebih buruk karena skor parser menyukai baris penuh angka.
+    if (!rawImage && _isWeak(parsed)) {
       parsed = await _retryOcr(
         quality: quality,
         dir: dir,
@@ -132,7 +154,7 @@ class OcrService {
     // Last resort for gallery imports that are stored sideways: the engine does not
     // auto-rotate, so a receipt lying on its side yields a couple of stray
     // lines. Try a quarter turn and keep the better reading.
-    if (raw.lineCount < 5) {
+    if (!rawImage && raw.lineCount < 5) {
       try {
         final String rotatedPath = '${dir.path}/ocr_rotated_'
             '${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -142,7 +164,7 @@ class OcrService {
           degrees: 90,
         );
         final OcrRawResult rotatedRaw =
-            correctOcrText(await _engine.recognize(rotatedPath));
+            correctOcrText(await _requireEngine().recognize(rotatedPath));
         final ParsedReceipt rotatedParsed = _parser.parse(rotatedRaw);
         if (ReceiptParser.scoreOf(rotatedParsed) >
             ReceiptParser.scoreOf(parsed)) {
@@ -175,7 +197,7 @@ class OcrService {
     );
   }
 
-  Future<void> dispose() => _engine.dispose();
+  Future<void> dispose() => _engine?.dispose() ?? Future<void>.value();
 
   /// True when the first pass clearly lost the receipt structure.
   bool _isWeak(ParsedReceipt parsed) {
@@ -207,7 +229,7 @@ class OcrService {
 
     Future<void> attempt(String path) async {
       final OcrRawResult retryRaw =
-          correctOcrText(await _engine.recognize(path));
+          correctOcrText(await _requireEngine().recognize(path));
       final ParsedReceipt retryParsed = _parser.parse(retryRaw);
       if (ReceiptParser.scoreOf(retryParsed) > ReceiptParser.scoreOf(best)) {
         best = retryParsed;

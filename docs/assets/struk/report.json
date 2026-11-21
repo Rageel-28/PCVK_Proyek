@@ -1,0 +1,225 @@
+{
+ "indomaret": {
+  "size": [
+   1216,
+   946
+  ],
+  "skew": -0.1,
+  "scale": 2.0,
+  "bands": 23,
+  "kinds": {
+   "barcode": 9,
+   "graphic": 2,
+   "text": 12
+  },
+  "kept": 21,
+  "total_band": [
+   1546,
+   1594,
+   1126,
+   1648
+  ],
+  "words": 4,
+  "word_text_argmax": "9O0",
+  "glyphs": 3,
+  "per_glyph": [
+   [
+    [
+     "9",
+     1.0
+    ],
+    [
+     "E",
+     0.0
+    ],
+    [
+     "-",
+     0.0
+    ]
+   ],
+   [
+    [
+     "O",
+     0.795
+    ],
+    [
+     "0",
+     0.2
+    ],
+    [
+     "A",
+     0.002
+    ]
+   ],
+   [
+    [
+     "0",
+     0.854
+    ],
+    [
+     "O",
+     0.132
+    ],
+    [
+     "E",
+     0.007
+    ]
+   ]
+  ],
+  "ocr_lines": [
+   "... N O.... -IIIIO-IROOO9.WIIIIRO...IJL.JJII4ITITRRIRIJI.ITIIJJ9IIIT-.AIIIILA.IIIIOOJI.",
+   "MANANGORKM.ZO-SUMEDA",
+   "14.09. 16-06..46 2.O. 31 914115/ALIAMU/01",
+   "S/ROTI KRIM KEJU 72G 4 450G 18.000",
+   "CIMORY MIX BERRY 225 1 8500 8.500",
+   "CAFELA EXPRESO 200NIL 1 3500 3.500",
+   "FF LOVV FAT VAN 225 1 520G 5.200",
+   "PLASTIKSDG 1 1 1",
+   "DISKON.. I 1 J",
+   "HARGA JUAL.. 35.200",
+   "DISKON FRISIAN FLAG.. I1.300G",
+   "TOTAL.. 33.900",
+   "TUNAI.. 40.000",
+   "KEMBALI.. 6.100",
+   "ANDA HEMAT.. 1.300",
+   "TERIMA KASIH. SELAMAT BELANJA KEMBALI",
+   "LAYANAN KONSUMEN INDOMARET",
+   "CALL 150058G SMS.. 0816 500 580",
+   "EMAIL.. KONTAKEINDOMARET. CO. ID",
+   "INFO LENGKAP PROMOSI",
+   "WWW. INDOMARET.CO. ID/PROMO"
+  ]
+ },
+ "alfamart": {
+  "size": [
+   927,
+   439
+  ],
+  "skew": -0.8,
+  "scale": 2.18,
+  "bands": 27,
+  "kinds": {
+   "graphic": 1,
+   "text": 26
+  },
+  "kept": 23,
+  "total_band": [
+   1194,
+   1246,
+   41,
+   934
+  ],
+  "words": 4,
+  "word_text_argmax": "41.500",
+  "glyphs": 6,
+  "per_glyph": [
+   [
+    [
+     "4",
+     1.0
+    ],
+    [
+     "Q",
+     0.0
+    ],
+    [
+     "0",
+     0.0
+    ]
+   ],
+   [
+    [
+     "1",
+     0.98
+    ],
+    [
+     "I",
+     0.016
+    ],
+    [
+     "Y",
+     0.001
+    ]
+   ],
+   [
+    [
+     ".",
+     0.453
+    ],
+    [
+     "-",
+     0.345
+    ],
+    [
+     "%",
+     0.192
+    ]
+   ],
+   [
+    [
+     "5",
+     1.0
+    ],
+    [
+     "U",
+     0.0
+    ],
+    [
+     "6",
+     0.0
+    ]
+   ],
+   [
+    [
+     "0",
+     0.882
+    ],
+    [
+     "O",
+     0.098
+    ],
+    [
+     "9",
+     0.008
+    ]
+   ],
+   [
+    [
+     "0",
+     0.496
+    ],
+    [
+     "O",
+     0.4
+    ],
+    [
+     "U",
+     0.073
+    ]
+   ]
+  ],
+  "ocr_lines": [
+   "ALFAMART SIDOMORO GRESIK",
+   "081316290876",
+   "CV. FURI MART",
+   "JL. VETERAN 27 A-B. SIDOMORO- KEBOMAS. G",
+   "NPWP.. 96.337.503.2-612.000",
+   "BON U977-621-1407XCT5 KDSI.R.. FALDI AN",
+   "SUTRA KNDM 0K 3 1 13.400 13.400",
+   "MY ROTI SUSUSBG 1 5.000 5.000",
+   "NSCF CRML 220ML 1 7.500 7.500",
+   "KINDER GIRLS 20 1 15.600 15.600",
+   "01.SC. -39700",
+   "TOTAL IT%N 4 41.500",
+   "TOTAI DISC. 39700",
+   "TOTAI BEIATJ.D 37.800",
+   "DANA QRIS 20.500",
+   "TUNAI 17.300",
+   "KEMBAII.AT 0",
+   "PPN C 4.113J",
+   "T91. 14-07-2024 20..03..52 V.2024.5.0",
+   "KRITIK&SARAN..1500959",
+   "NO.S/VA..IIRIIIMAMKMPQQ"
+  ]
+ }
+}

@@ -17,4 +17,12 @@ ML/ocr_classical/data/
 # Artefak debug; hasil evaluasi penting tetap disimpan.
 ML/ocr_classical/output/*.npy
 ML/ocr_classical/output/*.joblib
+
+# --- ML/ocr ---
+# Dataset karakter dihasilkan ulang lewat render_dataset.py (~60 MB).
+ML/ocr/data/
+# Artefak training dan visualisasi; semuanya dapat dibangkitkan ulang.
+ML/ocr/output/*
+!ML/ocr/output/.gitkeep
+
 ~$*

@@ -10,74 +10,37 @@ mengklasifikasikan item ke kategori secara otomatis.
 
 ---
 
-## Fokus Proyek Ini
+## Status (per 19 Nov 2026)
 
-| Aspek | Keterangan |
-|---|---|
-| **Mata kuliah** | Pengolahan Citra |
-| **Komponen yang dikerjakan** | Tahap OCR: dari foto struk menjadi teks |
-| **Pendekatan** | Pengolahan citra klasik + machine learning klasik |
-| **Dilarang** | Library OCR siap pakai, deep learning |
+> Tanggal status ini mengikuti tanggal working tree saat dokumentasi
+> ditulis. Repo berada dalam keadaan mid-migration: sebagian perubahan
+> (pipeline pure-ML baru, aset `assets/ocr/`, port Dart) belum di-commit
+> dan hanya ada di working tree.
 
-Modul utama: **[`ML/ocr_classical/`](ML/ocr_classical/)**
+Pipeline OCR klasik **pure-ML** sudah lengkap dan berjalan di aplikasi:
 
----
+- **Rujukan Python** (`ML/ocr/`) — melatih model dan mengekspor JSON.
+- **Port Dart** (`smart_receipt/lib/ocr/classical/`, 16 file) — pipeline
+  yang sama, diimplementasikan ulang dalam Dart murni dan dijalankan di
+  isolate terpisah di perangkat.
+- Keduanya dijaga identik oleh **uji paritas** (`flutter test`).
 
-## Ringkasan Hasil
-
-| Metrik | Nilai |
-|---|---:|
-| Akurasi klasifikasi karakter | **99,73%** |
-| Exact match baris (Sauvola + deskew + leksikon) | **72,00%** |
-| CER (Character Error Rate) | 29,75% |
-| WER (Word Error Rate) | 46,08% |
-| Ukuran model | 117 KB (JSON) |
-
-Diuji pada 150 baris sintetis ber-degradasi. Detail lengkap:
-**[DOKUMENTASI.md](ML/ocr_classical/DOKUMENTASI.md)**
-
----
-
-## Pipeline OCR
-
-```
-Foto struk
-   ├─ [1]  Deteksi area kertas        Otsu + connected components
-   ├─ [2]  Grayscale + denoise        median blur 3x3
-   ├─ [3]  Binarisasi                 Otsu / Sauvola
-   ├─ [4]  Upscale adaptif            tinggi baris → ~26 px
-   ├─ [5]  Deskew                     profil proyeksi horizontal
-   ├─ [6]  Segmentasi baris           proyeksi + Otsu 1D
-   ├─ [7]  Segmentasi karakter        connected components + split lembah
-   ├─ [8]  Normalisasi                32x32
-   ├─ [9]  Ekstraksi fitur            HOG manual (324 dimensi)
-   ├─ [10] Klasifikasi karakter       Linear SVM
-   ├─ [11] Rekonstruksi baris         spasi dari median celah
-   └─ [12] Koreksi leksikon           Levenshtein (3.641 kata)
-```
-
----
-
-## Sudah berjalan di aplikasi
-
-Pipeline ini **menggantikan Google ML Kit** dan berjalan di Flutter
-tanpa library OCR apa pun:
+Yang **dihapus** dari repo: implementasi OCR klasik versi lama (fitur &
+parameter berbeda), Google ML Kit, dataset COCO (771 gambar), CSV sintetis
+PBL, dan aset SVM lama. Metode HOG + LinearSVC **tetap dipakai** — tetapi
+dalam implementasi baru di `ML/ocr/` dan `lib/ocr/classical/`.
 
 | Komponen | Status |
 |---|---|
-| Dependensi ML Kit | **dihapus** dari `pubspec.yaml` |
-| `MlKitOcrEngine` | **dihapus** |
-| `ClassicalOcrEngine` | **12 modul Dart** di `lib/ocr/classical/` |
-| Aset model | `ocr_char_svm.json` (117 KB) + `ocr_lexicon.json` (34 KB) |
-| Klasifikasi TF-IDF + Naive Bayes | **tidak diubah** — hanya masukannya kini teks dari OCR klasik |
+| `ML/ocr/` — pipeline Python pure-ML (rujukan + pelatihan) | ✅ Ada |
+| `smart_receipt/lib/ocr/classical/` — port Dart (produksi) | ✅ Aktif |
+| Aset model (`assets/ocr/`: char_clf, lm, lexicon, templates) | ✅ Termasuk build |
+| Parser struk (`receipt_parser.dart`) | ✅ Aktif |
+| Klasifikasi kategori (TF-IDF + Naive Bayes on-device) | ✅ Aktif |
+| Folder `ML/` lama (dataset COCO, CSV sintetis, SVC lama) | ❌ Dihapus (riwayat di git) |
 
-### Verifikasi paritas Dart vs Python
-
-| Uji | Hasil |
-|---|---|
-| HOG + SVM (16 patch, toleransi 1e-4) | **100% identik** |
-| End-to-end (8 gambar) | **8/8 teks identik** |
-| Seluruh test suite | **179 test lolos** |
+> Dokumentasi lengkap ada di folder [`docs/`](docs/README.md). Mulai dari
+> [Ringkasan Proyek](docs/01-ringkasan-proyek.md).
 
 ---
 
@@ -85,120 +48,71 @@ tanpa library OCR apa pun:
 
 ```
 PCVK_Proyek/
-├── ML/
-│   ├── ocr_classical/          ← PROYEK PCVK (fokus utama)
-│   │   ├── config.py
-│   │   ├── render_synthetic.py
-│   │   ├── preprocess.py
-│   │   ├── paper.py
-│   │   ├── deskew.py
-│   │   ├── segment.py
-│   │   ├── features.py
-│   │   ├── train_char.py
-│   │   ├── lexicon.py
-│   │   ├── ocr_pipeline.py
-│   │   ├── evaluate.py
-│   │   ├── visualize.py
-│   │   ├── DOKUMENTASI.md      ← dokumentasi teknis lengkap
-│   │   ├── models/
-│   │   └── output/
-│   │
-│   ├── Dataset_SmartReceipt_Sintetis.csv
-│   ├── Dataset_Katalog_Indonesia_Sintetis_v1.csv
-│   ├── train_real_model.py     ← pelatihan model kategori (dari PBL)
-│   └── uts/                    ← laporan UTS PBL
-│
-├── smart_receipt/              ← aplikasi Flutter (dari PBL)
-│   └── lib/
-│       ├── ocr/                ← OCR + klasifikasi
-│       ├── services/
-│       └── screens/
-│
-└── Document/                   ← dokumen proposal & SKPL
+├── ML/                         ← pipeline OCR pure-ML (Python)
+│   ├── ocr/                    ← config, praproses, fitur, latih, decode, evaluasi
+│   ├── tests/                  ← pytest
+│   └── README.md               ← detail metodologi & hasil evaluasi
+├── smart_receipt/              ← aplikasi Flutter
+│   ├── lib/
+│   │   ├── ocr/                ← antarmuka OCR + parser + klasifikasi
+│   │   │   └── classical/      ← port Dart pipeline (produksi)
+│   │   ├── screens/            ← 13 berkas layar aplikasi
+│   │   ├── services/           ← analitik, prediksi, evaluasi model
+│   │   ├── providers/          ← state management (provider)
+│   │   ├── models/             ← model data & taksonomi kategori
+│   │   └── helpers/            ← SQLite (sqflite)
+│   ├── assets/                 ← model JSON (OCR & klasifikasi)
+│   └── test/                   ← pengujian + fixtures
+├── docs/                       ← dokumentasi proyek
+├── testdata/real/              ← foto struk asli untuk pengujian manual
+└── Document/                   ← dokumen kuliah (proposal PBL, SKPL, audit)
 ```
 
 ---
 
 ## Memulai
 
-### 1. Instalasi dependensi
-
-```powershell
-cd ML
-python -m pip install -r requirements_ocr.txt
-```
-
-### 2. Jalankan pipeline
-
-```powershell
-cd ML/ocr_classical
-
-# Bangun data latih karakter
-python render_synthetic.py --max-lines 2500 --samples-per-line 2
-
-# Latih classifier
-python train_char.py
-
-# Evaluasi + ablasi
-python evaluate.py
-
-# Visualisasi untuk laporan
-python visualize.py
-
-# OCR satu gambar
-python ocr_pipeline.py path\ke\struk.jpg
-```
-
-### 3. Aplikasi Flutter (opsional)
-
-```powershell
+```bash
 cd smart_receipt
 flutter pub get
-flutter run
+flutter run        # Android / iOS / desktop
 ```
 
----
+Menjalankan pengujian:
 
-## Pemenuhan Syarat Tugas
+```bash
+cd smart_receipt && flutter test        # port Dart + paritas
+cd ML && python3 -m pytest tests/ -q    # rujukan Python
+```
 
-| Syarat | Status | Bukti |
-|---|---|---|
-| Tanpa library OCR siap pakai | ✅ Terpenuhi | Tidak ada pytesseract/easyocr/paddleocr/ML Kit |
-| Tanpa deep learning | ✅ Terpenuhi | Hanya LinearSVC (SVM klasik) |
-| Tanpa library sama sekali | ⚠️ Sebagian | Masih memakai OpenCV & NumPy sebagai alat dasar |
-
-Penjelasan lengkap beserta daftar algoritma yang ditulis manual ada di
-**[DOKUMENTASI.md § 2](ML/ocr_classical/DOKUMENTASI.md#2-pemenuhan-syarat-tugas)**.
+Melatih ulang pipeline Python dari nol: lihat
+[07 — Build & Rilis](docs/07-build-rilis.md#5-melatih-ulang-pipeline-ml)
+atau [`ML/README.md`](ML/README.md).
 
 ---
 
-## Algoritma yang Ditulis dari Nol
+## Dokumentasi
 
-| Algoritma | Berkas |
+| Dokumen | Isi |
 |---|---|
-| HOG 324 dimensi (tanpa `skimage.hog`) | `features.py` |
-| Sauvola thresholding | `preprocess.py` |
-| Otsu 1D untuk profil baris | `segment.py` |
-| Deskew profil proyeksi | `deskew.py` |
-| Segmentasi karakter (CC + merge + split) | `segment.py` |
-| Levenshtein | `lexicon.py` |
-| Spasi kata adaptif | `ocr_pipeline.py` |
-
----
-
-## Batasan yang Diketahui
-
-- Font tipis masih terpecah saat binarisasi → segmentasi berlebih
-- Huruf bersambung akibat blur thermal → dua huruf menjadi satu
-- Foto struk asli masih di bawah ML Kit (domain berbeda dari data sintetis)
-- Dataset COCO berisi struk Malaysia/Italia, bukan Indonesia
-
-Batasan ini didokumentasikan terbuka sebagai bahan analisis laporan,
-bukan disembunyikan.
+| [01 — Ringkasan Proyek](docs/01-ringkasan-proyek.md) | Latar belakang, tujuan, ruang lingkup, metode |
+| [02 — Arsitektur Aplikasi](docs/02-arsitektur-aplikasi.md) | Struktur Flutter, alur scan, state, penyimpanan |
+| [03 — Pipeline OCR Klasik](docs/03-pipeline-ocr.md) | Praproses → segmentasi → fitur → classifier → decoding |
+| [04 — Parser Struk](docs/04-parser-struk.md) | Rekonstruksi baris, ekstraksi item/total, koreksi teks |
+| [05 — Klasifikasi Kategori](docs/05-klasifikasi-kategori.md) | TF-IDF + Naive Bayes on-device, taksonomi, fallback |
+| [06 — Evaluasi & Pengujian](docs/06-evaluasi-pengujian.md) | Hasil CER/WER, strategi uji, paritas Python↔Dart |
+| [07 — Build & Rilis](docs/07-build-rilis.md) | Dependensi, CI iOS, catatan platform |
+| [08 — Layar & Lapisan UI](docs/08-layar-ui.md) | Layar, navigasi, tema, widget, model UI/DB |
+| [09 — Analitik & Prediksi](docs/09-analitik-prediksi.md) | Agregasi pengeluaran & regresi linear |
+| [10 — Praproses Citra Aplikasi](docs/10-praproses-aplikasi.md) | Analisis kualitas, deteksi kertas, variasi retry |
+| [11 — Metodologi Pelatihan](docs/11-metodologi-pelatihan.md) | Dataset, augmentasi, training, ekspor model |
+| [12 — Keputusan Desain](docs/12-keputusan-desain.md) | 14 keputusan arsitektur beserta alasannya |
+| [13 — Glosarium & Peta Kode](docs/13-glosarium-peta-kode.md) | Istilah & panduan "saya ingin mengubah…" |
+| [14 — Contoh Per Langkah](docs/14-contoh-struk.md) | Bedah pipeline tahap demi tahap pada struk asli & fixture |
 
 ---
 
 ## Lisensi Data
 
-- Dataset sintetis: dibuat sendiri untuk proyek PBL
-- Dataset COCO `OCR Struk Belanja`: CC BY 4.0 (via Roboflow)
+Dataset lama (sintetis PBL dan COCO `OCR Struk Belanja` CC BY 4.0) sudah
+dihapus dari repo ini; sisa jejaknya hanya di riwayat git.

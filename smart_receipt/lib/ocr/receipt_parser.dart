@@ -183,7 +183,7 @@ class ReceiptParser {
   );
 
   static final RegExp _discountWords = RegExp(
-    r'\b(diskon|discount|potongan|voucher|hemat)\b',
+    r'\b(diskon|disc|discount|potongan|voucher|hemat)\b',
     caseSensitive: false,
   );
 
@@ -410,6 +410,87 @@ class ReceiptParser {
     return score;
   }
 
+  /// Buang word group artifak di tepi citra: kotak sangat tipis (lebar <= 3 px)
+  /// yang terletak di 10% tepi kiri/kanan. Foto struk sering punya garis tepi
+  /// kertas / bayangan yang terbaca sebagai karakter tunggal ("1", "I", dst) di
+  /// ujung kiri/kanan. Ini menambah noise dan merusak rekonstruksi baris.
+  OcrRawResult _filterStrayLines(OcrRawResult raw) {
+    if (raw.lines.isEmpty) {
+      return raw;
+    }
+    double minLeft = double.infinity;
+    double maxRight = 0;
+    for (final OcrLine l in raw.lines) {
+      if (l.left < minLeft) minLeft = l.left;
+      if (l.right > maxRight) maxRight = l.right;
+    }
+    final double span = maxRight - minLeft;
+    if (span <= 0) {
+      return raw;
+    }
+    final double leftEdge = minLeft + span * 0.05;
+    final double rightEdge = maxRight - span * 0.05;
+
+    final List<OcrLine> kept = <OcrLine>[];
+    for (final OcrLine l in raw.lines) {
+      final double width = l.right - l.left;
+      final bool atEdge = l.left < leftEdge || l.right > rightEdge;
+      // Buang hanya bila tipis DAN di tepi (artifak). Karakter tipis di tengah
+      // (mis. "1", "I", "l") tetap dipertahankan.
+      if (width <= 3 && atEdge) {
+        continue;
+      }
+      kept.add(l);
+    }
+    if (kept.length == raw.lines.length) {
+      return raw;
+    }
+    return OcrRawResult(
+      lines: kept,
+      fullText: kept.map((OcrLine l) => l.text).join('\n'),
+    );
+  }
+
+  /// Buang word group artifak di tepi citra: kotak sangat tipis (lebar <= 2 px)
+  /// yang terletak di 8% tepi kiri/kanan. Foto struk sering punya garis tepi
+  /// kertas / bayangan yang terbaca sebagai karakter tunggal ("1", "I") di ujung
+  /// kiri/kanan. Ambang ketat (lebar <= 2 DAN di tepi) agar karakter tipis asli
+  /// di tengah baris tidak ikut terbuang.
+  OcrRawResult _filterEdgeArtifacts(OcrRawResult raw) {
+    if (raw.lines.isEmpty) {
+      return raw;
+    }
+    double minLeft = double.infinity;
+    double maxRight = 0;
+    for (final OcrLine l in raw.lines) {
+      if (l.left < minLeft) minLeft = l.left;
+      if (l.right > maxRight) maxRight = l.right;
+    }
+    final double span = maxRight - minLeft;
+    if (span <= 0) {
+      return raw;
+    }
+    final double leftEdge = minLeft + span * 0.08;
+    final double rightEdge = maxRight - span * 0.08;
+
+    final List<OcrLine> kept = <OcrLine>[];
+    for (final OcrLine l in raw.lines) {
+      final double width = l.right - l.left;
+      final bool atEdge = l.left < leftEdge || l.right > rightEdge;
+      if (width <= 2 && atEdge) {
+        continue;
+      }
+      kept.add(l);
+    }
+    if (kept.length == raw.lines.length) {
+      return raw;
+    }
+    return OcrRawResult(
+      lines: kept,
+      fullText: kept.map((OcrLine l) => l.text).join('\n'),
+    );
+  }
+
   ParsedReceipt _parseRows(List<_Row> rows, OcrRawResult raw, String source) {
     final String store = _extractStore(rows);
     final DateTime? date = _extractDate(raw.fullText);
@@ -419,6 +500,13 @@ class ReceiptParser {
 
     final List<_ItemDraft> drafts = <_ItemDraft>[];
     for (final _Row row in rows) {
+      // Item selalu muncul SEBELUM baris ringkasan (TOTAL, DPP, PPN,
+      // pembayaran). Begitu baris ringkasan pertama muncul, baris berikutnya
+      // bukan item lagi — berhenti. Ini mencegah baris DPP/PPN/TUNAI/KEMBALI
+      // yang labelnya rusak OCR ikut terdeteksi sebagai item.
+      if (_isSummaryRow(row.text)) {
+        break;
+      }
       final _ItemDraft? draft = _readItem(row);
       if (draft != null) {
         drafts.add(draft);
@@ -800,6 +888,29 @@ class ReceiptParser {
         continue;
       }
 
+      // `69` + `O` + `300` -> `69.300` — OCR membaca pemisah ribuan (titik)
+      // sebagai huruf/simbol (O, +, M) sehingga nominal pecah jadi 3 token.
+      // Gabungkan kembali dengan titik di posisi pemisah.
+      if (i + 2 < tokens.length &&
+          RegExp(r'^\d{1,3}$').hasMatch(token) &&
+          RegExp(r'^[OoMm+]{1,2}$').hasMatch(tokens[i + 1]) &&
+          RegExp(r'^\d{1,3}$').hasMatch(tokens[i + 2])) {
+        out.add('$token.${tokens[i + 2]}');
+        i += 2;
+        continue;
+      }
+
+      // `34` + `0300` -> `34.300` — OCR menambah nol di depan bagian ribuan
+      // (mis. "300" jadi "0300") sehingga nominal pecah jadi 2 token.
+      // Gabungkan: buang nol terdepan token kedua, sisipkan titik.
+      if (i + 1 < tokens.length &&
+          RegExp(r'^\d{1,3}$').hasMatch(token) &&
+          RegExp(r'^0\d{3}$').hasMatch(tokens[i + 1])) {
+        out.add('$token.${tokens[i + 1].substring(1)}');
+        i++;
+        continue;
+      }
+
       out.add(token);
     }
     return out;
@@ -903,7 +1014,7 @@ class ReceiptParser {
     if (parts.numbers.isEmpty || parts.name.isEmpty) {
       return null;
     }
-    if (_noiseWords.hasMatch(parts.name) || _totalWords.hasMatch(parts.name)) {
+    if (_isNonItemRow(row.text)) {
       return null;
     }
     if (!_looksLikeProductName(parts.name)) {
@@ -915,7 +1026,18 @@ class ReceiptParser {
     if (candidates.isEmpty) {
       return null;
     }
-    return _ItemDraft(parts.name, candidates);
+    // Harga negatif adalah diskon, retur, atau baris yang salah baca — bukan
+    // barang yang dibeli. OCR sering mengubah `Disc. -3,700` menjadi sesuatu
+    // seperti `01.SC. -39700`; tanpa penjaga ini baris itu menjadi item
+    // bernama `SC` berharga minus dan seluruh aritmetika struk rusak.
+    final List<_ItemCandidate> purchasable = <_ItemCandidate>[
+      for (final _ItemCandidate candidate in candidates)
+        if (candidate.lineTotal > 0 && candidate.unit > 0) candidate,
+    ];
+    if (purchasable.isEmpty) {
+      return null;
+    }
+    return _ItemDraft(parts.name, purchasable);
   }
 
   /// Every plausible `(qty, unit, lineTotal)` reading of the trailing numbers.
@@ -1053,7 +1175,7 @@ class ReceiptParser {
     for (int i = rows.length - 1; i >= 0; i--) {
       final _Row row = rows[i];
       final String text = row.text;
-      if (!_totalWords.hasMatch(text) ||
+      if (!_hasTotalKeyword(text) ||
           _subtotalWords.hasMatch(text) ||
           _itemCountWords.hasMatch(text) ||
           _changeWords.hasMatch(text)) {
@@ -1078,7 +1200,73 @@ class ReceiptParser {
         bestRank = rank;
       }
     }
+    // Pembulatan: struk Indomaret kadang mencetak subtotal (TOTAL) lalu baris
+    // PEMBULATAN, dan TOTAL akhirnya = subtotal + pembulatan. Bila baris TOTAL
+    // akhir tidak terbaca (rusak OCR), rekonstruksi dari subtotal + pembulatan.
+    // (Diskon TIDAK dikurangkan di sini: pada struk yang TOTAL-nya sudah final,
+    // mengurangkan diskon akan meleset. Pembulatan aman karena nilainya kecil
+    // dan hanya ada bila memang dicetak.)
+    final int? pembulatan = _pembulatanValue(rows);
+    if (pembulatan != null && best != null && (best + pembulatan) >= 100) {
+      best = best + pembulatan;
+    }
+
+    // Fallback & koreksi: nominal pembayaran non-tunai (DEBIT/QRIS/dst) SAMA
+    // dengan total belanja. Jadi bila baris TOTAL tidak terbaca, ATAU nilainya
+    // meleset jauh dari nominal pembayaran (tanda TOTAL rusak oleh OCR), pakai
+    // nominal pembayaran yang lebih bisa diandalkan.
+    final int? payVal = _paymentValue(rows);
+    if (payVal != null) {
+      if (best == null || (best - payVal).abs() > 100) {
+        best = payVal;
+      }
+    }
     return best;
+  }
+
+  /// Nilai baris PEMBULATAN (pembulatan rupiah), bila ada.
+  int? _pembulatanValue(List<_Row> rows) {
+    for (final _Row row in rows) {
+      if (row.text.toUpperCase().contains('PEMBULAT') ||
+          row.text.toUpperCase().contains('PEMBULATAN')) {
+        final _RowParts parts = _splitRow(row);
+        if (parts.numbers.isNotEmpty) {
+          return parts.numbers.last;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Nominal pada baris pembayaran non-tunai (DEBIT, QRIS, dst).
+  ///
+  /// Pembayaran non-tunai membayarkan persis total belanja (tidak ada
+  /// kembalian), jadi nominalnya adalah total. Dipakai sebagai fallback saat
+  /// baris TOTAL rusak oleh OCR. Tunai/CASH dikecualikan karena nominalnya
+  /// bisa lebih besar dari total (uang yang diserahkan, bukan total).
+  int? _paymentValue(List<_Row> rows) {
+    final RegExp nonCash = RegExp(
+      r'\b(debit|kredit|qris|gopay|go-?pay|ovo|dana|shopeepay|linkaja|'
+      r'bca|mandiri|bri|bni|cimb|permata)\b',
+      caseSensitive: false,
+    );
+    for (int i = rows.length - 1; i >= 0; i--) {
+      final String text = rows[i].text;
+      if (!nonCash.hasMatch(text)) {
+        continue;
+      }
+      if (_changeWords.hasMatch(text) || _totalWords.hasMatch(text)) {
+        continue;
+      }
+      final _RowParts parts = _splitRow(rows[i]);
+      if (parts.numbers.isNotEmpty) {
+        final int v = parts.numbers.last;
+        if (v >= 100) {
+          return v;
+        }
+      }
+    }
+    return null;
   }
 
   int _totalRank(String text) {
@@ -1101,6 +1289,147 @@ class ReceiptParser {
       return 1;
     }
     return 0;
+  }
+
+  /// Apakah baris ini mengandung kata "total" — baik yang terbaca bersih
+  /// (`TOTAL`) maupun yang rusak oleh OCR (`TKDTAL`, `TOTA-L`, `TCDTAL`, dst).
+  ///
+  /// OCR sering merusak label TOTAL (hurufnya tebal & kecil), sehingga regex
+  /// persis saja tidak cukup. Kami terima kata yang jarak editnya <= 2 dari
+  /// "TOTAL" atau "JUMLAH", dengan panjang yang masuk akal (4-8 huruf).
+  bool _hasTotalKeyword(String text) {
+    if (_totalWords.hasMatch(text)) {
+      return true;
+    }
+    for (final String raw in text.toUpperCase().split(RegExp(r'[^A-Z]+'))) {
+      final String w = raw;
+      if (w.length < 4 || w.length > 8) {
+        continue;
+      }
+      // TOTAL harus diawali T, JUMLAH diawali J. Ini penting agar nama produk
+      // yang kebetulan dekat secara jarak edit (mis. "BOTOL" jarak 2 dari
+      // "TOTAL") tidak ikut dianggap baris total.
+      if (w.startsWith('T') && _editDistance(w, 'TOTAL') <= 2) {
+        return true;
+      }
+      if (w.startsWith('J') && _editDistance(w, 'JUMLAH') <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Apakah baris ini baris non-item (total, DPP, PPN, pembayaran, nomor toko,
+  /// dst)?
+  ///
+  /// OCR merusak LABEL baris-baris ini (DPP->`D+DP`, PPN->`P&DLO`,
+  /// TUNAI->`TKWNAI`), sehingga regex persis saja tidak cukup. Kami hanya
+  /// memeriksa KATA PERTAMA (label) baris — bukan semua kata — agar nama
+  /// produk yang kebetulan mengandung kata mirip tidak ikut terfilter. Label
+  /// yang jarak editnya <= 2 dari kata kunci non-item dianggap baris non-item.
+  bool _isNonItemRow(String text) {
+    if (_noiseWords.hasMatch(text) || _totalWords.hasMatch(text)) {
+      return true;
+    }
+    if (_hasTotalKeyword(text)) {
+      return true;
+    }
+    final String first = text.toUpperCase().split(RegExp(r'\s+')).first;
+    final String label = first.replaceAll(RegExp(r'[^A-Z]'), '');
+    if (label.length < 3 || label.length > 8) {
+      return false;
+    }
+    const List<String> keys = <String>[
+      'DPP', 'PPN', 'PAJAK', 'TAX', 'TUNAI', 'CASH', 'DEBIT', 'KREDIT',
+      'QRIS', 'GOPAY', 'SHOPEEPAY', 'KEMBALI', 'DISKON', 'POTONGAN',
+      'PEMBULATAN', 'STORE', 'KASIR',
+    ];
+    for (final String k in keys) {
+      if (label == k) {
+        return true;
+      }
+      // Kata pendek (3 huruf) pakai ambang ketat (jarak <= 1) agar nama
+      // produk seperti "TEH" (jarak 2 dari "TAX") tidak ikut terfilter.
+      // Kata panjang boleh jarak <= 2.
+      final int maxEdit = k.length <= 3 ? 1 : 2;
+      if (label.length >= k.length - 1 &&
+          label.length <= k.length + 2 &&
+          _editDistance(label, k) <= maxEdit) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Apakah baris ini baris ringkasan (TOTAL, SUBTOTAL, DPP, PPN, pembayaran,
+  /// kembalian, diskon)? Baris ringkasan menandai AKHIR daftar item — setelah
+  /// baris ini, tidak ada item lagi. Dipakai untuk menghentikan deteksi item
+  /// agar baris DPP/PPN/TUNAI/KEMBALI yang labelnya rusak OCR tidak ikut
+  /// terdeteksi sebagai item.
+  bool _isSummaryRow(String text) {
+    // Baris header kolom "ITEM ... TOTAL" tidak punya nilai angka; itu BUKAN
+    // baris ringkasan (ia muncul SEBELUM item). Baris ringkasan selalu punya
+    // nilai (total, DPP, PPN, pembayaran).
+    if (!RegExp(r'\d').hasMatch(text)) {
+      return false;
+    }
+    if (_hasTotalKeyword(text) || _subtotalWords.hasMatch(text)) {
+      return true;
+    }
+    final String first = text.toUpperCase().split(RegExp(r'\s+')).first;
+    final String label = first.replaceAll(RegExp(r'[^A-Z]'), '');
+    if (label.length < 3 || label.length > 9) {
+      return false;
+    }
+    const List<String> keys = <String>[
+      'DPP', 'PPN', 'PAJAK', 'TAX', 'TUNAI', 'CASH', 'DEBIT', 'KREDIT',
+      'QRIS', 'GOPAY', 'OVO', 'DANA', 'SHOPEEPAY', 'KEMBALI', 'KEMBALIAN',
+      'DISKON', 'POTONGAN', 'PEMBULATAN', 'JUMLAH', 'TAGIHAN',
+    ];
+    for (final String k in keys) {
+      if (label == k) {
+        return true;
+      }
+      final int maxEdit = k.length <= 3 ? 1 : 2;
+      if (label.length >= k.length - 1 &&
+          label.length <= k.length + 2 &&
+          _editDistance(label, k) <= maxEdit) {
+        return true;
+      }
+    }
+    // Bentuk TOTAL yang rusak berat oleh OCR (TKDTAL, TK9TAL, TKDTAXZ, dst)
+    // selalu diawali TK/TC (T + K/C) dan panjang 5-7 huruf. Nama produk
+    // diawali TE/TR/TO dst, jadi tidak ikut cocok.
+    if (label.length >= 5 && label.length <= 7) {
+      if (label.startsWith('TK') || label.startsWith('TC')) {
+        return true;
+      }
+    }
+    // Bentuk DPP yang rusak (DFJP, DPID, dst): diawali D, panjang 3-4 huruf.
+    if (label.length >= 3 && label.length <= 4 && label.startsWith('D')) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Jarak Levenshtein (untuk pencocokan kata yang rusak oleh OCR).
+  static int _editDistance(String a, String b) {
+    if (a == b) return 0;
+    if (a.isEmpty) return b.length;
+    if (b.isEmpty) return a.length;
+    List<int> prev = List<int>.generate(b.length + 1, (int i) => i);
+    for (int i = 1; i <= a.length; i++) {
+      List<int> cur = <int>[i];
+      for (int j = 1; j <= b.length; j++) {
+        cur.add(<int>[
+          prev[j] + 1,
+          cur[j - 1] + 1,
+          prev[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1),
+        ].reduce((int x, int y) => x < y ? x : y));
+      }
+      prev = cur;
+    }
+    return prev[b.length];
   }
 
   /// Sum of all discount lines, as a positive number.

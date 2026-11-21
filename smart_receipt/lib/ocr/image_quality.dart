@@ -74,11 +74,6 @@ class ImagePreprocessor {
   /// staying within a safe memory budget (~27 MB for the decoded bitmap).
   static const int _maxDimension = 3000;
 
-  /// If the image is smaller than this on its short edge it is upscaled, so
-  /// text that came from a screenshot or a distant gallery shot still has
-  /// enough pixels per character for the recognizer.
-  static const int _minShortEdge = 900;
-
   /// Crops to a region of interest and upscales it for a second OCR pass.
   ///
   /// Gallery photos usually show more than the receipt: a table, a hand, the
@@ -328,9 +323,17 @@ class ImagePreprocessor {
     if (paperLevel <= 0) {
       return const _PaperAnalysis(region: null, fillsFrame: false);
     }
-    // A little below the paper tone, so paper that is unevenly lit still reads
-    // as bright while the next-darkest surface (a keyboard, a desk) does not.
-    final int threshold = math.max(1, paperLevel - 30);
+    // Paper that is barely brighter than a night-time desk is not paper. Real
+    // receipt photos put the sheet well above the mid-grey mark even when the
+    // shot is dim; a near-black frame should never pass the gate.
+    if (paperLevel < 90) {
+      return const _PaperAnalysis(region: null, fillsFrame: false);
+    }
+    // Relative to the paper tone rather than a fixed offset, so a dimly lit or
+    // unevenly shaded sheet still reads as bright. `paperLevel - 30` cut the
+    // shadowed half off a real receipt and left the blob at 44% fill, which
+    // the gate then rejected.
+    final int threshold = math.max(1, (paperLevel * 0.70).round());
 
     // Bright pixels are the paper candidates.
     final List<bool> bright = List<bool>.filled(total, false);
@@ -465,14 +468,21 @@ class ImagePreprocessor {
     );
   }
 
-  /// The brightest grey level whose population is at least 4% of the image.
+  /// The brightest grey level whose population, accumulated from white
+  /// downwards, is at least 4% of the image.
   ///
-  /// A tiny highlight (a window reflection, a specular spot) is ignored, but
-  /// the paper itself always covers far more than 4% of a receipt photo.
+  /// Accumulating matters for real photographs: their histogram is smooth, so
+  /// **no single** grey level holds 4% of a 320-px-wide frame (a JPEG receipt
+  /// peaks at ~2%), and a per-level test would report "no paper" for every
+  /// genuine photo. Accumulating from white down finds the top of the paper's
+  /// bright band instead. A tiny specular highlight (a window reflection, a
+  /// glossy spot) still contributes far less than 4% and is ignored.
   int _brightLevel(List<int> histogram, int total) {
     final int minPopulation = math.max(1, (total * 0.04).round());
+    int cumulative = 0;
     for (int level = 255; level >= 0; level--) {
-      if (histogram[level] >= minPopulation) {
+      cumulative += histogram[level];
+      if (cumulative >= minPopulation) {
         return level;
       }
     }
@@ -809,6 +819,33 @@ class ImagePreprocessor {
   /// - Estimates the text skew angle and rotates the image upright.
   /// - Measures brightness and sharpness to flag low-light/blur.
   /// - Applies contrast/brightness equalisation when the capture is dark.
+  /// Ukur kualitas citra **tanpa mengubahnya**.
+  ///
+  /// Dipakai mesin OCR yang melakukan praprosesnya sendiri: laporan kualitas
+  /// tetap dibutuhkan UI, tetapi citra tidak boleh dirotasi, di-unsharp, atau
+  /// di-JPEG ulang.
+  Future<ImageQualityReport> analyze({required String sourcePath}) async {
+    final img.Image? decoded = await _decode(sourcePath);
+    if (decoded == null) {
+      throw ImageQualityException('Gambar tidak dapat dibaca.');
+    }
+    final img.Image working = img.bakeOrientation(decoded);
+    final double brightness = _meanLuminance(working);
+    final double blurScore = _laplacianVariance(working);
+    final int angle = _estimateSkewDegrees(working);
+    return ImageQualityReport(
+      brightness: brightness,
+      blurScore: blurScore,
+      rotationDegrees: angle,
+      width: working.width,
+      height: working.height,
+      preparedPath: sourcePath,
+      lowLight: brightness < kLowLightThreshold,
+      blurry: blurScore < kBlurThreshold,
+      rotated: angle.abs() >= 1,
+    );
+  }
+
   Future<ImageQualityReport> prepare({
     required String sourcePath,
     required String outputPath,
@@ -849,51 +886,40 @@ class ImagePreprocessor {
           : img.copyResize(working, height: _maxDimension);
     }
 
-    // Gallery photos are often taken from further away than the in-app camera
-    // framing, leaving the receipt small in the frame. Upscaling the short edge
-    // restores the pixels-per-character the recognizer needs.
-    final int shortEdge = math.min(working.width, working.height);
-    if (shortEdge < _minShortEdge && shortEdge > 0) {
-      final double factor = _minShortEdge / shortEdge;
-      working = img.copyResize(
-        working,
-        width: (working.width * factor).round(),
-        height: (working.height * factor).round(),
-        interpolation: img.Interpolation.cubic,
-      );
-    }
+    // Catatan: tidak ada upscale buta di sini. Engine OCR klasik punya
+    // upscale adaptif berbasis tinggi baris (`_adaptiveScale`), dan
+    // pengujian menunjukkan upscale buta (cubic/bilinear ke short-edge)
+    // justru merusak binarisasi & segmentasi — total struk yang tadinya
+    // terbaca benar menjadi salah. Biarkan engine yang memutuskan resolusi.
 
     final bool lowLight = brightness < kLowLightThreshold;
     if (lowLight) {
       working = _normalizeBrightness(working, brightness);
     }
 
-    // Sharpen when blur is detected so ML Kit has crisper strokes to work with.
-    // The unsharp mask is applied before contrast normalisation so the boost
-    // does not amplify the sharpening artefacts.
+    // Sharpen when blur is detected so the recognizer has crisper strokes to
+    // work with. (Hanya untuk foto yang terdeteksi buram; tidak mengubah
+    // citra yang sudah tajam.)
     final bool blurry = blurScore < kBlurThreshold;
     if (blurry) {
       working = _applyUnsharpMask(working);
     }
 
-    final img.Image finalImage = rotated || lowLight || blurry
-        ? working
-        : img.Image.from(working);
-
-    // Binarization-friendly grayscale contrast boost materially improves ML Kit
-    // on faded thermal receipts.
-    _boostContrastInPlace(finalImage);
+    // Catatan: tidak ada penguatan kontras lokal (CLAHE) di sini. Engine OCR
+    // klasik memakai binarisasi adaptif (lokal) yang sudah menangani cahaya
+    // tidak rata dan cetakan pudar; CLAHE justru memperkuat tekstur kertas
+    // menjadi "tinta" palsu dan merusak fitur HOG. (Dulu dipakai untuk ML Kit.)
 
     final File out = File(outputPath);
     out.parent.createSync(recursive: true);
-    await out.writeAsBytes(img.encodeJpg(finalImage, quality: 92));
+    await out.writeAsBytes(img.encodeJpg(working, quality: 92));
 
     return ImageQualityReport(
       brightness: brightness,
       blurScore: blurScore,
       rotationDegrees: angle,
-      width: finalImage.width,
-      height: finalImage.height,
+      width: working.width,
+      height: working.height,
       preparedPath: outputPath,
       lowLight: lowLight,
       blurry: blurry,
@@ -1083,132 +1109,6 @@ class ImagePreprocessor {
       }
     }
     return result;
-  }
-
-  void _boostContrastInPlace(img.Image image) {
-    // A single global contrast stretch cannot fix a receipt photographed under
-    // uneven light: the bright half is already clipped while the shadowed half
-    // stays flat. Local (tile-based) normalisation — the same idea as CLAHE,
-    // the standard preprocessing step for document OCR — equalises each region
-    // independently so faded thermal print becomes legible everywhere.
-    _normalizeLocalContrastInPlace(image);
-  }
-
-  /// Tile-based local contrast normalisation with bilinear interpolation
-  /// between tiles, so no tile seams appear.
-  void _normalizeLocalContrastInPlace(img.Image image) {
-    const int tilesX = 8;
-    const int tilesY = 8;
-    const double targetStd = 52;
-
-    /// Tiles flatter than this hold no text — they are blank paper or a plain
-    /// background. Amplifying them would only raise sensor noise, so they are
-    /// left untouched.
-    const double flatStd = 12;
-
-    /// A tile with a little texture must never be stretched more than this.
-    /// Without the cap, a nearly blank tile (std ~13) would be multiplied by
-    /// 4x and the resulting noise destroys the recognizer's line detection.
-    const double maxGain = 2.2;
-
-    final int w = image.width;
-    final int h = image.height;
-    if (w < tilesX * 4 || h < tilesY * 4) {
-      return;
-    }
-
-    final int tileW = (w / tilesX).ceil();
-    final int tileH = (h / tilesY).ceil();
-
-    // Per-tile mean, standard deviation, and the gain derived from them.
-    final List<double> means = List<double>.filled(tilesX * tilesY, 128);
-    final List<double> gains = List<double>.filled(tilesX * tilesY, 1);
-    for (int ty = 0; ty < tilesY; ty++) {
-      for (int tx = 0; tx < tilesX; tx++) {
-        final int x0 = tx * tileW;
-        final int y0 = ty * tileH;
-        final int x1 = math.min(x0 + tileW, w);
-        final int y1 = math.min(y0 + tileH, h);
-        double sum = 0;
-        double sumSq = 0;
-        int count = 0;
-        for (int y = y0; y < y1; y++) {
-          for (int x = x0; x < x1; x++) {
-            final img.Pixel p = image.getPixel(x, y);
-            final double luma = img
-                .getLuminanceRgb(
-                  p.r.toDouble(),
-                  p.g.toDouble(),
-                  p.b.toDouble(),
-                )
-                .toDouble();
-            sum += luma;
-            sumSq += luma * luma;
-            count++;
-          }
-        }
-        final int index = ty * tilesX + tx;
-        if (count > 0) {
-          final double mean = sum / count;
-          final double variance = math.max(sumSq / count - mean * mean, 0);
-          final double std = math.sqrt(variance);
-          means[index] = mean;
-          gains[index] = std < flatStd
-              ? 1.0
-              : (targetStd / std).clamp(1.0, maxGain).toDouble();
-        }
-      }
-    }
-
-    for (int y = 0; y < h; y++) {
-      final double gy = (y / tileH) - 0.5;
-      final int ty0 = gy.floor().clamp(0, tilesY - 1);
-      final int ty1 = (ty0 + 1).clamp(0, tilesY - 1);
-      final double fy = (gy - ty0).clamp(0.0, 1.0);
-
-      for (int x = 0; x < w; x++) {
-        final double gx = (x / tileW) - 0.5;
-        final int tx0 = gx.floor().clamp(0, tilesX - 1);
-        final int tx1 = (tx0 + 1).clamp(0, tilesX - 1);
-        final double fx = (gx - tx0).clamp(0.0, 1.0);
-
-        final double m00 = means[ty0 * tilesX + tx0];
-        final double m10 = means[ty0 * tilesX + tx1];
-        final double m01 = means[ty1 * tilesX + tx0];
-        final double m11 = means[ty1 * tilesX + tx1];
-        final double g00 = gains[ty0 * tilesX + tx0];
-        final double g10 = gains[ty0 * tilesX + tx1];
-        final double g01 = gains[ty1 * tilesX + tx0];
-        final double g11 = gains[ty1 * tilesX + tx1];
-
-        final double mean = _bilerp(m00, m10, m01, m11, fx, fy);
-        final double gain = _bilerp(g00, g10, g01, g11, fx, fy);
-
-        final img.Pixel p = image.getPixel(x, y);
-        p.r = _applyLocal(p.r.toDouble(), mean, gain);
-        p.g = _applyLocal(p.g.toDouble(), mean, gain);
-        p.b = _applyLocal(p.b.toDouble(), mean, gain);
-      }
-    }
-  }
-
-  double _bilerp(
-    double v00,
-    double v10,
-    double v01,
-    double v11,
-    double fx,
-    double fy,
-  ) {
-    final double top = v00 + (v10 - v00) * fx;
-    final double bottom = v01 + (v11 - v01) * fx;
-    return top + (bottom - top) * fy;
-  }
-
-  int _applyLocal(double channel, double mean, double gain) {
-    // Preserve the mid-tone the tile was centred on, then stretch around it.
-    final double v = (channel - mean) * gain + mean;
-    return v.clamp(0, 255).round();
   }
 }
 
