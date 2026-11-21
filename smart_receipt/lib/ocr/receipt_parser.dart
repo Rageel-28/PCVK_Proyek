@@ -222,6 +222,19 @@ class ReceiptParser {
   /// Bare numbers / phone numbers that should never be a store name.
   static final RegExp _nonStoreLine = RegExp(r'^[\d\s\-+().,:]+$');
 
+  /// Kata penanda baris alamat toko, mis. `JL. PEMUDA. KEL.KEBUMEN. KEC.`.
+  static final RegExp _addressWords = RegExp(
+    r'\b(jl|jln|jalan|kel|kec|kab|kota|kabupaten|kecamatan|kelurahan|'
+    r'rt|rw|npwp|telp|tel|hp|phone|fax|kode\s*pos)\b',
+    caseSensitive: false,
+  );
+
+  /// Nomor telepon Indonesia yang diawali nol, mis. `0287386631`.
+  static final RegExp _phoneNumber = RegExp(r'(?<!\d)0\d{8,}(?!\d)');
+
+  /// Kode pos lima digit di ujung baris, mis. `KEBUMEN. 54330`.
+  static final RegExp _postalCode = RegExp(r'(?<!\d)\d{5}(?!\d)\s*$');
+
   /// Merchant names printed as text somewhere on the receipt. The logo is an
   /// image, so OCR reads it as noise; the name almost always appears in a
   /// footer such as `LAYANAN KONSUMEN INDOMARET`.
@@ -499,6 +512,10 @@ class ReceiptParser {
     final int discounts = _extractDiscounts(rows);
 
     final List<_ItemDraft> drafts = <_ItemDraft>[];
+    // Baris alamat toko sering berlanjut ke baris berikutnya yang hanya berisi
+    // nama kota + kode pos (`KEBUMEN. 54330`). Tanpa konteks baris sebelumnya,
+    // kode pos itu terbaca sebagai harga.
+    bool previousWasAddress = false;
     for (final _Row row in rows) {
       // Item selalu muncul SEBELUM baris ringkasan (TOTAL, DPP, PPN,
       // pembayaran). Begitu baris ringkasan pertama muncul, baris berikutnya
@@ -506,6 +523,12 @@ class ReceiptParser {
       // yang labelnya rusak OCR ikut terdeteksi sebagai item.
       if (_isSummaryRow(row.text)) {
         break;
+      }
+      final bool isAddress = _isAddressLine(row.text) ||
+          (previousWasAddress && _isPostalContinuation(row.text));
+      previousWasAddress = isAddress;
+      if (isAddress) {
+        continue;
       }
       final _ItemDraft? draft = _readItem(row);
       if (draft != null) {
@@ -1327,7 +1350,42 @@ class ReceiptParser {
   /// memeriksa KATA PERTAMA (label) baris — bukan semua kata — agar nama
   /// produk yang kebetulan mengandung kata mirip tidak ikut terfilter. Label
   /// yang jarak editnya <= 2 dari kata kunci non-item dianggap baris non-item.
+  /// True bila [text] adalah baris alamat/kontak toko, bukan barang.
+  ///
+  /// Struk Indonesia mencetak alamat lengkap di bawah nama toko. Baris alamat
+  /// sering berakhir dengan kode pos lima digit yang lalu terbaca sebagai
+  /// harga, mis. `KEBUMEN. 54330` menjadi barang seharga 54.330. Syarat
+  /// tambahan "minimal dua kata berhuruf" menjaga harga lima digit tanpa
+  /// pemisah (`SARI ROTI 12500`) tetap dianggap harga.
+  bool _isAddressLine(String text) {
+    final String t = text.trim();
+    if (t.isEmpty) {
+      return false;
+    }
+    if (_addressWords.hasMatch(t)) {
+      return true;
+    }
+    if (_phoneNumber.hasMatch(t)) {
+      return true;
+    }
+    if (!_postalCode.hasMatch(t)) {
+      return false;
+    }
+    final int words = RegExp(r'[A-Za-z]{2,}').allMatches(t).length;
+    return words >= 2;
+  }
+
+  /// Baris lanjutan alamat: berakhir dengan kode pos lima digit dan masih
+  /// memuat nama tempat (`KEBUMEN. 54330`).
+  bool _isPostalContinuation(String text) {
+    final String t = text.trim();
+    return _postalCode.hasMatch(t) && RegExp(r'[A-Za-z]{2,}').hasMatch(t);
+  }
+
   bool _isNonItemRow(String text) {
+    if (_isAddressLine(text)) {
+      return true;
+    }
     if (_noiseWords.hasMatch(text) || _totalWords.hasMatch(text)) {
       return true;
     }
@@ -1528,15 +1586,26 @@ class ReceiptParser {
       }
     }
 
+    bool previousWasAddress = false;
     for (final _Row row in rows.take(6)) {
       final String t = row.text.trim();
+      final bool isAddress = _isAddressLine(t) ||
+          (previousWasAddress && _isPostalContinuation(t));
+      previousWasAddress = isAddress;
       if (t.length < 3 || t.length > 40) {
         continue;
       }
       if (_nonStoreLine.hasMatch(t) || _datePattern.hasMatch(t)) {
         continue;
       }
+      if (isAddress) {
+        continue;
+      }
       if (_noiseWords.hasMatch(t) || _paymentWords.hasMatch(t)) {
+        continue;
+      }
+      // Baris barang berakhir dengan harga; nama toko tidak.
+      if (RegExp(r'\d{3,}\s*$').hasMatch(t)) {
         continue;
       }
       if (_digitRatio(t) > 0.4) {
@@ -1710,6 +1779,11 @@ class ReceiptParser {
       }
 
       if (month < 1 || month > 12 || day < 1 || day > 31) {
+        continue;
+      }
+      // OCR sering membaca `19` sebagai `34`. Tahun masa depan berarti tanggal
+      // itu salah baca, bukan tanggal struk yang sebenarnya.
+      if (year > DateTime.now().year) {
         continue;
       }
       return _DateParts(year: year, month: month, day: day);
